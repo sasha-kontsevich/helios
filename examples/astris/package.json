@@ -1,0 +1,16 @@
+{
+  "name": "astris",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "vite"
+  },
+  "dependencies": {
+    "core": "*",
+    "editor": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.17",
+    "path": "^0.12.7",
+    "vite": "^2.9.18"
+  }
+}

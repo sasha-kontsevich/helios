@@ -1,0 +1,16 @@
+{
+  "name": "helios-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ],
+  "scripts": {
+    "start": "npm run start --workspace examples/astris",
+    "build": "npm run build --workspace packages/core",
+    "test": "npm run test --workspace packages/core"
+  },
+  "devDependencies": {
+    "pnpm": "10.0.0"
+  }
+}
