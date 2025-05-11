@@ -1,14 +1,15 @@
 {
-  "name": "core",
+  "name": "@merlinn/helios-cli",
   "version": "1.0.0",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "bin": {
+    "create-game": "./dist/create-game.js"
+  },
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch"
   },
   "dependencies": {
-    "bitecs": "^0.3.40"
+    "inquirer": "^8.0.0"
   },
   "devDependencies": {
     "typescript": "^4.5.0"
