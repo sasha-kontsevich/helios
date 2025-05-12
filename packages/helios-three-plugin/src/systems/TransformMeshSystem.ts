@@ -7,7 +7,7 @@ export class TransformMeshSystem implements ISystem {
     private rotationQuery = defineQuery([]);
     private scaleQuery = defineQuery([]);
 
-    init(context: Context) {
+    constructor(context: Context) {
         const Position = context.components.get('Position');
         const Rotation = context.components.get('Rotation');
         const Scale = context.components.get('Scale');

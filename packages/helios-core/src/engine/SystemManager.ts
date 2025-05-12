@@ -1,13 +1,16 @@
 import { Context } from './index';
-import {ISystem} from "../index";
+import {ISystem, SystemConstructor} from "../index";
 
 export class SystemManager {
     private systems: ISystem[] = [];
 
     constructor(private readonly context: Context) {}
 
-    register(system: ISystem): void {
-        this.systems.push(system);
+    register(systems: (SystemConstructor | ISystem)[]) {
+        for (const s of systems) {
+            const instance = typeof s === 'function' ? new s(this.context) : s;
+            this.systems.push(instance);
+        }
     }
 
     async initAll(): Promise<void> {

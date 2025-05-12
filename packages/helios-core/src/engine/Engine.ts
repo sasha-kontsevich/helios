@@ -25,7 +25,7 @@ export class Engine {
 
         await this.context.assetDatabase.indexMeta(assetIndex);
 
-        const prefabGuids: string[] = [ /* список GUID префабов */ ];
+        // const prefabGuids: string[] = [ /* список GUID префабов */ ];
         // await this.context.assetDatabase.preloadJson(prefabGuids);
     }
 
@@ -52,5 +52,9 @@ export class Engine {
 
     stop() {
         this.running = false;
+    }
+
+    public getContext() {
+        return this.context;
     }
 }
