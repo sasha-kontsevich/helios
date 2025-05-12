@@ -1,11 +1,13 @@
 {
   "name": "astris",
   "version": "0.0.1",
+  "type": "module",
   "scripts": {
     "dev": "vite"
   },
   "dependencies": {
-    "@merlinn/helios-core": "workspace:*"
+    "@merlinn/helios-core": "workspace:*",
+    "@merlinn/helios-three-plugin": "workspace:*"
   },
   "devDependencies": {
     "@merlinn/helios-editor": "workspace:*",
