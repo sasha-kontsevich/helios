@@ -20,6 +20,9 @@ importers:
       '@merlinn/helios-three-plugin':
         specifier: workspace:*
         version: link:../../packages/helios-three-plugin
+      bitecs:
+        specifier: ^0.3.40
+        version: 0.3.40
     devDependencies:
       '@merlinn/helios-editor':
         specifier: workspace:*

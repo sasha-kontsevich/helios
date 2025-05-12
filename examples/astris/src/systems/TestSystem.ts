@@ -1,16 +1,27 @@
 import {Context, ISystem} from "@merlinn/helios-core";
+import {addComponent, addEntity, defineQuery} from "bitecs";
 
 export class TestSystem implements ISystem {
+    private readonly fpsEntity;
+    private readonly Fps;
+    private readonly query;
 
-    constructor(_context: Context) {
-
+    constructor(context: Context) {
+        this.fpsEntity = addEntity(context.ecsWorld)
+        this.Fps = context.components.get('Fps');
+        addComponent(context.ecsWorld, this.Fps, this.fpsEntity);
+        this.query  = defineQuery([this.Fps]);
     }
 
-    update(_context: Context, deltaTime: number): void {
-        this.logFps(deltaTime)
+    update(context: Context, deltaTime: number): void {
+        const eids = this.query(context.ecsWorld);
+        eids.forEach((eid) => {
+            this.Fps.rawValue[eid] = this.getFps(deltaTime)
+        })
+        console.log(this.Fps.rawValue[this.fpsEntity].toFixed())
     }
 
-    logFps(deltaTime: number) {
-        console.log((1/deltaTime).toFixed(0));
+    getFps(deltaTime: number) {
+        return (1/deltaTime);
     }
 }

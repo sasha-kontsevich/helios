@@ -6,6 +6,7 @@ import {
     ThreeRenderer,
     ThreeScene
 } from "@merlinn/helios-three-plugin";
+import {Fps} from "./components";
 
 export function initComponents(context: Context) {
     context.components.register('ThreeMesh', ThreeMesh);
@@ -13,4 +14,5 @@ export function initComponents(context: Context) {
     context.components.register('ThreeScene', ThreeScene);
     context.components.register('ThreeRenderer', ThreeRenderer);
     context.components.register('ThreeLight', ThreeLight);
+    context.components.register('Fps', Fps);
 }
