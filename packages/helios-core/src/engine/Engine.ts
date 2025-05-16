@@ -1,5 +1,5 @@
 import { Context } from './Context';
-import { Position, Rotation, Scale } from "../components";
+import * as Components from "../components"
 
 export class Engine {
     readonly context: Context;
@@ -12,12 +12,7 @@ export class Engine {
 
     async init(assetIndex: string[]) {
         console.log("Initializing engine");
-        // Здесь можно будет инициализировать базовые модули, загрузить ресурсы и т.д.
-        const c = this.context.components;
-
-        c.register('Position', Position);
-        c.register('Rotation', Rotation);
-        c.register('Scale', Scale);
+        this.context.components.registerAll(Components);
 
         await this.context.plugins.initAll();
 

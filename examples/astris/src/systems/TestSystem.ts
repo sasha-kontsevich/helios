@@ -1,5 +1,6 @@
 import {Context, ISystem} from "@merlinn/helios-core";
 import {addComponent, addEntity, defineQuery} from "bitecs";
+import {Fps} from "../components";
 
 export class TestSystem implements ISystem {
     private readonly fpsEntity;
@@ -18,7 +19,7 @@ export class TestSystem implements ISystem {
         eids.forEach((eid) => {
             this.Fps.rawValue[eid] = this.getFps(deltaTime)
         })
-        console.log(this.Fps.rawValue[this.fpsEntity].toFixed())
+        console.log('context:', this.Fps.rawValue[this.fpsEntity].toFixed(),'import', Fps.rawValue[this.fpsEntity].toFixed())
     }
 
     getFps(deltaTime: number) {

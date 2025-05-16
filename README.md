@@ -20,6 +20,15 @@ pnpm --filter astris dev
 
 ## Запуск отслеживания изменений пакетов
 ```bash
-pnpm run -r watch
+pnpm --filter @merlinn/helios-core watch
+```
+```bash
+pnpm --filter @merlinn/helios-editor watch
+```
+```bash
+pnpm --filter @merlinn/helios-three-plugin watch
+```
+```bash
+pnpm --filter @merlinn/helios-physics-plugin watch
 ```
 
