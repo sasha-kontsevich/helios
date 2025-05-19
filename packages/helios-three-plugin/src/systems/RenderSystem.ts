@@ -1,41 +1,28 @@
 import * as THREE from 'three';
 import {defineQuery} from "bitecs";
-import {Context, ISystem} from "@merlinn/helios-core";
+import {System} from "@merlinn/helios-core";
+import {ThreeCamera, ThreeRenderer, ThreeScene} from '../components';
 
-export class RenderSystem implements ISystem {
-    private sceneQuery;
-    private rendererQuery;
-    private cameraQuery;
+export class RenderSystem extends System {
+    private sceneQuery = defineQuery([ThreeScene]);
+    private rendererQuery = defineQuery([ThreeRenderer]);
+    private cameraQuery = defineQuery([ThreeCamera]);
 
     private scene?: THREE.Scene;
     private renderer?: THREE.WebGLRenderer;
     private camera?: THREE.Camera;
 
-    private ThreeScene;
-    private ThreeRenderer;
-    private ThreeCamera;
-
-    constructor(context: Context) {
-        this.ThreeScene = context.components.get("ThreeScene");
-        this.ThreeRenderer = context.components.get("ThreeRenderer");
-        this.ThreeCamera = context.components.get("ThreeCamera");
-
-        this.sceneQuery = defineQuery([this.ThreeScene]);
-        this.rendererQuery = defineQuery([this.ThreeRenderer]);
-        this.cameraQuery = defineQuery([this.ThreeCamera]);
-    }
-
-    update(context: Context, deltaTime: number) {
-        this.sceneQuery(context.ecsWorld).forEach(entity => {
-            this.scene = context.resources.get<THREE.Scene>(this.ThreeScene.resourceId[entity])
+    update(deltaTime: number) {
+        this.sceneQuery(this.world).forEach(entity => {
+            this.scene = this.resources.get<THREE.Scene>(ThreeScene.resourceId[entity]);
         });
 
-        this.rendererQuery(context.ecsWorld).forEach(entity => {
-            this.renderer = context.resources.get<THREE.WebGLRenderer>(this.ThreeRenderer.resourceId[entity])
+        this.rendererQuery(this.world).forEach(entity => {
+            this.renderer = this.resources.get<THREE.WebGLRenderer>(ThreeRenderer.resourceId[entity]);
         });
 
-        this.cameraQuery(context.ecsWorld).forEach(entity => {
-            this.camera = context.resources.get<THREE.Camera>(this.ThreeCamera.resourceId[entity])
+        this.cameraQuery(this.world).forEach(entity => {
+            this.camera = this.resources.get<THREE.Camera>(ThreeCamera.resourceId[entity]);
         });
 
         if (!this.scene || !this.camera || !this.renderer) return;

@@ -2,7 +2,7 @@ import { defineComponent, Types } from 'bitecs';
 
 export const Velocity = defineComponent({ x: Types.f32, y: Types.f32, z: Types.f32 });
 
-declare module '../../../engine' {
+declare module '@merlinn/helios-core' {
     interface ComponentMap {
         Velocity: typeof Velocity;
     }

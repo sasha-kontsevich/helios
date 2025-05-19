@@ -16,7 +16,6 @@ export class Engine {
 
         await this.context.plugins.initAll();
 
-        await this.context.systems.initAll();
 
         await this.context.assetDatabase.indexMeta(assetIndex);
 
@@ -27,6 +26,7 @@ export class Engine {
     start() {
         this.running = true;
         this.lastTime = performance.now();
+        this.context.systems.startAll();
         requestAnimationFrame(this.loop);
     }
 
@@ -35,18 +35,19 @@ export class Engine {
 
         const deltaTime = (currentTime - this.lastTime) / 1000;
         this.lastTime = currentTime;
-
-        this.update(deltaTime);
+        if (1 <= 1/deltaTime && 1/deltaTime <= 61) {
+            this.update(deltaTime);
+        }
         requestAnimationFrame(this.loop);
     }
 
     private update(deltaTime: number) {
-        // Обновляем все системы по порядку
         this.context.systems.update(deltaTime);
     }
 
     stop() {
         this.running = false;
+        this.context.systems.stopAll();
     }
 
     public getContext() {

@@ -1,4 +1,3 @@
-export * from './ISystem';
 export * from './IPlugin';
 export * from './ComponentMap';
 export * from './PrefabData'

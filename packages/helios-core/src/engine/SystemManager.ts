@@ -1,41 +1,72 @@
 import { Context } from './index';
-import {ISystem, SystemConstructor} from "../index";
+import { System } from './System';
+
+export type SystemConstructor = new (context: Context) => System;
 
 export class SystemManager {
-    private systems: ISystem[] = [];
+    private systems: System[] = [];
+    private systemMap = new Map<string, System>();
 
     constructor(private readonly context: Context) {}
 
-    register(systems: (SystemConstructor | ISystem)[]) {
+    register(systems: (SystemConstructor | System)[]) {
         for (const s of systems) {
             const instance = typeof s === 'function' ? new s(this.context) : s;
+            const systemName = instance.constructor.name;
+            
+            if (this.systemMap.has(systemName)) {
+                throw new Error(`System "${systemName}" is already registered`);
+            }
+
             this.systems.push(instance);
+            this.systemMap.set(systemName, instance);
         }
     }
 
-    async initAll(): Promise<void> {
+    async startAll(): Promise<void> {
         for (const system of this.systems) {
-            if (system.init) {
-                await system.init(this.context);
+            if (system.isEnabled()) {
+                await system.start();
             }
         }
     }
 
     update(deltaTime: number): void {
         for (const system of this.systems) {
-            system.update(this.context, deltaTime);
+            if (system.isEnabled()) {
+                system.update(deltaTime);
+            }
         }
     }
 
     stopAll() {
         for (const system of this.systems) {
-            if (system.stop) {
-                system.stop(this.context);
+            if (system.isEnabled()) {
+                system.stop();
             }
+        }
+    }
+
+    get(name: string): System | undefined {
+        return this.systemMap.get(name);
+    }
+
+    enable(name: string) {
+        const system = this.systemMap.get(name);
+        if (system) {
+            system.enable();
+        }
+    }
+
+    disable(name: string) {
+        const system = this.systemMap.get(name);
+        if (system) {
+            system.disable();
         }
     }
 
     clear(): void {
         this.systems = [];
+        this.systemMap.clear();
     }
 }

@@ -1,28 +1,27 @@
-import {Context, ISystem} from "@merlinn/helios-core";
-import {addComponent, addEntity, defineQuery} from "bitecs";
-import {Fps} from "../components";
+import {Context, System} from "@merlinn/helios-core";
+import { addComponent, addEntity, defineQuery } from "bitecs";
+import { Fps } from "../components";
 
-export class TestSystem implements ISystem {
-    private readonly fpsEntity;
-    private readonly Fps;
-    private readonly query;
+export class TestSystem extends System {
+    private fpsEntity;
+    private query = defineQuery([Fps]);
 
     constructor(context: Context) {
-        this.fpsEntity = addEntity(context.ecsWorld)
-        this.Fps = context.components.get('Fps');
-        addComponent(context.ecsWorld, this.Fps, this.fpsEntity);
-        this.query  = defineQuery([this.Fps]);
+        super(context);
+
+        this.fpsEntity = addEntity(this.world);
+        addComponent(this.world, Fps, this.fpsEntity);
     }
 
-    update(context: Context, deltaTime: number): void {
-        const eids = this.query(context.ecsWorld);
+    update(deltaTime: number): void {
+        const eids = this.query(this.world);
         eids.forEach((eid) => {
-            this.Fps.rawValue[eid] = this.getFps(deltaTime)
-        })
-        console.log('context:', this.Fps.rawValue[this.fpsEntity].toFixed(),'import', Fps.rawValue[this.fpsEntity].toFixed())
+            Fps.rawValue[eid] = this.getFps(deltaTime);
+        });
+        console.log('FPS:', Fps.rawValue[this.fpsEntity].toFixed(), this.fpsEntity);
     }
 
-    getFps(deltaTime: number) {
+    private getFps(deltaTime: number) {
         return (1/deltaTime);
     }
 }
