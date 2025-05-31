@@ -1,4 +1,3 @@
-export * from './IPlugin';
 export * from './ComponentMap';
 export * from './PrefabData'
 export * from './AssetType';
@@ -8,3 +7,5 @@ export * from './IAssetLoader';
 export * from './SceneData';
 export * from './PrefabInstance';
 export * from './ComponentOverrides';
+export * from './SystemConstructor'
+export * from './EngineConfig'

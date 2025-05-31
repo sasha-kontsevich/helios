@@ -1,0 +1,8 @@
+{
+  "components": {
+    "Transform": { "x": 0, "y": 0 },
+    "Sprite": { "texture": "guid://texture-player" },
+    "Controller": {},
+    "Health": { "max": 100 }
+  }
+}

@@ -1,14 +1,17 @@
 import { Context } from './Context';
+import {ResourceManager} from "./ResourceManager";
 
 export abstract class System {
     protected enabled: boolean = true;
     protected readonly world;
-    protected readonly resources;
+    protected readonly resources: ResourceManager;
+    protected readonly components;
 
     constructor(context: Context) {
         const { ecsWorld, resources } = context;
         this.world = ecsWorld;
         this.resources = resources;
+        this.components = context.components;
     }
 
     /**

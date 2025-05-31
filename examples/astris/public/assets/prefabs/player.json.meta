@@ -1,0 +1,6 @@
+{
+  "guid": "guid://prefab-player",
+  "type": "prefab",
+  "loader": "loadPrefab",
+  "dependencies": ["guid://texture-player"]
+}

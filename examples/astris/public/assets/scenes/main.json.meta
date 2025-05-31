@@ -1,0 +1,9 @@
+{
+  "guid": "guid://scene-main",
+  "type": "scene",
+  "loader": "loadScene",
+  "dependencies": [
+    "guid://prefab-player",
+    "guid://texture-tileset"
+  ]
+}

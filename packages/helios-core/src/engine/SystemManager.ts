@@ -1,7 +1,6 @@
 import { Context } from './index';
 import { System } from './System';
-
-export type SystemConstructor = new (context: Context) => System;
+import { SystemConstructor } from '../types';
 
 export class SystemManager {
     private systems: System[] = [];

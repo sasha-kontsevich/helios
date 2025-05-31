@@ -1,19 +1,20 @@
-import {Context, IPlugin} from "@merlinn/helios-core";
+import {Plugin, Context} from "@merlinn/helios-core";
 
 interface ThreePluginOptions {
-    canvasContainer: HTMLElement;
+    canvasContainer: HTMLElement|null;
 }
 
-export class ThreePlugin implements IPlugin {
+export class ThreePlugin extends Plugin {
 
     public name: string = 'Three';
     private readonly options: ThreePluginOptions;
 
     constructor(options: ThreePluginOptions) {
+        super();
         this.options = options;
     }
 
-    async setup(context: Context) {
+    public setup() {
         // const { canvasContainer } = this.options;
         //
         // // Инициализируем THREE объекты ВЫНЕСТИ В БИЛДЕР

@@ -40,6 +40,3 @@ coverage/
 
 # Editor specific
 .editorconfig
-
-# Local testing
-examples/**/public/assets/

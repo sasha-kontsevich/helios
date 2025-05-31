@@ -1,5 +1,6 @@
 import { Context } from './Context';
 import * as Components from "../components"
+import {EngineConfig} from "../types";
 
 export class Engine {
     readonly context: Context;
@@ -10,14 +11,16 @@ export class Engine {
         this.context = new Context(this);
     }
 
-    async init(assetIndex: string[]) {
+    async init(config: EngineConfig) {
         console.log("Initializing engine");
-        this.context.components.registerAll(Components);
 
-        await this.context.plugins.initAll();
+        this.context.components.registerAll(config.components);
 
+        this.context.plugins.registerAll(config.plugins);
 
-        await this.context.assetDatabase.indexMeta(assetIndex);
+        this.context.systems.register(config.systems);
+
+        // await this.context.assetDatabase.indexMeta(assetIndex);
 
         // const prefabGuids: string[] = [ /* список GUID префабов */ ];
         // await this.context.assetDatabase.preloadJson(prefabGuids);
@@ -35,9 +38,9 @@ export class Engine {
 
         const deltaTime = (currentTime - this.lastTime) / 1000;
         this.lastTime = currentTime;
-        if (1 <= 1/deltaTime && 1/deltaTime <= 61) {
+        // if (1 <= 1/deltaTime && 1/deltaTime <= 61) {
             this.update(deltaTime);
-        }
+        // }
         requestAnimationFrame(this.loop);
     }
 
