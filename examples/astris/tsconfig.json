@@ -1,18 +1,4 @@
 {
-  "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "Node",
-    "jsx": "preserve",
-    "strict": true,
-    "baseUrl": ".",
-    "paths": {
-      "@merlinn/helios-core": ["../../packages/helios-core/src"],
-      "@merlinn/helios-core/*": ["../../packages/helios-core/src/*"],
-      "@merlinn/helios-editor": ["../../packages/helios-editor/src"],
-      "@merlinn/helios-editor/*": ["../../packages/helios-editor/src/*"]
-    },
-    "skipLibCheck": true
-  },
-  "include": ["src", "../../packages/helios-core/src", "../../packages/helios-editor/src"]
+  "extends": "../../tsconfig.base.json",
+  "include": ["src"]
 }

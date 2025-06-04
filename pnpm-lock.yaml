@@ -14,12 +14,6 @@ importers:
 
   examples/astris:
     dependencies:
-      '@merlinn/helios-core':
-        specifier: workspace:*
-        version: link:../../packages/helios-core
-      '@merlinn/helios-three-plugin':
-        specifier: workspace:*
-        version: link:../../packages/helios-three-plugin
       bitecs:
         specifier: ^0.3.40
         version: 0.3.40
@@ -27,9 +21,15 @@ importers:
         specifier: ^0.176.0
         version: 0.176.0
     devDependencies:
+      '@merlinn/helios-core':
+        specifier: workspace:*
+        version: link:../../packages/helios-core
       '@merlinn/helios-editor':
         specifier: workspace:*
         version: link:../../packages/helios-editor
+      '@merlinn/helios-three-plugin':
+        specifier: workspace:*
+        version: link:../../packages/helios-three-plugin
       '@types/node':
         specifier: ^22.15.17
         version: 22.15.17
@@ -61,10 +61,6 @@ importers:
       bitecs:
         specifier: ^0.3.40
         version: 0.3.40
-    devDependencies:
-      typescript:
-        specifier: ^4.5.0
-        version: 4.9.5
 
   packages/helios-editor:
     dependencies:
@@ -97,13 +93,6 @@ importers:
       three:
         specifier: ^0.176.0
         version: 0.176.0
-    devDependencies:
-      '@types/three':
-        specifier: ^0.176.0
-        version: 0.176.0
-      typescript:
-        specifier: ^4.5.0
-        version: 4.9.5
 
 packages:
 

@@ -20,7 +20,7 @@ export class PluginManager {
             throw new Error(`Plugin with name "${plugin.name}" is already registered.`);
         }
 
-        plugin.setup();
+        plugin.setup(this.context);
         this.plugins.set(plugin.name, plugin);
     }
 

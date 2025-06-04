@@ -1,26 +1,8 @@
-  {
-    "name": "@merlinn/helios-core",
-    "version": "1.0.0",
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
-    "scripts": {
-      "build": "tsc",
-      "watch": "tsc --watch"
-    },
-    "dependencies": {
-      "bitecs": "^0.3.40"
-    },
-    "devDependencies": {
-      "typescript": "^4.5.0"
-    },
-    "publishConfig": {
-      "access": "public"
-    },
-    "exports": {
-      ".": {
-        "import": "./dist/index.js",
-        "require": "./dist/index.cjs",
-        "types": "./dist/index.d.ts"
-      }
-    }
+{
+  "name": "@merlinn/helios-core",
+  "version": "0.0.1",
+  "main": "src/index.ts",
+  "dependencies": {
+    "bitecs": "^0.3.40"
   }
+}

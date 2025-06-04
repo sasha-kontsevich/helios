@@ -6,13 +6,17 @@
     "dev": "vite"
   },
   "dependencies": {
-    "@merlinn/helios-core": "workspace:*",
-    "@merlinn/helios-three-plugin": "workspace:*",
     "bitecs": "^0.3.40",
     "three": "^0.176.0"
   },
+  "peerDependencies": {
+    "@merlinn/helios-core": "*",
+    "@merlinn/helios-three-plugin": "workspace:*"
+  },
   "devDependencies": {
     "@merlinn/helios-editor": "workspace:*",
+    "@merlinn/helios-core": "workspace:*",
+    "@merlinn/helios-three-plugin": "workspace:*",
     "@types/node": "^22.15.17",
     "@types/three": "^0.176.0",
     "path": "^0.12.7",
