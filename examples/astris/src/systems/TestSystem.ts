@@ -1,9 +1,10 @@
 import {Context, Position, System} from "@merlinn/helios-core";
 import { addComponent, addEntity, defineQuery } from "bitecs";
 import { Fps } from "../components";
+import {ThreeScene} from "@merlinn/helios-three-plugin";
 
 export class TestSystem extends System {
-    private fpsEntity;
+    private readonly fpsEntity;
     private query = defineQuery([Fps]);
 
     constructor(context: Context) {
@@ -20,7 +21,8 @@ export class TestSystem extends System {
             Fps.rawValue[eid] = this.getFps(deltaTime);
             Position.get(eid).x = Fps.rawValue[eid] * 2;
         });
-        console.log('FPS:', Fps.get(this.fpsEntity).rawValue.toFixed(), Position.x[this.fpsEntity].toFixed());
+        // console.log(ThreeScene.get(0).scene)
+        // console.log('FPS:', Fps.get(this.fpsEntity).rawValue.toFixed(), Position.x[this.fpsEntity].toFixed());
     }
 
     private getFps(deltaTime: number) {

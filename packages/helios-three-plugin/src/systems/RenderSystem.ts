@@ -1,16 +1,12 @@
 import * as THREE from 'three';
-import {defineQuery, enterQuery, exitQuery} from "bitecs";
-import {System} from "@merlinn/helios-core";
+import {defineQuery, enterQuery, exitQuery, addEntity, addComponent} from "bitecs";
+import {Context, Position, System} from "@merlinn/helios-core";
 import {ThreeCamera, ThreeRenderer, ThreeScene} from '../components';
 
 export class RenderSystem extends System {
     private sceneQuery = defineQuery([ThreeScene]);
     private rendererQuery = defineQuery([ThreeRenderer]);
     private cameraQuery = defineQuery([ThreeCamera]);
-
-    private sceneEnterQuery = enterQuery(this.sceneQuery);
-    private rendererEnterQuery = enterQuery(this.rendererQuery);
-    private cameraEnterQuery = enterQuery(this.cameraQuery);
 
     private sceneExitQuery = exitQuery(this.sceneQuery);
     private rendererExitQuery = exitQuery(this.rendererQuery);
@@ -20,60 +16,54 @@ export class RenderSystem extends System {
     private renderer?: THREE.WebGLRenderer;
     private camera?: THREE.Camera;
 
+    private readonly threeEid;
+
+    public constructor(context: Context) {
+        super(context);
+        this.threeEid = addEntity(this.world);
+        addComponent(this.world, ThreeCamera, this.threeEid);
+        addComponent(this.world, Position, this.threeEid);
+        addComponent(this.world, ThreeRenderer, 0);
+        addComponent(this.world, ThreeScene, 0);
+
+        ThreeCamera.get(this.threeEid).camera = new THREE.PerspectiveCamera(70, 16/9, 0.01, 1000);
+        ThreeScene.get(0).scene = new THREE.Scene();
+        ThreeRenderer.get(0).canvasId = "three-scene";
+        const canvas = document.getElementById(ThreeRenderer.get(0).canvasId);
+        if (canvas) {
+            ThreeRenderer.get(0).renderer = new THREE.WebGLRenderer({canvas});
+        }
+        ThreeCamera.get(this.threeEid).camera.position.z = -5;
+    }
+
     update(deltaTime: number) {
-        this.sceneEnterQuery(this.world).forEach(entity => {
-            const resource = new THREE.Scene();
-            ThreeScene.resourceId[entity] = this.resources.set(resource);
-        });
-
-        this.rendererEnterQuery(this.world).forEach(entity => {
-            const canvasId = this.resources.get<string>(ThreeRenderer.canvasId[entity]);
-            const canvas = document.getElementById(canvasId);
-            if (canvas) {
-                const resource = new THREE.WebGLRenderer({canvas});
-                ThreeRenderer.resourceId[entity] = this.resources.set(resource);
-            }
-        })
-
-        this.cameraEnterQuery(this.world).forEach(entity => {
-            const camera = new THREE.PerspectiveCamera(
-                ThreeCamera.fov[entity],
-                ThreeCamera.aspect[entity],
-                ThreeCamera.near[entity],
-                ThreeCamera.far[entity]
-            );
-            ThreeCamera.resourceId[entity] = this.resources.set(camera);
-        })
-
-
         this.sceneQuery(this.world).forEach(entity => {
-            this.scene = this.resources.get<THREE.Scene>(ThreeScene.resourceId[entity]);
+            this.scene = ThreeScene.get(entity).scene;
         });
 
         this.rendererQuery(this.world).forEach(entity => {
-            this.renderer = this.resources.get<THREE.WebGLRenderer>(ThreeRenderer.resourceId[entity]);
+            this.renderer = ThreeRenderer.get(entity).renderer;
         });
 
         this.cameraQuery(this.world).forEach(entity => {
-            this.camera = this.resources.get<THREE.Camera>(ThreeCamera.resourceId[entity]);
+            this.camera = ThreeCamera.get(entity).camera;
         });
 
         if (!this.scene || !this.camera || !this.renderer) return;
 
         this.renderer.render(this.scene, this.camera);
 
-
         this.sceneExitQuery(this.world).forEach(entity => {
-             this.resources.delete(ThreeScene.resourceId[entity]);
+             this.resources.delete(ThreeScene.scene[entity]);
         });
 
         this.rendererExitQuery(this.world).forEach(entity => {
-            this.resources.delete(ThreeRenderer.resourceId[entity]);
             this.resources.delete(ThreeRenderer.canvasId[entity]);
+            this.resources.delete(ThreeRenderer.renderer[entity]);
         })
 
         this.cameraExitQuery(this.world).forEach(entity => {
-            this.resources.delete(ThreeCamera.resourceId[entity]);
+            this.resources.delete(ThreeCamera.camera[entity]);
         })
     }
 }
