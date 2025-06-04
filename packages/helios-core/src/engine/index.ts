@@ -11,3 +11,4 @@ export * from './AssetManager';
 export * from './PrefabManager';
 export * from './SceneManager';
 export * from './BuilderManger';
+export * from './Component';

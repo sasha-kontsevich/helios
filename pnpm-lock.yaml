@@ -23,6 +23,9 @@ importers:
       bitecs:
         specifier: ^0.3.40
         version: 0.3.40
+      three:
+        specifier: ^0.176.0
+        version: 0.176.0
     devDependencies:
       '@merlinn/helios-editor':
         specifier: workspace:*
@@ -30,6 +33,9 @@ importers:
       '@types/node':
         specifier: ^22.15.17
         version: 22.15.17
+      '@types/three':
+        specifier: ^0.176.0
+        version: 0.176.0
       path:
         specifier: ^0.12.7
         version: 0.12.7

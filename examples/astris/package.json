@@ -8,11 +8,13 @@
   "dependencies": {
     "@merlinn/helios-core": "workspace:*",
     "@merlinn/helios-three-plugin": "workspace:*",
-    "bitecs": "^0.3.40"
+    "bitecs": "^0.3.40",
+    "three": "^0.176.0"
   },
   "devDependencies": {
     "@merlinn/helios-editor": "workspace:*",
     "@types/node": "^22.15.17",
+    "@types/three": "^0.176.0",
     "path": "^0.12.7",
     "vite": "6.3.4",
     "vite-tsconfig-paths": "^5.1.4"

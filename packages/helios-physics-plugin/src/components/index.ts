@@ -1,4 +1,5 @@
-import { defineComponent, Types } from 'bitecs';
+import { Types } from 'bitecs';
+import {defineComponent} from "@merlinn/helios-core";
 
 export const Velocity = defineComponent({ x: Types.f32, y: Types.f32, z: Types.f32 });
 
