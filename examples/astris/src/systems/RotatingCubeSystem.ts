@@ -1,30 +1,31 @@
-import {Context, Position, Rotation, System} from "@merlinn/helios-core";
+import {Context, Parent, Position, Rotation, System} from "@merlinn/helios-core";
 import { addComponent, addEntity, defineQuery } from "bitecs";
 import * as THREE from "three";
 import {Rotating} from "../components";
-import {ThreeCamera, ThreeMesh, ThreeScene} from "@merlinn/helios-three-plugin";
+import {ThreeMesh, ThreeObject} from "@merlinn/helios-three-plugin";
 
 export class RotatingCubeSystem extends System {
-    private readonly cubeEid: number;
     private query = defineQuery([Rotation, ThreeMesh, Rotating, Position]);
 
     constructor(context: Context) {
         super(context);
 
-        this.cubeEid = addEntity(this.world);
+        const eid = addEntity(this.world);
 
-        addComponent(this.world, Rotating, this.cubeEid);
-        addComponent(this.world, Position, this.cubeEid);
-        addComponent(this.world, Rotation, this.cubeEid);
-        addComponent(this.world, ThreeMesh, this.cubeEid);
+        addComponent(this.world, Rotating, eid);
+        addComponent(this.world, Position, eid);
+        addComponent(this.world, Rotation, eid);
+        addComponent(this.world, ThreeMesh, eid);
+        addComponent(this.world, ThreeObject, eid);
+        addComponent(this.world, Parent, eid);
 
-        const geometry = new THREE.BoxGeometry(1, 1, 1);
-        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
-        ThreeMesh.get(this.cubeEid).mesh = new THREE.Mesh(geometry, material);
-        Rotating.speed[this.cubeEid] = 1;
-        Position.get(this.cubeEid).x = 1;
-        Position.get(this.cubeEid).y = 1;
-        Position.get(this.cubeEid).z = 1;
+        ThreeMesh.get(eid).geometry = new THREE.BoxGeometry(1, 1, 1);
+        ThreeMesh.get(eid).material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
+        Rotating.speed[eid] = 1;
+        Position.get(eid).x = 1;
+        Position.get(eid).y = 1;
+        Position.get(eid).z = 1;
+        Parent.target[eid] = 0;
     }
 
     update(deltaTime: number): void {

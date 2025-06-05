@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {defineQuery, enterQuery, exitQuery, addEntity, addComponent} from "bitecs";
 import {Context, Position, System} from "@merlinn/helios-core";
-import {ThreeCamera, ThreeRenderer, ThreeScene} from '../components';
+import {ThreeCamera, ThreeObject, ThreeRenderer, ThreeScene} from '../components';
 import {AxesHelper} from "three";
 
 export class RenderSystem extends System {
@@ -22,7 +22,6 @@ export class RenderSystem extends System {
     public constructor(context: Context) {
         super(context);
         this.threeEid = addEntity(this.world);
-        addComponent(this.world, ThreeCamera, this.threeEid);
         addComponent(this.world, Position, this.threeEid);
         addComponent(this.world, ThreeRenderer, 0);
         addComponent(this.world, ThreeScene, 0);
@@ -35,11 +34,9 @@ export class RenderSystem extends System {
             ThreeRenderer.get(0).renderer = new THREE.WebGLRenderer({canvas, antialias: true});
             ThreeRenderer.get(0).renderer.setSize(window.innerWidth, window.innerHeight); // физический размер
             ThreeRenderer.get(0).renderer.setPixelRatio(window.devicePixelRatio); // плотность пикселей
-            ThreeCamera.get(this.threeEid).camera = new THREE.PerspectiveCamera(70, canvas.clientWidth / canvas.clientHeight, 0.01, 1000);
+            ThreeRenderer.get(0).aspect = canvas.clientWidth / canvas.clientHeight;
         }
-        ThreeCamera.get(this.threeEid).camera.position.set(2, 2, 5);
-        ThreeCamera.get(this.threeEid).camera.rotation.y = 0.3;
-        ThreeCamera.get(this.threeEid).camera.rotation.x = -0.3;
+
 
         ThreeScene.get(0).scene.add(new AxesHelper(3));
     }
@@ -54,13 +51,14 @@ export class RenderSystem extends System {
         });
 
         this.cameraQuery(this.world).forEach(entity => {
-            this.camera = ThreeCamera.get(entity).camera;
+            this.camera = ThreeObject.get(entity).object as THREE.Camera;
         });
 
         if (!this.scene || !this.camera || !this.renderer) return;
 
         this.renderer.render(this.scene, this.camera);
 
+        // console.log(this.scene , this.camera, this.renderer)
         this.sceneExitQuery(this.world).forEach(entity => {
              this.resources.delete(ThreeScene.scene[entity]);
         });
@@ -71,7 +69,7 @@ export class RenderSystem extends System {
         })
 
         this.cameraExitQuery(this.world).forEach(entity => {
-            this.resources.delete(ThreeCamera.camera[entity]);
+            this.resources.delete(ThreeObject.object[entity]);
         })
     }
 }

@@ -1,8 +1,8 @@
 import {SystemConstructor} from "@merlinn/helios-core";
 import {
-    TransformMeshSystem,
+    UpdateThreeObjectSystem,
     RenderSystem,
-    ThreeSceneSystem
+    ThreeSceneSystem, UpdateThreeCameraSystem, UpdateThreeMeshSystem
 } from "@merlinn/helios-three-plugin";
 import {TestSystem} from "./TestSystem";
 import {RotatingCubeSystem} from "./RotatingCubeSystem";
@@ -10,7 +10,9 @@ import {RotatingCubeSystem} from "./RotatingCubeSystem";
 export const Systems: SystemConstructor[] = [
     TestSystem,
     RotatingCubeSystem,
+    UpdateThreeObjectSystem,
+    UpdateThreeCameraSystem,
+    UpdateThreeMeshSystem,
     ThreeSceneSystem,
-    TransformMeshSystem,
     RenderSystem,
 ];
