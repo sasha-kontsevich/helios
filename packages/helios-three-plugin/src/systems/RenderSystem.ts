@@ -39,9 +39,10 @@ export class RenderSystem extends System {
             ThreeRenderer.get(0).canvas = canvas;
         }
 
-
-        ThreeScene.get(0).scene.add(new GridHelper(100, 100, new Color(0x555555), new Color(0x444444)));
-        ThreeScene.get(0).scene.add(new AxesHelper(3));
+        const grid = new GridHelper(1000, 1000, new Color(0x666666), new Color(0x444444));
+        grid.position.y = -0.001
+        ThreeScene.get(0).scene.add(grid);
+        ThreeScene.get(0).scene.add(new AxesHelper(2.5));
     }
 
     update(deltaTime: number) {

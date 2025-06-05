@@ -22,7 +22,7 @@ export class TestSystem extends System {
             Position.get(eid).x = Fps.rawValue[eid] * 2;
         });
         // console.log(ThreeScene.get(0).scene)
-        // console.log('FPS:', Fps.get(this.fpsEntity).rawValue.toFixed(), Position.x[this.fpsEntity].toFixed());
+        console.log('FPS:', Fps.get(this.fpsEntity).rawValue.toFixed(), Position.x[this.fpsEntity].toFixed());
     }
 
     private getFps(deltaTime: number) {

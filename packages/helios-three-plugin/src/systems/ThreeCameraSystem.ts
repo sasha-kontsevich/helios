@@ -25,9 +25,9 @@ export class UpdateThreeCameraSystem extends System {
         ThreeCamera.near[eid] = 0.1;
         ThreeCamera.far[eid] = 1000;
 
-        Position.x[eid] = 2.9;
-        Position.y[eid] = 3.5;
-        Position.z[eid] = 3.1;
+        Position.x[eid] = 3.3;
+        Position.y[eid] = 3.0;
+        Position.z[eid] = 3.4;
 
         Rotation.y[eid] = 0.3;
         Rotation.x[eid] = -0.8;
