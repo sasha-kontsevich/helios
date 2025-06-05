@@ -2,6 +2,7 @@ import {addComponent, addEntity, defineQuery, enterQuery, exitQuery} from 'bitec
 import {Context, Parent, Position, Rotation, System} from "@merlinn/helios-core";
 import * as THREE from "three";
 import {ThreeCamera, ThreeObject, ThreeRenderer, ThreeScene} from "../components";
+import {Quaternion} from "three";
 
 export class UpdateThreeCameraSystem extends System {
     private readonly cameraQuery = defineQuery([ThreeCamera, ThreeObject]);
@@ -16,19 +17,20 @@ export class UpdateThreeCameraSystem extends System {
         addComponent(this.world, ThreeCamera, eid);
         addComponent(this.world, ThreeObject, eid);
         addComponent(this.world, Position, eid);
-        // addComponent(this.world, Rotation, eid);
+        addComponent(this.world, Rotation, eid);
         addComponent(this.world, Parent, eid);
 
         ThreeCamera.fov[eid] = 70;
+        ThreeCamera.aspect[eid] = 1.3;
         ThreeCamera.near[eid] = 0.1;
         ThreeCamera.far[eid] = 1000;
 
-        Position.x[eid] = 2;
-        Position.y[eid] = 2;
-        Position.z[eid] = 5;
+        Position.x[eid] = 2.9;
+        Position.y[eid] = 3.5;
+        Position.z[eid] = 3.1;
 
-        // Rotation.x[eid] = -0.3;
-        // Rotation.y[eid] = 0.3;
+        Rotation.y[eid] = 0.3;
+        Rotation.x[eid] = -0.8;
 
         Parent.target[eid] = 0;
     }
@@ -52,14 +54,16 @@ export class UpdateThreeCameraSystem extends System {
         this.cameraQuery(world).forEach(eid => {
 
             const camera = ThreeObject.get(eid).object as THREE.PerspectiveCamera;
-            ThreeCamera.aspect[eid] = ThreeRenderer.get(0).aspect;
+            const canvas = ThreeRenderer.get(0).canvas;
+            if (canvas && canvas.width && canvas.height) {
+                ThreeCamera.aspect[eid] = canvas.clientWidth / canvas.clientHeight;
+            }
             camera.aspect = ThreeCamera.aspect[eid];
             camera.fov = ThreeCamera.fov[eid];
             camera.near = ThreeCamera.near[eid];
             camera.far = ThreeCamera.far[eid];
-            Rotation.y[eid] += 0.01;
-            Rotation.z[eid] += 0.01;
-            // Position.z[eid] += 0.1;
+            camera.updateProjectionMatrix();
+            camera.lookAt(0,0,0);
         })
 
         this.cameraExit(world).forEach(eid => {

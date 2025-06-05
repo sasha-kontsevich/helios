@@ -12,4 +12,4 @@ export const ThreeLight = defineComponent({ intensity: Types.f32 });
 
 export const ThreeScene = defineComponent({ scene: THREE.Scene.prototype });
 
-export const ThreeRenderer = defineComponent({ renderer: THREE.WebGLRenderer.prototype, canvasId: "", aspect: Types.f32 });
+export const ThreeRenderer = defineComponent({ renderer: THREE.WebGLRenderer.prototype, canvasId: "", canvas: HTMLCanvasElement.prototype });
