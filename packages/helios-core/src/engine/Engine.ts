@@ -9,6 +9,7 @@ export class Engine {
 
     constructor() {
         this.context = new Context(this);
+        this.api = new
     }
 
     async init(config: EngineConfig) {
