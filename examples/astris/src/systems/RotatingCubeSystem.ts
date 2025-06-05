@@ -2,7 +2,7 @@ import {Context, Position, Rotation, System} from "@merlinn/helios-core";
 import { addComponent, addEntity, defineQuery } from "bitecs";
 import * as THREE from "three";
 import {Rotating} from "../components";
-import {ThreeMesh, ThreeScene} from "@merlinn/helios-three-plugin";
+import {ThreeCamera, ThreeMesh, ThreeScene} from "@merlinn/helios-three-plugin";
 
 export class RotatingCubeSystem extends System {
     private readonly cubeEid: number;
@@ -18,16 +18,18 @@ export class RotatingCubeSystem extends System {
         addComponent(this.world, Rotation, this.cubeEid);
         addComponent(this.world, ThreeMesh, this.cubeEid);
 
-        const geometry = new THREE.BoxGeometry(10, 10, 5);
+        const geometry = new THREE.BoxGeometry(1, 1, 1);
         const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
         ThreeMesh.get(this.cubeEid).mesh = new THREE.Mesh(geometry, material);
+        Rotating.speed[this.cubeEid] = 1;
+        Position.get(this.cubeEid).x = 1;
+        Position.get(this.cubeEid).y = 1;
+        Position.get(this.cubeEid).z = 1;
     }
 
     update(deltaTime: number): void {
         this.query(this.world).forEach((eid) => {
-            console.log(Position.z[1])
-            Rotation.y[eid] += Rotating.speed[eid] * deltaTime / 100;
-            Position.get(eid).z += 1 / 100;
+            Rotation.y[eid] += Rotating.speed[eid] * deltaTime;
         });
     }
 }

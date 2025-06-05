@@ -10,9 +10,7 @@ export class TransformMeshSystem extends System {
 
     update(deltaTime: number): void {
 
-        console.log(Position.z[1])
         this.positionQuery(this.world).forEach(eid => {
-
             const mesh = ThreeMesh.get(eid).mesh;
             if (mesh) {
                 mesh.position.set(Position.x[eid], Position.y[eid], Position.z[eid])
