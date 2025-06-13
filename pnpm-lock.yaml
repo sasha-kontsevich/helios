@@ -64,6 +64,9 @@ importers:
 
   packages/helios-editor:
     dependencies:
+      '@merlinn/helios-core':
+        specifier: workspace:*
+        version: link:../helios-core
       vue:
         specifier: ^3.2.0
         version: 3.5.13(typescript@4.9.5)

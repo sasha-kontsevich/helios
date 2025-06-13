@@ -1,15 +1,17 @@
 import { Context } from './Context';
 import * as Components from "../components"
 import {EngineConfig} from "../types";
+import {EngineAPI} from "@merlinn/helios-core/api";
 
 export class Engine {
     readonly context: Context;
+    readonly api: EngineAPI;
     private running: boolean = false;
     private lastTime: number = 0;
 
     constructor() {
         this.context = new Context(this);
-        this.api = new
+        this.api = new EngineAPI(this.context);
     }
 
     async init(config: EngineConfig) {
@@ -20,6 +22,8 @@ export class Engine {
         this.context.plugins.registerAll(config.plugins);
 
         this.context.systems.register(config.systems);
+
+        console.log(this.context.components);
 
         // await this.context.assetDatabase.indexMeta(assetIndex);
 

@@ -8,6 +8,7 @@
     "watch": "tsc --watch"
   },
   "dependencies": {
+    "@merlinn/helios-core": "workspace:*",
     "vue": "^3.2.0"
   },
   "devDependencies": {

@@ -11,7 +11,8 @@
   },
   "peerDependencies": {
     "@merlinn/helios-core": "*",
-    "@merlinn/helios-three-plugin": "workspace:*"
+    "@merlinn/helios-three-plugin": "workspace:*",
+    "@merlinn/helios-editor": "workspace:*"
   },
   "devDependencies": {
     "@merlinn/helios-editor": "workspace:*",

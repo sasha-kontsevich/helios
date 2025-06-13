@@ -1,8 +1,7 @@
 // src/api/EngineAPI.ts
 
-import { getAllComponentNames } from "../utils/components"; // утилита для получения всех зарегистрированных компонентов
 import { extractComponentData } from "../utils/snapshot";
-import {EntitySnapshot} from "@merlinn/helios-core/types";
+import {ComponentMap, EntitySnapshot} from "@merlinn/helios-core/types";
 import {Context} from "@merlinn/helios-core/engine"; // функция для вытягивания данных по eid
 
 export class EngineAPI {
@@ -10,11 +9,11 @@ export class EngineAPI {
 
     /** Получить snapshot по одной сущности */
     getEntitySnapshot(eid: number) {
-        const { world, components } = this.context;
+        const { ecsWorld, components } = this.context;
 
         const snapshot: Record<string, any> = {};
 
-        for (const component of this.context.components) {
+        for (const [name, component] of Object.entries(this.context.components)) {
             if (component.__entitySet && component.__entitySet.has(eid)) {
                 snapshot[name] = extractComponentData(component, eid);
             }
@@ -50,11 +49,11 @@ export class EngineAPI {
     }
 
     /** Пример метода: получить компонент у сущности */
-    getComponent<T>(eid: number, name: string): T | null {
-        const comp = this.context.components[name];
-        if (!comp || !comp.__entitySet || !comp.__entitySet.has(eid)) {
-            return null;
-        }
+    getComponent<T>(eid: number, name: keyof ComponentMap): T | null {
+        const comp = this.context.components.get(name);
+        // if (!comp || !comp.__entitySet || !comp.__entitySet.has(eid)) {
+        //     return null;
+        // }
 
         return extractComponentData(comp, eid) as T;
     }
