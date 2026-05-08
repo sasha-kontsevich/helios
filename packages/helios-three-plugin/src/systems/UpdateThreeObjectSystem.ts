@@ -1,13 +1,14 @@
-import { defineQuery, hasComponent, IWorld } from 'bitecs';
-import {Position, Rotation, Scale, System, Parent, isCyclic} from "@merlinn/helios-core";
+import { defineQuery, hasComponent } from 'bitecs';
+import { Parent, Position, Rotation, Scale, System, isCyclic } from "@merlinn/helios-core";
 import { ThreeObject } from "../components";
-import * as THREE from "three";
+import { getThreeRenderContext } from "../ThreeRenderContext";
 
 export class UpdateThreeObjectSystem extends System {
-    private objectQuery = defineQuery([ThreeObject]);
+    private readonly objectQuery = defineQuery([ThreeObject]);
 
     update(deltaTime: number): void {
         const world = this.world;
+        const root = getThreeRenderContext(this.context).getWorldRoot();
 
         this.objectQuery(world).forEach(eid => {
             const { object } = ThreeObject.get(eid);
@@ -30,23 +31,22 @@ export class UpdateThreeObjectSystem extends System {
 
             // --- Обновляем иерархию ---
             if (hasComponent(world, Parent, eid)) {
-                const object = ThreeObject.get(eid).object;
                 const parentEid = Parent.target[eid];
-                const cachedParent = Parent.current[eid];
+                const parentObject = ThreeObject.get(parentEid).object;
 
-                if (parentEid !== cachedParent && !isCyclic(world, eid, parentEid)) {
-                    const parentObject = ThreeObject.get(parentEid)?.object;
-                    if (parentObject) {
-                        // Удаляем из старого родителя (если есть)
-                        if (cachedParent !== 0) {
-                            const oldParent = ThreeObject.get(cachedParent)?.object;
-                            oldParent?.remove(object);
-                        }
-
-                        // Добавляем в нового
-                        parentObject.add(object);
-                        Parent.current[eid] = parentEid;
+                if (
+                    parentObject &&
+                    object.parent !== parentObject &&
+                    !isCyclic(world, eid, parentEid)
+                ) {
+                    if (object.parent) {
+                        object.parent.remove(object);
+                    } else {
+                        root.remove(object);
                     }
+
+                    parentObject.add(object);
+                    Parent.current[eid] = parentEid;
                 }
             }
         });

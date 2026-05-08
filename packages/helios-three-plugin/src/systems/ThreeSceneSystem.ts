@@ -1,34 +1,27 @@
-import {defineQuery, enterQuery, exitQuery} from "bitecs";
-import { System} from "@merlinn/helios-core";
-import {ThreeObject, ThreeScene} from '../components';
-import * as THREE from "three";
+import { defineQuery, exitQuery } from "bitecs";
+import { System } from "@merlinn/helios-core";
+import { ThreeObject } from '../components';
+import { getThreeRenderContext } from "../ThreeRenderContext";
 
 export class ThreeSceneSystem extends System {
-    private query = defineQuery([ThreeObject]);
-    private enterQuery = enterQuery(this.query);
-    private exitQuery = exitQuery(this.query);
+    private readonly query = defineQuery([ThreeObject]);
+    private readonly objectExitQuery = exitQuery(this.query);
 
     update(deltaTime: number) {
-        const scene = ThreeScene.get(0).scene;
-        if (!scene) return;
-
-        this.enterQuery(this.world).forEach(entity => {
-
-        });
+        const root = getThreeRenderContext(this.context).getWorldRoot();
 
         this.query(this.world).forEach(entity => {
             const object = ThreeObject.get(entity).object;
-            // console.log(scene)
-            if(object instanceof THREE.Object3D && !scene.getObjectById(object.id)) {
-                scene.add(ThreeObject.get(entity).object);
+
+            if (!object.parent) {
+                root.add(object);
             }
         });
 
-        this.exitQuery(this.world).forEach(entity => {
+        this.objectExitQuery(this.world).forEach(entity => {
             const object = ThreeObject.get(entity).object;
-            if(object instanceof THREE.Object3D) {
-                scene.remove(ThreeObject.get(entity).object)
-            }
-        })
+
+            object.parent?.remove(object);
+        });
     }
 }

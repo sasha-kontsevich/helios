@@ -33,7 +33,7 @@ export class UpdateThreeMeshSystem extends System {
                     object.geometry.dispose?.();
                     object.material.dispose?.();
                 }
-                objectComponent.object = null;
+                ThreeObject.object[eid] = 0;
             }
         });
 

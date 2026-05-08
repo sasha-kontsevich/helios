@@ -1,4 +1,5 @@
 export * from './ThreePlugin'
+export * from './ThreeRenderContext'
 
 export * from './components'
 

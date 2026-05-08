@@ -4,6 +4,7 @@
   "main": "src/index.ts",
   "dependencies": {
     "@merlinn/helios-core": "workspace:*",
+    "bitecs": "^0.3.40",
     "three": "^0.176.0"
   },
   "devDependencies": {

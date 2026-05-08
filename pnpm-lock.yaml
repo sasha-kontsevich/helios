@@ -93,6 +93,9 @@ importers:
       '@merlinn/helios-core':
         specifier: workspace:*
         version: link:../helios-core
+      bitecs:
+        specifier: ^0.3.40
+        version: 0.3.40
       three:
         specifier: ^0.176.0
         version: 0.176.0

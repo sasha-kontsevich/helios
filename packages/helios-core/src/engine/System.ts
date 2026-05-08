@@ -4,11 +4,13 @@ import {ComponentManager} from "./ComponentManager";
 
 export abstract class System {
     protected enabled: boolean = true;
+    protected readonly context: Context;
     protected readonly world;
     protected readonly resources: ResourceManager;
     protected readonly components: ComponentManager;
 
     constructor(context: Context) {
+        this.context = context;
         const { ecsWorld, resources } = context;
         this.world = ecsWorld;
         this.resources = resources;
