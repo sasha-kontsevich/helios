@@ -1,6 +1,21 @@
 <template>
   <div class="entity-list">
-    <div class="entity-list__header">Entities</div>
+    <div class="entity-list__header">
+      <span>Entities</span>
+      <div class="entity-list__actions">
+        <button class="entity-list__btn" type="button" @click="$emit('create')">New</button>
+        <button
+          class="entity-list__icon-btn"
+          type="button"
+          title="Delete selected entity"
+          :aria-label="`Delete entity ${selectedEid ?? ''}`"
+          :disabled="selectedEid === null"
+          @click="selectedEid !== null && $emit('delete', selectedEid)"
+        >
+          ×
+        </button>
+      </div>
+    </div>
     <ul class="entity-list__ul">
       <li
         v-for="ent in entities"
@@ -26,6 +41,8 @@ defineProps<{
 
 defineEmits<{
   select: [eid: number];
+  create: [];
+  delete: [eid: number];
 }>();
 
 function componentSummary(ent: EntitySnapshot): string {
@@ -48,6 +65,48 @@ function componentSummary(ent: EntitySnapshot): string {
   font-weight: 600;
   color: #bbb;
   border-bottom: 1px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.entity-list__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.entity-list__btn {
+  height: 22px;
+  padding: 0 8px;
+  font-size: 11px;
+  color: #eee;
+  background: #1b1b1b;
+  border: 1px solid #444;
+  border-radius: 2px;
+  cursor: pointer;
+}
+.entity-list__icon-btn {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  color: #ddd;
+  background: transparent;
+  border: 1px solid #444;
+  border-radius: 2px;
+  cursor: pointer;
+}
+.entity-list__icon-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.entity-list__icon-btn:not(:disabled):hover {
+  background: #2a1515;
+  border-color: #5a2a2a;
+  color: #fff;
 }
 .entity-list__ul {
   list-style: none;

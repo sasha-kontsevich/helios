@@ -21,6 +21,10 @@ export class ThreeSceneSystem extends System {
         this.objectExitQuery(this.world).forEach(entity => {
             const object = ThreeObject.get(entity).object;
 
+            // When an entity is deleted, the component storage may already be reset,
+            // so the proxy can return undefined here. Guard to avoid crashing the frame.
+            if (!object) return;
+
             object.parent?.remove(object);
         });
     }

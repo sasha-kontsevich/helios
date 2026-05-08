@@ -5,6 +5,8 @@
         :entities="entities"
         :selected-eid="selectedEid"
         @select="onSelect"
+        @create="onCreateEntity"
+        @delete="onDeleteEntity"
       />
     </aside>
     <main class="shell__center">
@@ -73,6 +75,22 @@ function refreshInspector(): void {
 function onSelect(eid: number): void {
   selectedEid.value = eid;
   refreshInspector();
+}
+
+function onCreateEntity(): void {
+  const eid = props.engineApi.createEntity();
+  refreshEntityList();
+  selectedEid.value = eid;
+  refreshInspector();
+}
+
+function onDeleteEntity(eid: number): void {
+  props.engineApi.deleteEntity(eid);
+  if (selectedEid.value === eid) {
+    selectedEid.value = null;
+    inspectorSnapshot.value = null;
+  }
+  refreshEntityList();
 }
 
 function onApplyPatch(payload: { componentName: string; patch: Record<string, number> }): void {

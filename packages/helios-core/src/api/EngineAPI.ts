@@ -3,10 +3,38 @@
 import { extractComponentData } from "../utils/snapshot";
 import { ComponentMap, EntitySnapshot } from "../types";
 import { Context } from "../engine/Context";
-import { addComponent, entityExists, getAllEntities, hasComponent, removeComponent } from "bitecs";
+import {
+    addComponent,
+    addEntity,
+    entityExists,
+    getAllEntities,
+    hasComponent,
+    removeComponent,
+    removeEntity,
+} from "bitecs";
 
 export class EngineAPI {
     constructor(private context: Context) {}
+
+    createEntity(): number {
+        return addEntity(this.context.ecsWorld as any);
+    }
+
+    deleteEntity(eid: number): void {
+        const world = this.context.ecsWorld;
+        if (!entityExists(world as any, eid)) {
+            return;
+        }
+        removeEntity(world as any, eid);
+    }
+
+    entityExists(eid: number): boolean {
+        return entityExists(this.context.ecsWorld as any, eid);
+    }
+
+    getAllEntityIds(): number[] {
+        return getAllEntities(this.context.ecsWorld as any);
+    }
 
     listRegisteredComponents(): string[] {
         return this.context.components.list();
