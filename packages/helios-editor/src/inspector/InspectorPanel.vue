@@ -1,6 +1,22 @@
 <template>
   <div class="inspector">
-    <div class="inspector__header">Components</div>
+    <div class="inspector__header">
+      <span>Components</span>
+      <div class="inspector__header-actions" v-if="selectedEid !== null">
+        <select class="inspector__select" v-model="addSelected">
+          <option value="" disabled>Add component…</option>
+          <option v-if="availableComponents.length === 0" value="" disabled>
+            No components registered
+          </option>
+          <option v-for="name in availableComponents" :key="name" :value="name">
+            {{ name }}
+          </option>
+        </select>
+        <button class="inspector__btn" :disabled="!addSelected" @click="onAddComponent">
+          Add
+        </button>
+      </div>
+    </div>
     <div v-if="selectedEid === null" class="inspector__empty">Select an entity</div>
     <div v-else-if="snapshot" class="inspector__body">
       <section
@@ -8,7 +24,18 @@
         :key="compName"
         class="inspector__component"
       >
-        <h3 class="inspector__comp-title">{{ compName }}</h3>
+        <div class="inspector__comp-row">
+          <h3 class="inspector__comp-title">{{ compName }}</h3>
+          <button
+            class="inspector__icon-btn"
+            type="button"
+            :aria-label="`Remove component ${String(compName)}`"
+            title="Remove component"
+            @click="onRemoveComponent(String(compName))"
+          >
+            ×
+          </button>
+        </div>
         <div
           v-for="(value, fieldKey) in fields"
           :key="fieldKey"
@@ -45,18 +72,21 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, watch } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import type { EntitySnapshot } from "@merlinn/helios-core";
 import { isReadonlyResourceField } from "./readonlyResourceFields";
 
 const props = defineProps<{
   selectedEid: number | null;
   snapshot: EntitySnapshot | null;
+  availableComponents?: string[];
 }>();
 
 const emit = defineEmits<{
   applyPatch: [payload: { componentName: string; patch: Record<string, number> }];
   editingChanged: [isEditing: boolean];
+  addComponent: [componentName: string];
+  removeComponent: [componentName: string];
 }>();
 
 const edits = reactive<Record<string, string>>({});
@@ -75,6 +105,19 @@ const drag = reactive({
   startValue: 0,
   lastAppliedValue: 0,
 });
+
+const addSelected = ref<string>("");
+const availableComponents = computed(() => props.availableComponents ?? []);
+
+function onAddComponent(): void {
+  if (!addSelected.value) return;
+  emit("addComponent", addSelected.value);
+  addSelected.value = "";
+}
+
+function onRemoveComponent(componentName: string): void {
+  emit("removeComponent", componentName);
+}
 
 function isEditableField(fieldKey: string, value: unknown): boolean {
   return typeof value === "number" && Number.isFinite(value) && !isReadonlyResourceField(fieldKey);
@@ -257,6 +300,24 @@ watch(
   color: #bbb;
   border-bottom: 1px solid #333;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.inspector__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.inspector__select {
+  height: 22px;
+  font-size: 11px;
+  color: #eee;
+  background: #111;
+  border: 1px solid #444;
+  border-radius: 2px;
+  padding: 0 6px;
 }
 .inspector__empty {
   padding: 12px 10px;
@@ -271,12 +332,52 @@ watch(
 .inspector__component {
   margin-bottom: 14px;
 }
-.inspector__comp-title {
+.inspector__comp-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin: 0 0 8px;
+}
+.inspector__comp-title {
+  margin: 0;
   font-size: 11px;
   font-weight: 600;
   color: #9cf;
   text-transform: none;
+}
+.inspector__btn {
+  height: 22px;
+  padding: 0 8px;
+  font-size: 11px;
+  color: #eee;
+  background: #1b1b1b;
+  border: 1px solid #444;
+  border-radius: 2px;
+  cursor: pointer;
+}
+.inspector__btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.inspector__icon-btn {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  color: #ddd;
+  background: transparent;
+  border: 1px solid #444;
+  border-radius: 2px;
+  cursor: pointer;
+}
+.inspector__icon-btn:hover {
+  background: #2a1515;
+  border-color: #5a2a2a;
+  color: #fff;
 }
 .inspector__field {
   display: grid;

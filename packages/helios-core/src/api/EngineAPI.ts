@@ -3,10 +3,41 @@
 import { extractComponentData } from "../utils/snapshot";
 import { ComponentMap, EntitySnapshot } from "../types";
 import { Context } from "../engine/Context";
-import { entityExists, getAllEntities, hasComponent } from "bitecs";
+import { addComponent, entityExists, getAllEntities, hasComponent, removeComponent } from "bitecs";
 
 export class EngineAPI {
     constructor(private context: Context) {}
+
+    listRegisteredComponents(): string[] {
+        return this.context.components.list();
+    }
+
+    hasComponent(eid: number, componentName: keyof ComponentMap): boolean {
+        const world = this.context.ecsWorld;
+        if (!entityExists(world as any, eid)) {
+            throw new Error(`[EngineAPI] Entity ${eid} does not exist.`);
+        }
+        const comp = this.context.components.get(componentName) as any;
+        return hasComponent(world as any, comp, eid);
+    }
+
+    addComponent(eid: number, componentName: keyof ComponentMap, reset: boolean = true): void {
+        const world = this.context.ecsWorld;
+        if (!entityExists(world as any, eid)) {
+            throw new Error(`[EngineAPI] Entity ${eid} does not exist.`);
+        }
+        const comp = this.context.components.get(componentName) as any;
+        addComponent(world as any, comp, eid, reset);
+    }
+
+    removeComponent(eid: number, componentName: keyof ComponentMap, reset: boolean = true): void {
+        const world = this.context.ecsWorld;
+        if (!entityExists(world as any, eid)) {
+            throw new Error(`[EngineAPI] Entity ${eid} does not exist.`);
+        }
+        const comp = this.context.components.get(componentName) as any;
+        removeComponent(world as any, comp, eid, reset);
+    }
 
     /** Получить snapshot по одной сущности */
     getEntitySnapshot(eid: number) {

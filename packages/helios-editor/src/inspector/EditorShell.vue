@@ -14,8 +14,11 @@
       <InspectorPanel
         :selected-eid="selectedEid"
         :snapshot="inspectorSnapshot"
+        :available-components="availableComponents"
         @apply-patch="onApplyPatch"
         @editing-changed="onEditingChanged"
+        @add-component="onAddComponent"
+        @remove-component="onRemoveComponent"
       />
     </aside>
   </div>
@@ -38,6 +41,7 @@ const selectedEid = ref<number | null>(null);
 
 const inspectorSnapshot = ref<EntitySnapshot | null>(null);
 const inspectorEditing = ref(false);
+const availableComponents = ref<string[]>([]);
 
 let pollTimer: ReturnType<typeof setInterval> | undefined;
 
@@ -48,6 +52,8 @@ function sortEntities(list: EntitySnapshot[]): EntitySnapshot[] {
 function refreshEntityList(): void {
   const list = props.engineApi.getAllEntities();
   entities.value = sortEntities(list);
+  // Components are registered during engine.init; editor mounts before init, so refresh over time.
+  availableComponents.value = props.engineApi.listRegisteredComponents();
   if (entities.value.length === 0) {
     console.warn(
       "[HeliosEditor] Entity list is empty. If you expect entities, check that systems create them and components are registered.",
@@ -74,6 +80,22 @@ function onApplyPatch(payload: { componentName: string; patch: Record<string, nu
   if (id === null) return;
   props.engineApi.applyComponentPatch(id, payload.componentName as keyof ComponentMap, payload.patch);
   // Avoid fighting the user's input. Snapshot will refresh via polling when not editing.
+}
+
+function onAddComponent(componentName: string): void {
+  const id = selectedEid.value;
+  if (id === null) return;
+  props.engineApi.addComponent(id, componentName as keyof ComponentMap);
+  refreshInspector();
+  refreshEntityList();
+}
+
+function onRemoveComponent(componentName: string): void {
+  const id = selectedEid.value;
+  if (id === null) return;
+  props.engineApi.removeComponent(id, componentName as keyof ComponentMap);
+  refreshInspector();
+  refreshEntityList();
 }
 
 function onEditingChanged(isEditing: boolean): void {
