@@ -1,20 +1,21 @@
 // src/api/EngineAPI.ts
 
 import { extractComponentData } from "../utils/snapshot";
-import {ComponentMap, EntitySnapshot} from "@merlinn/helios-core/types";
-import {Context} from "@merlinn/helios-core/engine"; // функция для вытягивания данных по eid
+import { ComponentMap, EntitySnapshot } from "../types";
+import { Context } from "../engine/Context";
+import { entityExists, getAllEntities, hasComponent } from "bitecs";
 
 export class EngineAPI {
     constructor(private context: Context) {}
 
     /** Получить snapshot по одной сущности */
     getEntitySnapshot(eid: number) {
-        const { ecsWorld, components } = this.context;
-
         const snapshot: Record<string, any> = {};
 
-        for (const [name, component] of Object.entries(this.context.components)) {
-            if (component.__entitySet && component.__entitySet.has(eid)) {
+        const world = this.context.ecsWorld;
+        for (const name of this.context.components.list()) {
+            const component = this.context.components.get(name as keyof ComponentMap) as any;
+            if (hasComponent(world as any, component as any, eid)) {
                 snapshot[name] = extractComponentData(component, eid);
             }
         }
@@ -27,23 +28,9 @@ export class EngineAPI {
 
     /** Получить snapshot по всем сущностям */
     getAllEntities(): EntitySnapshot[] {
-        const { components } = this.context;
-
-        // Собираем уникальные eid со всех компонентов
-        const eids = new Set<number>();
-        for (const comp of Object.values(components)) {
-            if (comp.__entitySet) {
-                for (const eid of comp.__entitySet) {
-                    eids.add(eid);
-                }
-            }
-        }
-
         const result: EntitySnapshot[] = [];
-
-        for (const eid of eids) {
-            result.push(this.getEntitySnapshot(eid));
-        }
+        const eids = getAllEntities(this.context.ecsWorld as any);
+        for (const eid of eids) result.push(this.getEntitySnapshot(eid));
 
         return result;
     }
@@ -51,11 +38,38 @@ export class EngineAPI {
     /** Пример метода: получить компонент у сущности */
     getComponent<T>(eid: number, name: keyof ComponentMap): T | null {
         const comp = this.context.components.get(name);
-        // if (!comp || !comp.__entitySet || !comp.__entitySet.has(eid)) {
-        //     return null;
-        // }
-
         return extractComponentData(comp, eid) as T;
+    }
+
+    /**
+     * Write numeric fields into the live component storage (TypedArrays).
+     * Only keys that map to array-like storage are applied; NaN is ignored.
+     */
+    applyComponentPatch(
+        eid: number,
+        componentName: keyof ComponentMap,
+        patch: Record<string, number>,
+    ): void {
+        const world = this.context.ecsWorld;
+        if (!entityExists(world as any, eid)) {
+            throw new Error(`[EngineAPI] Entity ${eid} does not exist.`);
+        }
+
+        const comp = this.context.components.get(componentName) as any;
+        if (!hasComponent(world as any, comp, eid)) {
+            throw new Error(
+                `[EngineAPI] Entity ${eid} has no component "${String(componentName)}".`,
+            );
+        }
+
+        for (const [key, value] of Object.entries(patch)) {
+            if (typeof value !== "number" || !Number.isFinite(value)) continue;
+            const storage = comp[key];
+            if (storage == null || typeof storage === "function") continue;
+            if (Array.isArray(storage) || (typeof ArrayBuffer !== "undefined" && ArrayBuffer.isView(storage))) {
+                (storage as ArrayLike<number> & { [i: number]: number })[eid] = value;
+            }
+        }
     }
 
     /** Можно добавить методы для удаления, создания, сериализации и т.п. */
