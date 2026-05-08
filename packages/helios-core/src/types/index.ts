@@ -9,4 +9,5 @@ export * from './PrefabInstance';
 export * from './ComponentOverrides';
 export * from './SystemConstructor'
 export * from './EngineConfig'
+export * from './HeliosPlugin'
 export * from './EntitySnapshot'

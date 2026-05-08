@@ -1,8 +1,16 @@
 import { Context } from './Context';
-import * as Components from "../components"
 import {EngineConfig} from "../types";
-import {EngineAPI} from "@merlinn/helios-core/api";
+import { EngineAPI } from "../api/EngineAPI";
 
+/**
+ * Initialization order:
+ * 1. Components registered
+ * 2. Plugins in dependency order (`setup`)
+ * 3. Systems registered
+ * 4. Plugins optional second phase (`init`) after systems exist
+ *
+ * Shutdown (`stop`): systems stopped → plugins `dispose` (reverse order) → capabilities cleared
+ */
 export class Engine {
     readonly context: Context;
     readonly api: EngineAPI;
@@ -19,9 +27,11 @@ export class Engine {
 
         this.context.components.registerAll(config.components);
 
-        this.context.plugins.registerAll(config.plugins);
+        await this.context.plugins.registerAll(config.plugins);
 
         this.context.systems.register(config.systems);
+
+        await this.context.plugins.initAll();
 
         console.log(this.context.components);
 
@@ -56,6 +66,7 @@ export class Engine {
     stop() {
         this.running = false;
         this.context.systems.stopAll();
+        this.context.plugins.disposeAll();
     }
 
     public getContext() {

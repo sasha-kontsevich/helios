@@ -9,6 +9,7 @@ import {AssetDatabase} from "./AssetDatabase";
 import {AssetManager} from "./AssetManager";
 import {SceneManager} from "./SceneManager";
 import {BuilderManger} from "./BuilderManger";
+import {CapabilityRegistry} from "./CapabilityRegistry";
 
 export class Context {
     readonly engine: Engine;
@@ -22,6 +23,7 @@ export class Context {
     readonly assetManager: AssetManager;
     readonly scenes: SceneManager;
     readonly builders: BuilderManger;
+    readonly capabilities: CapabilityRegistry;
 
     constructor(engine: Engine) {
         this.engine = engine;
@@ -35,5 +37,6 @@ export class Context {
         this.assetManager = new AssetManager(this);
         this.scenes = new SceneManager(this);
         this.builders = new BuilderManger();
+        this.capabilities = new CapabilityRegistry();
     }
 }

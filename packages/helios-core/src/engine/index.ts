@@ -3,6 +3,7 @@ export * from './Engine';
 export * from './ComponentManager';
 export * from './System';
 export * from './Plugin';
+export * from './CapabilityRegistry';
 export * from './SystemManager';
 export * from './ResourceManager';
 export * from './PluginManager';

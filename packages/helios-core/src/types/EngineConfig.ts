@@ -1,9 +1,9 @@
 import {SystemConstructor} from "./SystemConstructor";
-import {Plugin} from "../engine";
+import type { HeliosPlugin } from "./HeliosPlugin";
 
 export type EngineConfig = {
     components: Record<string, unknown>,
     systems: SystemConstructor[],
     builders: any[],
-    plugins: Plugin[],
-}
+    plugins: HeliosPlugin[],
+};
