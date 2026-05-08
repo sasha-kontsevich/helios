@@ -1,13 +1,37 @@
 {
   "name": "@merlinn/helios-three-plugin",
   "version": "0.0.1",
-  "main": "src/index.ts",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js"
+    }
+  },
   "dependencies": {
-    "@merlinn/helios-core": "workspace:*",
     "bitecs": "^0.3.40",
     "three": "^0.176.0"
   },
+  "peerDependencies": {
+    "@merlinn/helios-core": "^0.0.1",
+    "three": "^0.176.0"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
   "devDependencies": {
-    "@types/three": "^0.176.0"
+    "@merlinn/helios-core": "workspace:*",
+    "@types/three": "^0.176.0",
+    "tsup": "^8.5.0",
+    "typescript": "~5.6.0"
   }
 }

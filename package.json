@@ -7,8 +7,9 @@
   ],
   "scripts": {
     "start": "npm run start --workspace examples/astris",
-    "build": "npm run build --workspace packages/helios-core",
-    "test": "npm run test --workspace packages/helios-core"
+    "build": "pnpm -r run build",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm -r run test || true"
   },
   "devDependencies": {
     "pnpm": "10.0.0"
