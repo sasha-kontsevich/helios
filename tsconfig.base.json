@@ -3,7 +3,9 @@
     "baseUrl": ".",
     "paths": {
       "@merlinn/helios-core/*": ["packages/helios-core/src/*"],
-      "@merlinn/helios-three-plugin/*": ["packages/helios-three-plugin/src/*"]
+      "@merlinn/helios-three-plugin/*": ["packages/helios-three-plugin/src/*"],
+      "@merlinn/helios-editor": ["packages/helios-editor/src/index.ts"],
+      "@merlinn/helios-editor/*": ["packages/helios-editor/src/*"]
     },
     "target": "esnext",
     "module": "esnext",

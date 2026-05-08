@@ -8,16 +8,14 @@
             margin: 0;
             padding: 0;
         }
-        canvas {
+        html, body {
             height: 100%;
-            width: 100%;
+            overflow: hidden;
         }
     </style>
 </head>
 <body>
-<div style="height: 100vh; width: 100vw; overflow: hidden">
-    <canvas id="three-scene"></canvas>
-</div>
+<div id="editor-root" style="height: 100vh; width: 100vw;"></div>
 <script type="module" src="./src/main.ts"></script>
 </body>
 </html>

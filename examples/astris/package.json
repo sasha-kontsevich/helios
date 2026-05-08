@@ -3,20 +3,18 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "vite"
+    "dev": "pnpm --filter @merlinn/helios-editor run build && vite",
+    "build": "pnpm --filter @merlinn/helios-editor run build && vite build"
   },
   "dependencies": {
+    "@merlinn/helios-core": "workspace:*",
+    "@merlinn/helios-editor": "workspace:*",
     "bitecs": "^0.3.40",
-    "three": "^0.176.0"
-  },
-  "peerDependencies": {
-    "@merlinn/helios-core": "*",
-    "@merlinn/helios-three-plugin": "workspace:*",
-    "@merlinn/helios-editor": "workspace:*"
+    "three": "^0.176.0",
+    "vue": "^3.5.0"
   },
   "devDependencies": {
-    "@merlinn/helios-editor": "workspace:*",
-    "@merlinn/helios-core": "workspace:*",
+    "@vitejs/plugin-vue": "^5.2.0",
     "@merlinn/helios-three-plugin": "workspace:*",
     "@types/node": "^22.15.17",
     "@types/three": "^0.176.0",
