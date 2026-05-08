@@ -1,6 +1,7 @@
-import {addComponent, addEntity} from 'bitecs';
-import {Context} from './Context'; // ваш Context с ecsWorld, assetManager, resources, components…
-import {ComponentName, ComponentOverrides, PrefabData} from '../types'; // тип префаба
+import { addComponent, addEntity } from 'bitecs';
+import { Context } from './Context';
+import { ComponentName, ComponentOverrides, PrefabData } from '../types';
+import { applyComponentFields } from './spawnEntityFromComponents';
 
 export class PrefabManager {
     private prefabs = new Map<string, PrefabData>();
@@ -47,21 +48,12 @@ export class PrefabManager {
 
             // навешиваем компонент
             addComponent(this.ctx.ecsWorld, schema, eid);
-
-            for (const [field, rawValue] of Object.entries(mergedFields)) {
-                if (typeof rawValue === 'string') {
-                    // Вместо прямого доступа к cache:
-                    if (!this.ctx.assetManager.hasAsset(rawValue)) {
-                        throw new Error(`Asset "${rawValue}" not preloaded`);
-                    }
-                    (schema as any)[field][eid] = this.ctx.assetManager.getResourceId(rawValue);
-
-                } else if (typeof rawValue === 'number' || Array.isArray(rawValue)) {
-                    (schema as any)[field][eid] = rawValue as any;
-                } else {
-                    (schema as any)[field][eid] = rawValue as any;
-                }
-            }
+            applyComponentFields(
+                this.ctx,
+                schema as unknown as Record<string, unknown>,
+                eid,
+                mergedFields as Record<string, unknown>,
+            );
         }
 
         return eid;

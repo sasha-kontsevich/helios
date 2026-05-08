@@ -1,6 +1,7 @@
 // SceneManager.ts
 import { Context } from './index';
-import {SceneData, PrefabInstance, PrefabData} from '../types';
+import type { PrefabData, SceneData } from '../types';
+import { spawnEntityFromComponentMap } from './spawnEntityFromComponents';
 
 export class SceneManager {
     private scenes = new Map<string, SceneData>();
@@ -15,39 +16,44 @@ export class SceneManager {
 
     /** Загружает сцену по GUID (или уже зарегистрированную) */
     async loadScene(guid: string) {
-        // 1) получаем SceneData
         let scene = this.scenes.get(guid);
-        if(!scene) {
+        if (!scene) {
             const sceneResourceId = await this.ctx.assetManager.loadAsset(guid);
-            scene = this.ctx.resources.get<SceneData>(sceneResourceId);
+            const loaded = this.ctx.resources.get<Partial<SceneData>>(sceneResourceId);
+            scene = {
+                prefabs: [],
+                entities: [],
+                ...loaded,
+                guid: loaded.guid ?? guid,
+            } as SceneData;
         }
 
-        if (!scene) { return }
+        if (!scene) {
+            return;
+        }
 
         this.current = scene;
 
-        // 2) сброс ECS (удалить все сущности и компоненты)
-        // this.ctx.ecsWorld = this.ctx.engine.resetWorld();
+        // TODO: reset ECS world when switching scenes (needs coordinated system teardown).
 
-        // 3) регистрируем глобальные ресурсы
         if (scene.resources) {
-            for (const [key, val] of Object.entries(scene.resources)) {
-                // ключевой выбор: храним под строкой или создаём numeric ID?
-                // Здесь просто регистрируем под строковым ключом:
-                this.ctx.resources.set(val, /* existingId: not used */);
-            }
+            // TODO: resolve scene.resources entries (GUID refs, nested loads).
+            void scene.resources;
         }
 
-        // 4) задействуем системы
         if (scene.enableSystems) {
-            // scene.enableSystems.forEach(name =>
-            //     this.ctx.systems.enable(name)
-            // );
+            // TODO: optional enableSystems wiring to SystemManager.
+            void scene.enableSystems;
         }
 
-        // 5) инстанцируем префабы с переопределениями
-        for (const { prefabGuid, overrides } of scene.prefabs) {
-            const eid = this.ctx.prefabs.instantiate(prefabGuid, overrides);
+        for (const inst of scene.entities ?? []) {
+            spawnEntityFromComponentMap(this.ctx, inst.components);
+        }
+
+        for (const { prefabGuid, overrides } of scene.prefabs ?? []) {
+            const prefabResourceId = await this.ctx.assetManager.loadAsset(prefabGuid);
+            const prefabData = this.ctx.resources.get<PrefabData>(prefabResourceId);
+            this.ctx.prefabs.instantiate(prefabData, overrides);
         }
     }
 

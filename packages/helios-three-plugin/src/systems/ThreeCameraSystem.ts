@@ -1,4 +1,4 @@
-import {addComponent, addEntity, defineQuery, enterQuery, exitQuery} from 'bitecs';
+import { addComponent, addEntity, defineQuery, enterQuery, exitQuery } from 'bitecs';
 import { Position, Rotation, System } from "@merlinn/helios-core";
 import * as THREE from "three";
 import { ThreeCamera, ThreeObject } from "../components";
@@ -8,8 +8,14 @@ export class UpdateThreeCameraSystem extends System {
     private readonly cameraQuery = defineQuery([ThreeCamera, ThreeObject]);
     private readonly cameraEnter = enterQuery(this.cameraQuery);
     private readonly cameraExit = exitQuery(this.cameraQuery);
+    /** If any camera exists (e.g. loaded from a scene asset), skip default bootstrap. */
+    private readonly anyThreeCameraQuery = defineQuery([ThreeCamera]);
 
     async start(): Promise<void> {
+        if (this.anyThreeCameraQuery(this.world).length > 0) {
+            return;
+        }
+
         const eid = addEntity(this.world);
         const initialPosition = new THREE.Vector3(3.3, 3.0, 3.4);
         const bootstrapCamera = new THREE.PerspectiveCamera();

@@ -107,7 +107,7 @@ export class EngineAPI {
     applyComponentPatch(
         eid: number,
         componentName: keyof ComponentMap,
-        patch: Record<string, number>,
+        patch: Record<string, unknown>,
     ): void {
         const world = this.context.ecsWorld;
         if (!entityExists(world as any, eid)) {
@@ -122,11 +122,24 @@ export class EngineAPI {
         }
 
         for (const [key, value] of Object.entries(patch)) {
-            if (typeof value !== "number" || !Number.isFinite(value)) continue;
             const storage = comp[key];
             if (storage == null || typeof storage === "function") continue;
             if (Array.isArray(storage) || (typeof ArrayBuffer !== "undefined" && ArrayBuffer.isView(storage))) {
-                (storage as ArrayLike<number> & { [i: number]: number })[eid] = value;
+                if (typeof value === "number") {
+                    if (!Number.isFinite(value)) continue;
+                    (storage as ArrayLike<number> & { [i: number]: number })[eid] = value;
+                    continue;
+                }
+
+                // Prefer the component's proxy resource mechanism (defineComponent) when available,
+                // so snapshots can resolve objects/strings back (editor-friendly).
+                if (value === undefined) continue;
+                if (typeof comp.get === "function") {
+                    comp.get(eid)[key] = value;
+                } else {
+                    const id = this.context.resources.set(value);
+                    (storage as ArrayLike<number> & { [i: number]: number })[eid] = id;
+                }
             }
         }
     }

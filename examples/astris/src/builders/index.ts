@@ -1,5 +1,3 @@
-import {Context} from "@merlinn/helios-core";
+import { createThreeMeshResourceBuilder } from "@merlinn/helios-three-plugin";
 
-export const Builders: any[] = [
-
-];
+export const Builders = [createThreeMeshResourceBuilder()];

@@ -13,6 +13,10 @@ export class ThreeSceneSystem extends System {
         this.query(this.world).forEach(entity => {
             const object = ThreeObject.get(entity).object;
 
+            // When entities are spawned from a scene, `ThreeObject.object` may be undefined
+            // until other systems/builders create the actual THREE.Object3D.
+            if (!object) return;
+
             if (!object.parent) {
                 root.add(object);
             }

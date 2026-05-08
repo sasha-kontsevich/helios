@@ -13,3 +13,5 @@ export * from './PrefabManager';
 export * from './SceneManager';
 export * from './BuilderManger';
 export * from './Component';
+export * from './spawnEntityFromComponents';
+export * from './registerDefaultAssetLoaders';

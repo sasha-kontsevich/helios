@@ -11,14 +11,32 @@ export class UpdateThreeMeshSystem extends System {
     update(dt: number): void {
         const world = this.world;
 
-        // Новые сущности — создаём THREE.Mesh
+        // Новые сущности — создаём THREE.Mesh (только когда ресурсы готовы)
         this.meshEnter(world).forEach(eid => {
-            const meshComponent = ThreeMesh.get(eid);
             const objectComponent = ThreeObject.get(eid);
 
-            if (!objectComponent.object) {
-                objectComponent.object = new THREE.Mesh(meshComponent.geometry, meshComponent.material);
-            }
+            if (objectComponent.object) return;
+            const geoId = (ThreeMesh as any).geometry?.[eid] as number | undefined;
+            const matId = (ThreeMesh as any).material?.[eid] as number | undefined;
+            if (!geoId || !matId) return;
+
+            const geometry = this.context.resources.get<THREE.BufferGeometry>(geoId);
+            const material = this.context.resources.get<THREE.Material>(matId);
+            objectComponent.object = new THREE.Mesh(geometry, material);
+        });
+
+        // Fallback: если сущность вошла в query до резолва ресурсов билдерами — создаём позже.
+        this.meshQuery(world).forEach(eid => {
+            const objectComponent = ThreeObject.get(eid);
+            if (objectComponent.object) return;
+
+            const geoId = (ThreeMesh as any).geometry?.[eid] as number | undefined;
+            const matId = (ThreeMesh as any).material?.[eid] as number | undefined;
+            if (!geoId || !matId) return;
+
+            const geometry = this.context.resources.get<THREE.BufferGeometry>(geoId);
+            const material = this.context.resources.get<THREE.Material>(matId);
+            objectComponent.object = new THREE.Mesh(geometry, material);
         });
 
         // Удалённые сущности — очищаем

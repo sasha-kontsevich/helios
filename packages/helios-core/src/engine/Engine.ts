@@ -1,6 +1,7 @@
 import { Context } from './Context';
-import {EngineConfig} from "../types";
-import { EngineAPI } from "../api/EngineAPI";
+import { EngineConfig } from '../types';
+import { EngineAPI } from '../api/EngineAPI';
+import { registerDefaultAssetLoaders } from './registerDefaultAssetLoaders';
 
 /**
  * Initialization order:
@@ -25,6 +26,12 @@ export class Engine {
     async init(config: EngineConfig) {
         console.log("Initializing engine");
 
+        registerDefaultAssetLoaders(this.context);
+
+        if (config.assetIndex?.length) {
+            await this.context.assetDatabase.indexMeta(config.assetIndex);
+        }
+
         this.context.components.registerAll(config.components);
 
         await this.context.plugins.registerAll(config.plugins);
@@ -33,12 +40,16 @@ export class Engine {
 
         await this.context.plugins.initAll();
 
+        if (config.initialSceneGuid) {
+            await this.context.scenes.loadScene(config.initialSceneGuid);
+        }
+
+        if (config.builders?.length) {
+            this.context.builders.registerAll(config.builders);
+            await this.context.builders.runAll(this.context);
+        }
+
         console.log(this.context.components);
-
-        // await this.context.assetDatabase.indexMeta(assetIndex);
-
-        // const prefabGuids: string[] = [ /* список GUID префабов */ ];
-        // await this.context.assetDatabase.preloadJson(prefabGuids);
     }
 
     start() {

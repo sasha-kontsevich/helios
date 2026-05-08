@@ -1,22 +1,47 @@
 {
+  "guid": "guid://scene-main",
+  "prefabs": [],
   "entities": [
-    {
-      "id": "scene-1",
-      "components": {
-        "ThreeScene": {}
-      }
-    },
     {
       "id": "camera-1",
       "components": {
-        "ThreeRenderer": {
-          "canvasId": "canvas"
-        },
         "ThreeCamera": {
           "fov": 75,
           "aspect": 1.7777777778,
           "near": 0.1,
           "far": 1000
+        },
+        "ThreeObject": {},
+        "Position": { "x": 3.3, "y": 3.0, "z": 3.4 },
+        "Rotation": {
+          "x": -0.722979353401491,
+          "y": 0.629130474869533,
+          "z": 0.47889997440704235
+        }
+      }
+    },
+    {
+      "id": "cube-1",
+      "components": {
+        "Rotating": { "speed": 1 },
+        "Position": { "x": 1, "y": 1, "z": 1 },
+        "Rotation": { "x": 0, "y": 0, "z": 0 },
+        "ThreeMesh": {},
+        "ThreeObject": {},
+        "ThreeGeometryRef": {
+          "descriptor": {
+            "type": "box",
+            "width": 1,
+            "height": 1,
+            "depth": 1
+          }
+        },
+        "ThreeMaterialRef": {
+          "descriptor": {
+            "type": "meshBasic",
+            "color": 65280,
+            "wireframe": true
+          }
         }
       }
     }

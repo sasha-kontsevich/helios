@@ -93,7 +93,7 @@ function onDeleteEntity(eid: number): void {
   refreshEntityList();
 }
 
-function onApplyPatch(payload: { componentName: string; patch: Record<string, number> }): void {
+function onApplyPatch(payload: { componentName: string; patch: Record<string, unknown> }): void {
   const id = selectedEid.value;
   if (id === null) return;
   props.engineApi.applyComponentPatch(id, payload.componentName as keyof ComponentMap, payload.patch);

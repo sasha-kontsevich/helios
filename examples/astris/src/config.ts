@@ -9,4 +9,5 @@ export const config: EngineConfig = {
     systems: Systems,
     builders: Builders,
     plugins: Plugins,
+    initialSceneGuid: "guid://scene-main",
 };

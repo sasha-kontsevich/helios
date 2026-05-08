@@ -13,7 +13,10 @@ async function bootstrap() {
 
     createEditor({ api: engine.api, root });
 
-    await engine.init(config);
+    const assetIndexRes = await fetch("/assets/asset-index.json");
+    const assetIndex = (await assetIndexRes.json()) as string[];
+
+    await engine.init({ ...config, assetIndex });
     engine.start();
 }
 
