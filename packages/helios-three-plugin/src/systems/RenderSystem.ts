@@ -1,5 +1,5 @@
 import { System } from "@merlinn/helios-core";
-import { clearThreeRenderContext, getThreeRenderContext } from "../ThreeRenderContext";
+import { getThreeRenderContext } from "../ThreeRenderContext";
 
 export class RenderSystem extends System {
     async start(): Promise<void> {
@@ -16,11 +16,5 @@ export class RenderSystem extends System {
 
         renderContext.syncViewportSize();
         renderContext.getRenderer().render(renderContext.getScene(), camera);
-    }
-
-    stop(): void {
-        const renderContext = getThreeRenderContext(this.context);
-        renderContext.dispose();
-        clearThreeRenderContext(this.context);
     }
 }

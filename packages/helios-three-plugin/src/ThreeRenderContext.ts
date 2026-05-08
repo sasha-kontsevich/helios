@@ -1,6 +1,9 @@
-import { Context } from "@merlinn/helios-core";
+import type { Context } from "@merlinn/helios-core";
 import * as THREE from "three";
 import { AxesHelper, Color, GridHelper } from "three";
+
+/** Capability key registered by {@link ThreePlugin}. */
+export const THREE_RENDERER_CAPABILITY = "renderer.three";
 
 export interface ThreePluginOptions {
     canvasId?: string;
@@ -11,8 +14,6 @@ export interface ThreePluginOptions {
     gridSize?: number;
     gridDivisions?: number;
 }
-
-const threeRenderContexts = new WeakMap<Context, ThreeRenderContext>();
 
 export class ThreeRenderContext {
     private scene?: THREE.Scene;
@@ -149,20 +150,11 @@ export class ThreeRenderContext {
     }
 }
 
-export function setThreeRenderContext(context: Context, renderContext: ThreeRenderContext): void {
-    threeRenderContexts.set(context, renderContext);
-}
-
 export function getThreeRenderContext(context: Context): ThreeRenderContext {
-    const renderContext = threeRenderContexts.get(context);
-
-    if (!renderContext) {
-        throw new Error('[ThreeRenderContext] Render context is not registered for the current engine context.');
-    }
-
-    return renderContext;
+    return context.capabilities.get<ThreeRenderContext>(THREE_RENDERER_CAPABILITY);
 }
 
+/** Removes the renderer capability from the context (e.g. after dispose). */
 export function clearThreeRenderContext(context: Context): void {
-    threeRenderContexts.delete(context);
+    context.capabilities.delete(THREE_RENDERER_CAPABILITY);
 }
