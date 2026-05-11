@@ -7,6 +7,8 @@
         @select="onSelect"
         @create="onCreateEntity"
         @delete="onDeleteEntity"
+        @copy="onCopyEntity"
+        @paste="onPasteEntity"
       />
     </aside>
     <main class="shell__center">
@@ -31,6 +33,11 @@ import { onMounted, onUnmounted, ref, shallowRef, watch } from "vue";
 import type { ComponentMap, EngineAPI, EntitySnapshot } from "@merlinn/helios-core";
 import EntityListPanel from "./EntityListPanel.vue";
 import InspectorPanel from "./InspectorPanel.vue";
+import {
+  readEditorEntityClipboardJson,
+  tryParseEditorEntityClipboardJson,
+  writeEditorEntityClipboard,
+} from "./editorEntityClipboardBridge";
 
 const REFRESH_MS = 160;
 
@@ -93,6 +100,70 @@ function onDeleteEntity(eid: number): void {
   refreshEntityList();
 }
 
+function isTextInputTarget(target: EventTarget | null): boolean {
+  if (!target || !(target instanceof HTMLElement)) return false;
+  if (target.isContentEditable) return true;
+  const tag = target.tagName;
+  if (tag === "TEXTAREA" || tag === "SELECT") return true;
+  if (tag === "INPUT") {
+    const type = (target as HTMLInputElement).type;
+    if (
+      type === "checkbox" ||
+      type === "radio" ||
+      type === "range" ||
+      type === "file" ||
+      type === "button" ||
+      type === "submit" ||
+      type === "reset"
+    ) {
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
+
+async function copyEntityToClipboard(eid: number): Promise<void> {
+  const json = props.engineApi.serializeEditorEntityClipboard(eid);
+  await writeEditorEntityClipboard(json);
+}
+
+async function pasteEntityFromClipboard(): Promise<void> {
+  const raw = await readEditorEntityClipboardJson();
+  const parsed = tryParseEditorEntityClipboardJson(raw);
+  if (!parsed) {
+    console.warn("[HeliosEditor] Paste: clipboard is empty or not a Helios entity payload.");
+    return;
+  }
+  const newEid = props.engineApi.createEntityFromEditorClipboardPayload(parsed);
+  refreshEntityList();
+  selectedEid.value = newEid;
+  refreshInspector();
+}
+
+function onCopyEntity(eid: number): void {
+  void copyEntityToClipboard(eid);
+}
+
+function onPasteEntity(): void {
+  void pasteEntityFromClipboard();
+}
+
+function onGlobalKeydown(ev: KeyboardEvent): void {
+  const mod = ev.ctrlKey || ev.metaKey;
+  if (!mod) return;
+  if (isTextInputTarget(ev.target)) return;
+
+  if (ev.key === "c" || ev.key === "C") {
+    if (selectedEid.value === null) return;
+    ev.preventDefault();
+    void copyEntityToClipboard(selectedEid.value);
+  } else if (ev.key === "v" || ev.key === "V") {
+    ev.preventDefault();
+    void pasteEntityFromClipboard();
+  }
+}
+
 function onApplyPatch(payload: { componentName: string; patch: Record<string, unknown> }): void {
   const id = selectedEid.value;
   if (id === null) return;
@@ -130,6 +201,7 @@ watch(selectedEid, () => {
 onMounted(() => {
   refreshEntityList();
   refreshInspector();
+  window.addEventListener("keydown", onGlobalKeydown);
   pollTimer = setInterval(() => {
     refreshEntityList();
     if (!inspectorEditing.value) {
@@ -139,6 +211,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  window.removeEventListener("keydown", onGlobalKeydown);
   if (pollTimer !== undefined) {
     clearInterval(pollTimer);
   }

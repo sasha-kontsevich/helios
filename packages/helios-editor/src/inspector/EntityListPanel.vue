@@ -5,6 +5,23 @@
       <div class="entity-list__actions">
         <button class="entity-list__btn" type="button" @click="$emit('create')">New</button>
         <button
+          class="entity-list__btn"
+          type="button"
+          title="Copy entity (Ctrl/Cmd+C)"
+          :disabled="selectedEid === null"
+          @click="selectedEid !== null && $emit('copy', selectedEid)"
+        >
+          Copy
+        </button>
+        <button
+          class="entity-list__btn"
+          type="button"
+          title="Paste entity (Ctrl/Cmd+V)"
+          @click="$emit('paste')"
+        >
+          Paste
+        </button>
+        <button
           class="entity-list__icon-btn"
           type="button"
           title="Delete selected entity"
@@ -39,10 +56,12 @@ defineProps<{
   selectedEid: number | null;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   select: [eid: number];
   create: [];
   delete: [eid: number];
+  copy: [eid: number];
+  paste: [];
 }>();
 
 function componentSummary(ent: EntitySnapshot): string {
@@ -72,8 +91,10 @@ function componentSummary(ent: EntitySnapshot): string {
 }
 .entity-list__actions {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
+  justify-content: flex-end;
 }
 .entity-list__btn {
   height: 22px;

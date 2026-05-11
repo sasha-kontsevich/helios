@@ -24,7 +24,12 @@ export default defineConfig({
             fileName: "index",
         },
         rollupOptions: {
-            external: (id) => id === "vue" || id.startsWith("@merlinn/helios-core"),
+            external: (id) =>
+                id === "vue" ||
+                id === "three" ||
+                id.startsWith("three/") ||
+                id.startsWith("@merlinn/helios-core") ||
+                id.startsWith("@merlinn/helios-three-plugin"),
             output: {
                 assetFileNames: (assetInfo) => {
                     if (assetInfo.name?.endsWith(".css")) {
