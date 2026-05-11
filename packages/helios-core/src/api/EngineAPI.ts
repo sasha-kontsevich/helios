@@ -1,8 +1,16 @@
 // src/api/EngineAPI.ts
 
 import { extractComponentData } from "../utils/snapshot";
-import { ComponentMap, EntitySnapshot } from "../types";
+import {
+    buildEditorEntityClipboardV1,
+    ComponentMap,
+    EditorEntityClipboardV1,
+    EntitySnapshot,
+    parseEditorEntityClipboardJson,
+    parseEditorEntityClipboardPayload,
+} from "../types";
 import { Context } from "../engine/Context";
+import { spawnEntityFromComponentMap } from "../engine/spawnEntityFromComponents";
 import {
     addComponent,
     addEntity,
@@ -142,6 +150,33 @@ export class EngineAPI {
                 }
             }
         }
+    }
+
+    /**
+     * Build a versioned clipboard payload from a live entity (editor / plugins).
+     * Runtime mesh/object handles and rebuild flags are stripped; refs/descriptors are kept.
+     */
+    buildEditorEntityClipboardPayload(eid: number): EditorEntityClipboardV1 {
+        const snap = this.getEntitySnapshot(eid);
+        const components = snap.components as Record<string, Record<string, unknown>>;
+        return buildEditorEntityClipboardV1(components);
+    }
+
+    /** JSON string suitable for `navigator.clipboard` or file export. */
+    serializeEditorEntityClipboard(eid: number): string {
+        return JSON.stringify(this.buildEditorEntityClipboardPayload(eid));
+    }
+
+    /**
+     * Spawn a new entity from a clipboard payload (same path as scene prefab field application).
+     */
+    createEntityFromEditorClipboardPayload(payload: unknown): number {
+        const { components } = parseEditorEntityClipboardPayload(payload);
+        return spawnEntityFromComponentMap(this.context, components);
+    }
+
+    createEntityFromEditorClipboardJson(json: string): number {
+        return this.createEntityFromEditorClipboardPayload(parseEditorEntityClipboardJson(json));
     }
 
     /** Можно добавить методы для удаления, создания, сериализации и т.п. */
