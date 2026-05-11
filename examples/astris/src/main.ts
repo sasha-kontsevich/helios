@@ -11,12 +11,13 @@ async function bootstrap() {
         throw new Error('Missing #editor-root — canvas is created by the editor shell before engine.init.');
     }
 
-    createEditor({ api: engine.api, root });
+    const editor = createEditor({ api: engine.api, root });
 
     const assetIndexRes = await fetch("/assets/asset-index.json");
     const assetIndex = (await assetIndexRes.json()) as string[];
 
     await engine.init({ ...config, assetIndex });
+    editor.attachEngine(engine);
     engine.start();
 }
 

@@ -38,9 +38,11 @@
         },
         "ThreeMaterialRef": {
           "descriptor": {
-            "type": "meshBasic",
-            "color": 65280,
-            "wireframe": true
+            "type": "meshStandard",
+            "color": 16777215,
+            "roughness": 0.55,
+            "metalness": 0.15,
+            "wireframe": false
           }
         }
       }
