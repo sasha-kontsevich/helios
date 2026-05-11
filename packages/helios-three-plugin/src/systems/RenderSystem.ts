@@ -8,7 +8,7 @@ export class RenderSystem extends System {
 
     update(deltaTime: number) {
         const renderContext = getThreeRenderContext(this.context);
-        const camera = renderContext.resolveRenderCamera();
+        const camera = renderContext.resolveRenderCamera(this.world);
 
         if (!camera) {
             return;

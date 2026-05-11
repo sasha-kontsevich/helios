@@ -1,6 +1,8 @@
 import type { Engine, EngineAPI } from "@merlinn/helios-core";
 import { Editor, type EditorOptions } from "./Editor";
+import { SelectionBus } from "./selection/SelectionBus";
 import { EditorSceneView } from "./view/EditorSceneView";
+import { EditorSelectionOverlay } from "./view/EditorSelectionOverlay";
 
 export interface CreateEditorOptions extends EditorOptions {
     api: EngineAPI;
@@ -19,18 +21,23 @@ export interface EditorHandle {
  */
 export function createEditor(options: CreateEditorOptions): EditorHandle {
     const { api, engine: initialEngine, ...rest } = options;
-    const editor = new Editor(api, rest);
+    const selection = options.selection ?? new SelectionBus();
+    const editor = new Editor(api, { ...rest, selection });
     const sceneView = new EditorSceneView();
+    const selectionOverlay = new EditorSelectionOverlay(selection);
     if (initialEngine) {
         sceneView.attach(initialEngine);
+        selectionOverlay.attach(initialEngine);
     }
     return {
         dispose: () => {
+            selectionOverlay.detach();
             sceneView.detach();
             editor.dispose();
         },
         attachEngine: (engine: Engine) => {
             sceneView.attach(engine);
+            selectionOverlay.attach(engine);
         },
     };
 }

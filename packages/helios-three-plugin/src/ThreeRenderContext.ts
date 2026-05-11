@@ -1,6 +1,9 @@
 import type { Context } from "@merlinn/helios-core";
+import { entityExists, hasComponent } from "bitecs";
+import type { IWorld } from "bitecs";
 import * as THREE from "three";
 import { AxesHelper, Color, GridHelper } from "three";
+import { ThreeCamera, ThreeObject } from "./components";
 
 /** Capability key registered by {@link ThreePlugin}. */
 export const THREE_RENDERER_CAPABILITY = "renderer.three";
@@ -30,6 +33,11 @@ export class ThreeRenderContext {
     private renderView: HeliosRenderView = "game";
     private gridHelper?: THREE.GridHelper;
     private axesHelper?: THREE.AxesHelper;
+    /**
+     * Editor viewport: render through this ECS `ThreeCamera` entity, or `null` for the free
+     * {@link getEditorViewCamera}. Entity pose is driven by ECS (orbit/fly are disabled for ECS cameras).
+     */
+    private editorRenderCameraEid: number | null = null;
 
     constructor(private readonly options: ThreePluginOptions = {}) {
         this.worldRoot.name = "HeliosWorldRoot";
@@ -123,17 +131,51 @@ export class ThreeRenderContext {
     getEditorViewCamera(): THREE.PerspectiveCamera {
         if (!this.editorViewCamera) {
             const cam = new THREE.PerspectiveCamera(60, 1, 0.1, 5000);
-            cam.position.set(5, 4, 6);
-            cam.lookAt(0, 0, 0);
+            // Free "spawn" pose — not lookAt(worldOrigin), so fly/orbit are not implicitly locked to (0,0,0).
+            cam.position.set(12, 9, 12);
+            cam.rotation.order = "YXZ";
+            cam.rotation.set(-0.42, 0.75, 0);
             this.editorViewCamera = cam;
             this.syncViewportSize();
         }
         return this.editorViewCamera;
     }
 
-    /** Camera used this frame: editor view camera or ECS `activeCamera` in game view. */
-    resolveRenderCamera(): THREE.Camera | undefined {
+    /** Which ECS entity drives the editor viewport when not using the free camera. */
+    getEditorRenderCameraEid(): number | null {
+        return this.editorRenderCameraEid;
+    }
+
+    /** Select the editor viewport camera; `null` restores the free orbit/fly camera. */
+    setEditorRenderCameraEid(eid: number | null): void {
+        this.editorRenderCameraEid = eid;
+    }
+
+    private tryResolveEditorEcsCamera(world: IWorld): THREE.PerspectiveCamera | undefined {
+        const eid = this.editorRenderCameraEid;
+        if (eid === null) {
+            return undefined;
+        }
+        if (!entityExists(world as any, eid)) {
+            return undefined;
+        }
+        if (!hasComponent(world, ThreeCamera as any, eid) || !hasComponent(world, ThreeObject as any, eid)) {
+            return undefined;
+        }
+        const obj = ThreeObject.get(eid).object;
+        return obj instanceof THREE.PerspectiveCamera ? obj : undefined;
+    }
+
+    /** Camera used this frame: editor view / picked ECS camera, or ECS `activeCamera` in game view. */
+    resolveRenderCamera(world: IWorld): THREE.Camera | undefined {
         if (this.renderView === "editor") {
+            if (this.editorRenderCameraEid !== null) {
+                const ecsCam = this.tryResolveEditorEcsCamera(world);
+                if (ecsCam) {
+                    return ecsCam;
+                }
+                this.editorRenderCameraEid = null;
+            }
             return this.getEditorViewCamera();
         }
         return this.activeCamera;
@@ -148,6 +190,7 @@ export class ThreeRenderContext {
     }
 
     dispose(): void {
+        this.editorRenderCameraEid = null;
         this.editorRoot.clear();
         this.editorRoot.removeFromParent();
         this.editorViewCamera = undefined;

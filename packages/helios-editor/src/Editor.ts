@@ -2,12 +2,15 @@ import type { EngineAPI } from "@merlinn/helios-core";
 import type { EditorContext } from "./EditorContext";
 import type { EditorPlugin } from "./EditorPlugin";
 import { createDefaultEditorPlugins } from "./inspector/createDefaultEditorPlugins";
+import { noopSelectionBus, type ISelectionBus } from "./selection/SelectionBus";
 
 export interface EditorOptions {
     /** Defaults to `document.getElementById('editor-root')`. */
     root?: HTMLElement;
     /** Defaults to {@link createDefaultEditorPlugins}. */
     plugins?: EditorPlugin[];
+    /** Selection pub/sub; defaults to a noop bus when omitted (standalone {@link Editor} without shell sync). */
+    selection?: ISelectionBus;
 }
 
 export class Editor {
@@ -23,7 +26,8 @@ export class Editor {
         }
 
         const plugins = options.plugins ?? createDefaultEditorPlugins();
-        const context: EditorContext = { api: this.api, root };
+        const selection = options.selection ?? noopSelectionBus;
+        const context: EditorContext = { api: this.api, root, selection };
 
         for (const plugin of plugins) {
             const result = plugin.setup(context);

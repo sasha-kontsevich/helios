@@ -12,6 +12,7 @@ export class InspectorEditorPlugin implements EditorPlugin {
     setup(context: EditorContext): void {
         this.app = createApp(EditorShell, {
             engineApi: context.api,
+            selection: context.selection,
         });
         this.app.mount(context.root);
     }

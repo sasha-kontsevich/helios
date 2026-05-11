@@ -11,6 +11,14 @@ import {
 } from "../types";
 import { Context } from "../engine/Context";
 import { spawnEntityFromComponentMap } from "../engine/spawnEntityFromComponents";
+
+/** Matches `THREE_RENDERER_CAPABILITY` from `@merlinn/helios-three-plugin` when the Three plugin is registered. */
+const RENDERER_THREE_CAPABILITY = "renderer.three";
+
+interface ThreeRenderContextEditorCameraLike {
+    setEditorRenderCameraEid?(eid: number | null): void;
+    getEditorRenderCameraEid?(): number | null;
+}
 import {
     addComponent,
     addEntity,
@@ -23,6 +31,12 @@ import {
 
 export class EngineAPI {
     constructor(private context: Context) {}
+
+    private getThreeRenderContextEditorCamera(): ThreeRenderContextEditorCameraLike | undefined {
+        return this.context.capabilities.getOrUndefined<ThreeRenderContextEditorCameraLike>(
+            RENDERER_THREE_CAPABILITY,
+        );
+    }
 
     createEntity(): number {
         return addEntity(this.context.ecsWorld as any);
@@ -179,5 +193,16 @@ export class EngineAPI {
         return this.createEntityFromEditorClipboardPayload(parseEditorEntityClipboardJson(json));
     }
 
-    /** Можно добавить методы для удаления, создания, сериализации и т.п. */
+    /**
+     * Editor viewport: render through an ECS entity with `ThreeCamera`, or `null` for the default free camera.
+     * No-op if the Three renderer capability is not registered.
+     */
+    setEditorRenderCameraEid(eid: number | null): void {
+        this.getThreeRenderContextEditorCamera()?.setEditorRenderCameraEid?.(eid);
+    }
+
+    /** Current editor viewport ECS camera entity id, or `null` for the free camera. */
+    getEditorRenderCameraEid(): number | null {
+        return this.getThreeRenderContextEditorCamera()?.getEditorRenderCameraEid?.() ?? null;
+    }
 }

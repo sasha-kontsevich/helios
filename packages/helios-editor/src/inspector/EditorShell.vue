@@ -12,6 +12,22 @@
       />
     </aside>
     <main class="shell__center">
+      <div
+        class="shell__sceneHud"
+        title="Свободная камера: orbit и полёт (ПКМ). Сущность с ThreeCamera: вид для предпросмотра, поза из ECS."
+      >
+        <label class="shell__cameraHudLabel">
+          Камера
+          <select
+            class="shell__cameraHudSelect"
+            :value="editorRenderCameraEid === null ? '' : String(editorRenderCameraEid)"
+            @change="onEditorViewportCameraChange"
+          >
+            <option value="">Свободная</option>
+            <option v-for="c in cameraEntities" :key="c.eid" :value="String(c.eid)">Сущность {{ c.eid }}</option>
+          </select>
+        </label>
+      </div>
       <canvas id="three-scene" class="shell__canvas"></canvas>
     </main>
     <aside class="shell__right">
@@ -29,8 +45,9 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, shallowRef, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from "vue";
 import type { ComponentMap, EngineAPI, EntitySnapshot } from "@merlinn/helios-core";
+import type { ISelectionBus } from "../selection/SelectionBus";
 import EntityListPanel from "./EntityListPanel.vue";
 import InspectorPanel from "./InspectorPanel.vue";
 import {
@@ -43,10 +60,17 @@ const REFRESH_MS = 160;
 
 const props = defineProps<{
   engineApi: EngineAPI;
+  selection: ISelectionBus;
 }>();
 
 const entities = shallowRef<EntitySnapshot[]>([]);
 const selectedEid = ref<number | null>(null);
+/** ECS entity id for editor viewport camera, or `null` for the free orbit camera. */
+const editorRenderCameraEid = ref<number | null>(null);
+
+const cameraEntities = computed(() =>
+  entities.value.filter((e) => Object.prototype.hasOwnProperty.call(e.components, "ThreeCamera")),
+);
 
 const inspectorSnapshot = ref<EntitySnapshot | null>(null);
 const inspectorEditing = ref(false);
@@ -68,6 +92,27 @@ function refreshEntityList(): void {
       "[HeliosEditor] Entity list is empty. If you expect entities, check that systems create them and components are registered.",
     );
   }
+  syncEditorViewportCameraFromWorld();
+}
+
+function syncEditorViewportCameraFromWorld(): void {
+  const apiEid = props.engineApi.getEditorRenderCameraEid();
+  if (apiEid !== null) {
+    const still = entities.value.some(
+      (e) => e.eid === apiEid && Object.prototype.hasOwnProperty.call(e.components, "ThreeCamera"),
+    );
+    if (!still) {
+      props.engineApi.setEditorRenderCameraEid(null);
+    }
+  }
+  editorRenderCameraEid.value = props.engineApi.getEditorRenderCameraEid();
+}
+
+function onEditorViewportCameraChange(ev: Event): void {
+  const v = (ev.target as HTMLSelectElement).value;
+  const eid = v === "" ? null : Number(v);
+  editorRenderCameraEid.value = eid;
+  props.engineApi.setEditorRenderCameraEid(eid);
 }
 
 function refreshInspector(): void {
@@ -81,6 +126,7 @@ function refreshInspector(): void {
 
 function onSelect(eid: number): void {
   selectedEid.value = eid;
+  props.selection.set(eid);
   refreshInspector();
 }
 
@@ -88,13 +134,19 @@ function onCreateEntity(): void {
   const eid = props.engineApi.createEntity();
   refreshEntityList();
   selectedEid.value = eid;
+  props.selection.set(eid);
   refreshInspector();
 }
 
 function onDeleteEntity(eid: number): void {
+  if (props.engineApi.getEditorRenderCameraEid() === eid) {
+    props.engineApi.setEditorRenderCameraEid(null);
+    editorRenderCameraEid.value = null;
+  }
   props.engineApi.deleteEntity(eid);
   if (selectedEid.value === eid) {
     selectedEid.value = null;
+    props.selection.set(null);
     inspectorSnapshot.value = null;
   }
   refreshEntityList();
@@ -138,6 +190,7 @@ async function pasteEntityFromClipboard(): Promise<void> {
   const newEid = props.engineApi.createEntityFromEditorClipboardPayload(parsed);
   refreshEntityList();
   selectedEid.value = newEid;
+  props.selection.set(newEid);
   refreshInspector();
 }
 
@@ -200,6 +253,7 @@ watch(selectedEid, () => {
 
 onMounted(() => {
   refreshEntityList();
+  editorRenderCameraEid.value = props.engineApi.getEditorRenderCameraEid();
   refreshInspector();
   window.addEventListener("keydown", onGlobalKeydown);
   pollTimer = setInterval(() => {
@@ -242,6 +296,40 @@ onUnmounted(() => {
   min-height: 0;
   position: relative;
   background: #222;
+}
+.shell__sceneHud {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid #444;
+  font-size: 12px;
+  color: #ccc;
+  pointer-events: auto;
+}
+.shell__cameraHudLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  cursor: default;
+  user-select: none;
+}
+.shell__cameraHudSelect {
+  min-width: 120px;
+  max-width: 200px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid #555;
+  background: #2a2a2a;
+  color: #e8e8e8;
+  font-size: 12px;
 }
 .shell__canvas {
   display: block;
