@@ -5,6 +5,9 @@ import { AxesHelper, Color, GridHelper } from "three";
 /** Capability key registered by {@link ThreePlugin}. */
 export const THREE_RENDERER_CAPABILITY = "renderer.three";
 
+/** Which camera drives `resolveRenderCamera()` (future: split, pilot). */
+export type HeliosRenderView = "game" | "editor";
+
 export interface ThreePluginOptions {
     canvasId?: string;
     canvasContainer?: HTMLElement | null;
@@ -21,11 +24,16 @@ export class ThreeRenderContext {
     private canvas?: HTMLCanvasElement;
     private activeCamera?: THREE.Camera;
     private readonly worldRoot = new THREE.Group();
+    /** Editor-only THREE objects (gizmos, overlays); not part of serialized game world. */
+    private readonly editorRoot = new THREE.Group();
+    private editorViewCamera?: THREE.PerspectiveCamera;
+    private renderView: HeliosRenderView = "game";
     private gridHelper?: THREE.GridHelper;
     private axesHelper?: THREE.AxesHelper;
 
     constructor(private readonly options: ThreePluginOptions = {}) {
         this.worldRoot.name = "HeliosWorldRoot";
+        this.editorRoot.name = "HeliosEditorRoot";
     }
 
     init(): void {
@@ -42,9 +50,7 @@ export class ThreeRenderContext {
         this.scene = new THREE.Scene();
         this.scene.background = new Color(this.options.backgroundColor ?? 0x333333);
         this.scene.add(this.worldRoot);
-
-        const ambientLight = new THREE.AmbientLight(0xffffff, 5);
-        this.scene.add(ambientLight);
+        this.scene.add(this.editorRoot);
 
         this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
         this.syncViewportSize();
@@ -64,6 +70,13 @@ export class ThreeRenderContext {
         }
 
         this.renderer.setPixelRatio(window.devicePixelRatio);
+
+        const aspect = width / height;
+        const ec = this.editorViewCamera;
+        if (ec) {
+            ec.aspect = aspect;
+            ec.updateProjectionMatrix();
+        }
     }
 
     getScene(): THREE.Scene {
@@ -90,6 +103,42 @@ export class ThreeRenderContext {
         return this.worldRoot;
     }
 
+    /** THREE group for editor-only content; parented to scene, not {@link getWorldRoot}. */
+    getEditorRoot(): THREE.Group {
+        return this.editorRoot;
+    }
+
+    getRenderView(): HeliosRenderView {
+        return this.renderView;
+    }
+
+    setRenderView(view: HeliosRenderView): void {
+        this.renderView = view;
+    }
+
+    /**
+     * Editor viewport camera (not an ECS entity). Not under `worldRoot`.
+     * Lazily created so headless / non-editor runs pay no cost.
+     */
+    getEditorViewCamera(): THREE.PerspectiveCamera {
+        if (!this.editorViewCamera) {
+            const cam = new THREE.PerspectiveCamera(60, 1, 0.1, 5000);
+            cam.position.set(5, 4, 6);
+            cam.lookAt(0, 0, 0);
+            this.editorViewCamera = cam;
+            this.syncViewportSize();
+        }
+        return this.editorViewCamera;
+    }
+
+    /** Camera used this frame: editor view camera or ECS `activeCamera` in game view. */
+    resolveRenderCamera(): THREE.Camera | undefined {
+        if (this.renderView === "editor") {
+            return this.getEditorViewCamera();
+        }
+        return this.activeCamera;
+    }
+
     setActiveCamera(camera?: THREE.Camera): void {
         this.activeCamera = camera;
     }
@@ -99,6 +148,10 @@ export class ThreeRenderContext {
     }
 
     dispose(): void {
+        this.editorRoot.clear();
+        this.editorRoot.removeFromParent();
+        this.editorViewCamera = undefined;
+
         this.worldRoot.clear();
         this.axesHelper?.removeFromParent();
         this.gridHelper?.removeFromParent();

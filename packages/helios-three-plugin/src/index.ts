@@ -8,6 +8,7 @@ export * from './systems/UpdateThreeObjectSystem'
 export * from './systems/ThreeSceneSystem'
 export * from './systems/ThreeMeshSystem'
 export * from './systems/ThreeCameraSystem'
+export * from './systems/UpdateThreeLightSystem'
 export * from './systems/ThreeResourceBuildSystem'
 
 export * from './builders/descriptors'

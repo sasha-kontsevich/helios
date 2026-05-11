@@ -70,12 +70,15 @@ export class UpdateThreeCameraSystem extends System {
             camera.near = ThreeCamera.near[eid];
             camera.far = ThreeCamera.far[eid];
             camera.updateProjectionMatrix();
-            renderContext.setActiveCamera(camera);
+            if (renderContext.getRenderView() === "game") {
+                renderContext.setActiveCamera(camera);
+            }
         });
 
         this.cameraExit(world).forEach(eid => {
             const objectComp = ThreeObject.get(eid);
             if (objectComp.object) {
+                // Clear ECS active camera when that entity is removed (both game and editor render views).
                 if (renderContext.getActiveCamera() === objectComp.object) {
                     renderContext.setActiveCamera(undefined);
                 }
