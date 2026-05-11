@@ -1,57 +1,40 @@
 <template>
-  <div class="entity-list">
+  <div class="entity-list" @contextmenu.prevent="onPanelContextMenu">
     <div class="entity-list__header">
       <span>Entities</span>
-      <div class="entity-list__actions">
-        <button class="entity-list__btn" type="button" @click="$emit('create')">New</button>
-        <button
-          class="entity-list__btn"
-          type="button"
-          title="Copy entity (Ctrl/Cmd+C)"
-          :disabled="selectedEid === null"
-          @click="selectedEid !== null && $emit('copy', selectedEid)"
-        >
-          Copy
-        </button>
-        <button
-          class="entity-list__btn"
-          type="button"
-          title="Paste entity (Ctrl/Cmd+V)"
-          @click="$emit('paste')"
-        >
-          Paste
-        </button>
-        <button
-          class="entity-list__icon-btn"
-          type="button"
-          title="Delete selected entity"
-          :aria-label="`Delete entity ${selectedEid ?? ''}`"
-          :disabled="selectedEid === null"
-          @click="selectedEid !== null && $emit('delete', selectedEid)"
-        >
-          ×
-        </button>
-      </div>
     </div>
-    <ul class="entity-list__ul">
-      <li
-        v-for="ent in entities"
-        :key="ent.eid"
-        class="entity-list__item"
-        :class="{ 'entity-list__item--active': ent.eid === selectedEid }"
-        @click="$emit('select', ent.eid)"
-      >
-        <span class="entity-list__eid">{{ ent.eid }}</span>
-        <span class="entity-list__hint">{{ componentSummary(ent) }}</span>
-      </li>
-    </ul>
+    <div class="entity-list__body">
+      <ul class="entity-list__ul">
+        <li
+          v-for="ent in entities"
+          :key="ent.eid"
+          class="entity-list__item"
+          :class="{ 'entity-list__item--active': ent.eid === selectedEid }"
+          @click="$emit('select', ent.eid)"
+          @contextmenu.stop.prevent="onRowContextMenu($event, ent.eid)"
+        >
+          <span class="entity-list__eid">{{ ent.eid }}</span>
+          <span class="entity-list__hint">{{ componentSummary(ent) }}</span>
+        </li>
+      </ul>
+    </div>
+    <ContextMenu
+      :visible="ctxVisible"
+      :x="ctxX"
+      :y="ctxY"
+      :items="ctxItems"
+      @close="closeContextMenu"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import type { EntitySnapshot } from "@merlinn/helios-core";
+import ContextMenu from "../ui/contextMenu/ContextMenu.vue";
+import type { ContextMenuItem } from "../ui/contextMenu/contextMenuTypes";
+import { useContextMenu } from "../ui/contextMenu/useContextMenu";
 
-defineProps<{
+const props = defineProps<{
   entities: EntitySnapshot[];
   selectedEid: number | null;
 }>();
@@ -63,6 +46,75 @@ const emit = defineEmits<{
   copy: [eid: number];
   paste: [];
 }>();
+
+const { visible: ctxVisible, x: ctxX, y: ctxY, items: ctxItems, open, close: closeContextMenu } =
+  useContextMenu();
+
+function onPanelContextMenu(ev: MouseEvent): void {
+  const t = ev.target;
+  if (t instanceof Element && t.closest(".entity-list__item")) {
+    return;
+  }
+  const sel = props.selectedEid;
+  const panelItems: ContextMenuItem[] = [
+    {
+      id: "new",
+      label: "New",
+      onSelect: () => {
+        emit("create");
+      },
+    },
+    {
+      id: "paste",
+      label: "Paste",
+      shortcut: "Ctrl+V",
+      onSelect: () => {
+        emit("paste");
+      },
+    },
+    {
+      id: "copy",
+      label: "Copy",
+      shortcut: "Ctrl+C",
+      disabled: sel === null,
+      onSelect: () => {
+        if (sel !== null) emit("copy", sel);
+      },
+    },
+    {
+      id: "delete",
+      label: "Delete",
+      danger: true,
+      disabled: sel === null,
+      onSelect: () => {
+        if (sel !== null) emit("delete", sel);
+      },
+    },
+  ];
+  open(ev.clientX, ev.clientY, panelItems);
+}
+
+function onRowContextMenu(ev: MouseEvent, eid: number): void {
+  const rowItems: ContextMenuItem[] = [
+    {
+      id: "copy-row",
+      label: "Copy",
+      shortcut: "Ctrl+C",
+      onSelect: () => {
+        emit("copy", eid);
+      },
+    },
+    {
+      id: "delete-row",
+      label: "Delete",
+      danger: true,
+      onSelect: () => {
+        emit("delete", eid);
+      },
+    },
+  ];
+  open(ev.clientX, ev.clientY, rowItems);
+}
 
 function componentSummary(ent: EntitySnapshot): string {
   const names = Object.keys(ent.components);
@@ -86,48 +138,15 @@ function componentSummary(ent: EntitySnapshot): string {
   border-bottom: 1px solid #333;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 8px;
+  flex-shrink: 0;
 }
-.entity-list__actions {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  justify-content: flex-end;
-}
-.entity-list__btn {
-  height: 22px;
-  padding: 0 8px;
-  font-size: 11px;
-  color: #eee;
-  background: #1b1b1b;
-  border: 1px solid #444;
-  border-radius: 2px;
-  cursor: pointer;
-}
-.entity-list__icon-btn {
-  width: 22px;
-  height: 22px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  line-height: 1;
-  color: #ddd;
-  background: transparent;
-  border: 1px solid #444;
-  border-radius: 2px;
-  cursor: pointer;
-}
-.entity-list__icon-btn:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-.entity-list__icon-btn:not(:disabled):hover {
-  background: #2a1515;
-  border-color: #5a2a2a;
-  color: #fff;
+.entity-list__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 .entity-list__ul {
   list-style: none;
@@ -135,6 +154,7 @@ function componentSummary(ent: EntitySnapshot): string {
   padding: 4px 0;
   overflow: auto;
   flex: 1;
+  min-height: 0;
 }
 .entity-list__item {
   display: flex;
