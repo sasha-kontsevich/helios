@@ -15,10 +15,14 @@ export function applyComponentFields(
 
     for (const [field, rawValue] of Object.entries(fields)) {
         if (typeof rawValue === 'string') {
-            if (!ctx.assetManager.hasAsset(rawValue)) {
+            if (ctx.assetManager.hasAsset(rawValue)) {
+                (comp as any)[field][eid] = ctx.assetManager.getResourceId(rawValue);
+            } else if (typeof comp.get === 'function') {
+                // Literal strings (e.g. {@link Name}.label), not asset GUIDs.
+                comp.get(eid)[field] = rawValue;
+            } else {
                 throw new Error(`Asset "${rawValue}" not preloaded`);
             }
-            (comp as any)[field][eid] = ctx.assetManager.getResourceId(rawValue);
         } else if (typeof rawValue === 'number' || Array.isArray(rawValue)) {
             (comp as any)[field][eid] = rawValue as number | number[];
         } else if (rawValue !== null && typeof rawValue === 'object') {
