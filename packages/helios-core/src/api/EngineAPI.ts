@@ -10,7 +10,7 @@ import {
     parseEditorEntityClipboardPayload,
 } from "../types";
 import { Context } from "../engine/Context";
-import { spawnEntityFromComponentMap } from "../engine/spawnEntityFromComponents";
+import { mergeComponentMapOntoEntity, spawnEntityFromComponentMap } from "../engine/spawnEntityFromComponents";
 
 /** Matches `THREE_RENDERER_CAPABILITY` from `@merlinn/helios-three-plugin` when the Three plugin is registered. */
 const RENDERER_THREE_CAPABILITY = "renderer.three";
@@ -179,6 +179,28 @@ export class EngineAPI {
     /** JSON string suitable for `navigator.clipboard` or file export. */
     serializeEditorEntityClipboard(eid: number): string {
         return JSON.stringify(this.buildEditorEntityClipboardPayload(eid));
+    }
+
+    /** Clipboard JSON for a single component on an entity (same schema as full entity clipboard). */
+    serializeEditorComponentClipboard(eid: number, componentName: string): string {
+        const snap = this.getEntitySnapshot(eid);
+        const fields = snap.components[componentName];
+        if (fields === undefined) {
+            throw new Error(`[EngineAPI] Entity ${eid} has no component "${componentName}".`);
+        }
+        return JSON.stringify(
+            buildEditorEntityClipboardV1({
+                [componentName]: fields as Record<string, unknown>,
+            }),
+        );
+    }
+
+    /**
+     * Merge all components from a clipboard payload onto an existing entity (replaces each listed component).
+     */
+    mergeEntityFromEditorClipboardPayload(eid: number, payload: unknown): void {
+        const parsed = parseEditorEntityClipboardPayload(payload);
+        mergeComponentMapOntoEntity(this.context, eid, parsed.components);
     }
 
     /**

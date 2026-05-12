@@ -1,4 +1,4 @@
-import { addComponent, addEntity } from 'bitecs';
+import { addComponent, addEntity, hasComponent, removeComponent } from 'bitecs';
 import type { Context } from './Context';
 import type { ComponentMap } from '../types';
 
@@ -62,4 +62,29 @@ export function spawnEntityFromComponentMap(
     const eid = addEntity(ctx.ecsWorld);
     applyComponentsToEntity(ctx, eid, components);
     return eid;
+}
+
+/**
+ * Replace or add components on an existing entity (removes each component first if present,
+ * then applies serialized fields — same rules as {@link applyComponentsToEntity}).
+ */
+export function mergeComponentMapOntoEntity(
+    ctx: Context,
+    eid: number,
+    components: Record<string, Record<string, unknown>>,
+): void {
+    const world = ctx.ecsWorld as any;
+    const registered = ctx.components.list();
+    for (const [compName, fields] of Object.entries(components)) {
+        if (!registered.includes(compName)) {
+            console.warn(`[Helios] Unknown component "${compName}", skipping`);
+            continue;
+        }
+        const schema = ctx.components.get(compName as keyof ComponentMap);
+        if (hasComponent(world, schema, eid)) {
+            removeComponent(world, schema, eid);
+        }
+        addComponent(world, schema, eid);
+        applyComponentFields(ctx, schema as unknown as Record<string, unknown>, eid, fields);
+    }
 }
