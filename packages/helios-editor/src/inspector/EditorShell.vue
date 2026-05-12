@@ -25,7 +25,7 @@
             @change="onEditorViewportCameraChange"
           >
             <option value="">Свободная</option>
-            <option v-for="c in cameraEntities" :key="c.eid" :value="String(c.eid)">Сущность {{ c.eid }}</option>
+            <option v-for="c in cameraEntities" :key="c.eid" :value="String(c.eid)">{{ entityDisplayLabel(c) }}</option>
           </select>
         </label>
       </div>
@@ -62,6 +62,7 @@ import {
   tryParseEditorEntityClipboardJson,
   writeEditorEntityClipboard,
 } from "./editorEntityClipboardBridge";
+import { entityDisplayLabel } from "../utils/entityDisplayLabel";
 
 const REFRESH_MS = 160;
 
@@ -138,7 +139,9 @@ function onSelect(eid: number): void {
 }
 
 function onCreateEntity(): void {
-  const eid = props.engineApi.createEntity();
+  const eid = props.engineApi.createEntityFromComponents({
+    Name: { label: "Новая сущность" },
+  });
   refreshEntityList();
   selectedEid.value = eid;
   props.selection.set(eid);
@@ -326,6 +329,8 @@ onUnmounted(() => {
   min-height: 0;
   background: #1a1a1a;
   color: #e0e0e0;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    "Noto Sans", "Liberation Sans", sans-serif;
 }
 .shell__left {
   width: 240px;

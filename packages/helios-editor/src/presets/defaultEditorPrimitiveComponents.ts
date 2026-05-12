@@ -7,6 +7,16 @@
 export const EDITOR_PRIMITIVE_KINDS = ["box", "sphere", "plane", "cylinder", "cone", "torus"] as const;
 export type EditorPrimitiveKind = (typeof EDITOR_PRIMITIVE_KINDS)[number];
 
+/** Russian labels for {@link Name} when spawning primitives from the editor context menu. */
+export const EDITOR_PRIMITIVE_NAME_LABELS: Record<EditorPrimitiveKind, string> = {
+  box: "Куб",
+  sphere: "Сфера",
+  plane: "Плоскость",
+  cylinder: "Цилиндр",
+  cone: "Конус",
+  torus: "Тор",
+};
+
 const DEFAULT_MATERIAL = {
   type: "meshStandard" as const,
   color: 0xffffff,
@@ -49,6 +59,7 @@ function rotationFor(kind: EditorPrimitiveKind): { x: number; y: number; z: numb
 
 export function defaultEditorPrimitiveComponents(kind: EditorPrimitiveKind): Record<string, Record<string, unknown>> {
   return {
+    Name: { label: EDITOR_PRIMITIVE_NAME_LABELS[kind] },
     Position: positionFor(kind),
     Rotation: rotationFor(kind),
     ThreeObject: {},

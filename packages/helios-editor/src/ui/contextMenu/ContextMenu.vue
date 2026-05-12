@@ -157,6 +157,8 @@ function onPick(it: ContextMenuItem): void {
   border: 1px solid #555;
   border-radius: 4px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    "Noto Sans", "Liberation Sans", sans-serif;
   font-size: 12px;
   color: #e8e8e8;
 }

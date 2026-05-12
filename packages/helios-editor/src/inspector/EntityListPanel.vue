@@ -14,7 +14,8 @@
           @contextmenu.stop.prevent="onRowContextMenu($event, ent.eid)"
         >
           <span class="entity-list__eid">{{ ent.eid }}</span>
-          <span class="entity-list__hint">{{ componentSummary(ent) }}</span>
+          <span v-if="entityNameOnly(ent)" class="entity-list__name">{{ entityNameOnly(ent) }}</span>
+          <span class="entity-list__comps">{{ componentSummary(ent) }}</span>
         </li>
       </ul>
     </div>
@@ -35,17 +36,10 @@ import type { ContextMenuEntry, ContextMenuItem } from "../ui/contextMenu/contex
 import { useContextMenu } from "../ui/contextMenu/useContextMenu";
 import {
   EDITOR_PRIMITIVE_KINDS,
+  EDITOR_PRIMITIVE_NAME_LABELS,
   type EditorPrimitiveKind,
 } from "../presets/defaultEditorPrimitiveComponents";
-
-const PRIMITIVE_LABELS: Record<EditorPrimitiveKind, string> = {
-  box: "Box",
-  sphere: "Sphere",
-  plane: "Plane",
-  cylinder: "Cylinder",
-  cone: "Cone",
-  torus: "Torus",
-};
+import { entityNameOnly } from "../utils/entityDisplayLabel";
 
 const props = defineProps<{
   entities: EntitySnapshot[];
@@ -72,7 +66,7 @@ function onPanelContextMenu(ev: MouseEvent): void {
   const sel = props.selectedEid;
   const primitiveChildren: ContextMenuItem[] = EDITOR_PRIMITIVE_KINDS.map((kind) => ({
     id: `primitive-${kind}`,
-    label: PRIMITIVE_LABELS[kind],
+    label: EDITOR_PRIMITIVE_NAME_LABELS[kind],
     onSelect: () => {
       emit("createPrimitive", kind);
     },
@@ -144,9 +138,9 @@ function onRowContextMenu(ev: MouseEvent, eid: number): void {
 }
 
 function componentSummary(ent: EntitySnapshot): string {
-  const names = Object.keys(ent.components);
+  const names = Object.keys(ent.components).filter((n) => n !== "Name");
   if (names.length === 0) return "";
-  return names.slice(0, 3).join(", ") + (names.length > 3 ? "…" : "");
+  return names.slice(0, 5).join(", ") + (names.length > 5 ? "…" : "");
 }
 </script>
 
@@ -187,11 +181,12 @@ function componentSummary(ent: EntitySnapshot): string {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   padding: 6px 10px;
   cursor: pointer;
   font-size: 12px;
   color: #ddd;
+  min-width: 0;
 }
 .entity-list__item:hover {
   background: #2a2a2a;
@@ -200,11 +195,24 @@ function componentSummary(ent: EntitySnapshot): string {
   background: #1e3a5f;
 }
 .entity-list__eid {
-  font-family: ui-monospace, monospace;
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
   color: #8cf;
-  margin-bottom: 2px;
 }
-.entity-list__hint {
+.entity-list__name {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 55%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  color: #e8e8e8;
+}
+.entity-list__comps {
+  flex: 1 1 0;
+  min-width: 0;
   font-size: 11px;
   color: #888;
   overflow: hidden;

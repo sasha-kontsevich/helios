@@ -292,6 +292,17 @@
           />
 
           <input
+            v-else-if="typeof value === 'string' && !isGuidField(String(compName), String(fieldKey))"
+            class="inspector__input"
+            type="text"
+            spellcheck="false"
+            :value="getEditValue(String(compName), String(fieldKey), value)"
+            @focus="onFocus(String(compName), String(fieldKey))"
+            @blur="onBlur"
+            @input="onStringFieldInput(String(compName), String(fieldKey), $event)"
+          />
+
+          <input
             v-else-if="isEditableField(fieldKey, value)"
             class="inspector__input"
             type="number"
@@ -441,14 +452,18 @@ function isEditableField(fieldKey: string, value: unknown): boolean {
   return typeof value === "number" && Number.isFinite(value) && !isReadonlyResourceField(fieldKey);
 }
 
+/** Include entity id so edits/cache don't leak across entity selection (`Name.label`, etc.). */
 function keyOf(componentName: string, fieldKey: string): string {
-  return `${componentName}.${fieldKey}`;
+  const eid = props.selectedEid;
+  const prefix = eid === null ? "_none" : String(eid);
+  return `${prefix}.${componentName}.${fieldKey}`;
 }
 
 function getEditValue(componentName: string, fieldKey: string, fallback: unknown): string {
   const k = keyOf(componentName, fieldKey);
   if (k in edits) return edits[k];
   if (typeof fallback === "number" && Number.isFinite(fallback)) return String(fallback);
+  if (typeof fallback === "string") return fallback;
   return "";
 }
 
@@ -498,6 +513,13 @@ function onFieldInput(componentName: string, fieldKey: string, event: Event): vo
   const parsed = parseFloat(input.value);
   if (!Number.isFinite(parsed)) return;
   scheduleApply({ componentName, patch: { [fieldKey]: parsed } });
+}
+
+function onStringFieldInput(componentName: string, fieldKey: string, event: Event): void {
+  const input = event.target as HTMLInputElement;
+  const k = keyOf(componentName, fieldKey);
+  edits[k] = input.value;
+  scheduleApplyAny({ componentName, patch: { [fieldKey]: input.value } });
 }
 
 function isDescriptorField(compName: string, fieldKey: string): boolean {
@@ -699,11 +721,20 @@ watch(
         if (focusedKey.value === k) continue;
         if (typeof value === "number" && Number.isFinite(value)) {
           edits[k] = String(value);
+        } else if (typeof value === "string") {
+          edits[k] = value;
         }
       }
     }
   },
   { immediate: true },
+);
+
+watch(
+  () => props.selectedEid,
+  () => {
+    focusedKey.value = null;
+  },
 );
 </script>
 
