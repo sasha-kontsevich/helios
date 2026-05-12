@@ -1,5 +1,5 @@
 import { onUnmounted, ref, shallowRef, type ShallowRef } from "vue";
-import type { ContextMenuItem } from "./contextMenuTypes";
+import type { ContextMenuEntry } from "./contextMenuTypes";
 
 /**
  * Minimal floating context menu controller: open at screen coords, close on Escape / outside click / scroll / resize.
@@ -8,7 +8,7 @@ export function useContextMenu() {
     const visible = ref(false);
     const x = ref(0);
     const y = ref(0);
-    const items: ShallowRef<ContextMenuItem[]> = shallowRef([]);
+    const items: ShallowRef<ContextMenuEntry[]> = shallowRef([]);
 
     let detachGlobalListeners: (() => void) | null = null;
 
@@ -19,7 +19,7 @@ export function useContextMenu() {
         detachGlobalListeners = null;
     }
 
-    function open(clientX: number, clientY: number, nextItems: ContextMenuItem[]): void {
+    function open(clientX: number, clientY: number, nextItems: ContextMenuEntry[]): void {
         close();
         x.value = clientX;
         y.value = clientY;

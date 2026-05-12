@@ -31,8 +31,21 @@
 <script setup lang="ts">
 import type { EntitySnapshot } from "@merlinn/helios-core";
 import ContextMenu from "../ui/contextMenu/ContextMenu.vue";
-import type { ContextMenuItem } from "../ui/contextMenu/contextMenuTypes";
+import type { ContextMenuEntry, ContextMenuItem } from "../ui/contextMenu/contextMenuTypes";
 import { useContextMenu } from "../ui/contextMenu/useContextMenu";
+import {
+  EDITOR_PRIMITIVE_KINDS,
+  type EditorPrimitiveKind,
+} from "../presets/defaultEditorPrimitiveComponents";
+
+const PRIMITIVE_LABELS: Record<EditorPrimitiveKind, string> = {
+  box: "Box",
+  sphere: "Sphere",
+  plane: "Plane",
+  cylinder: "Cylinder",
+  cone: "Cone",
+  torus: "Torus",
+};
 
 const props = defineProps<{
   entities: EntitySnapshot[];
@@ -42,6 +55,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   select: [eid: number];
   create: [];
+  createPrimitive: [kind: EditorPrimitiveKind];
   delete: [eid: number];
   copy: [eid: number];
   paste: [];
@@ -56,13 +70,26 @@ function onPanelContextMenu(ev: MouseEvent): void {
     return;
   }
   const sel = props.selectedEid;
-  const panelItems: ContextMenuItem[] = [
+  const primitiveChildren: ContextMenuItem[] = EDITOR_PRIMITIVE_KINDS.map((kind) => ({
+    id: `primitive-${kind}`,
+    label: PRIMITIVE_LABELS[kind],
+    onSelect: () => {
+      emit("createPrimitive", kind);
+    },
+  }));
+
+  const panelItems: ContextMenuEntry[] = [
     {
       id: "new",
       label: "New",
       onSelect: () => {
         emit("create");
       },
+    },
+    {
+      id: "primitives",
+      label: "Primitive",
+      children: primitiveChildren,
     },
     {
       id: "paste",
@@ -158,8 +185,9 @@ function componentSummary(ent: EntitySnapshot): string {
 }
 .entity-list__item {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
   padding: 6px 10px;
   cursor: pointer;
   font-size: 12px;
@@ -174,6 +202,7 @@ function componentSummary(ent: EntitySnapshot): string {
 .entity-list__eid {
   font-family: ui-monospace, monospace;
   color: #8cf;
+  margin-bottom: 2px;
 }
 .entity-list__hint {
   font-size: 11px;

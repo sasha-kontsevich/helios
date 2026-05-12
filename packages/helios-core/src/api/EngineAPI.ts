@@ -194,6 +194,13 @@ export class EngineAPI {
     }
 
     /**
+     * Spawn an entity and apply the given component field maps (same rules as scene load / clipboard paste).
+     */
+    createEntityFromComponents(components: Record<string, Record<string, unknown>>): number {
+        return spawnEntityFromComponentMap(this.context, components);
+    }
+
+    /**
      * Editor viewport: render through an ECS entity with `ThreeCamera`, or `null` for the default free camera.
      * No-op if the Three renderer capability is not registered.
      */

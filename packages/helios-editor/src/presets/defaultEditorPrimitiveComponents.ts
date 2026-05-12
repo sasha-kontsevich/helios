@@ -1,0 +1,63 @@
+/**
+ * Default mesh primitives for the editor (ThreeGeometryRef descriptors match
+ * {@link packages/helios-three-plugin/src/builders/descriptors.ts} defaults).
+ * Same material as legacy cube preset; plane is rotated -90° around X so it lies on XZ.
+ */
+
+export const EDITOR_PRIMITIVE_KINDS = ["box", "sphere", "plane", "cylinder", "cone", "torus"] as const;
+export type EditorPrimitiveKind = (typeof EDITOR_PRIMITIVE_KINDS)[number];
+
+const DEFAULT_MATERIAL = {
+  type: "meshStandard" as const,
+  color: 0xffffff,
+  roughness: 0.55,
+  metalness: 0.15,
+  wireframe: false,
+};
+
+function geometryDescriptor(kind: EditorPrimitiveKind): Record<string, unknown> {
+  switch (kind) {
+    case "box":
+      return { type: "box", width: 1, height: 1, depth: 1 };
+    case "sphere":
+      return { type: "sphere", radius: 1, widthSegments: 32, heightSegments: 16 };
+    case "plane":
+      return { type: "plane", width: 1, height: 1, widthSegments: 1, heightSegments: 1 };
+    case "cylinder":
+      return { type: "cylinder", radiusTop: 1, radiusBottom: 1, height: 1, radialSegments: 32 };
+    case "cone":
+      return { type: "cone", radius: 1, height: 1, radialSegments: 32 };
+    case "torus":
+      return { type: "torus", radius: 1, tube: 0.4, radialSegments: 16, tubularSegments: 48 };
+  }
+}
+
+/** Center y so volumetric primitives sit on y=0 grid; plane origin stays at y=0. */
+function positionFor(kind: EditorPrimitiveKind): { x: number; y: number; z: number } {
+  if (kind === "plane") {
+    return { x: 0, y: 0, z: 0 };
+  }
+  return { x: 0, y: 0.5, z: 0 };
+}
+
+function rotationFor(kind: EditorPrimitiveKind): { x: number; y: number; z: number } {
+  if (kind === "plane") {
+    return { x: -Math.PI / 2, y: 0, z: 0 };
+  }
+  return { x: 0, y: 0, z: 0 };
+}
+
+export function defaultEditorPrimitiveComponents(kind: EditorPrimitiveKind): Record<string, Record<string, unknown>> {
+  return {
+    Position: positionFor(kind),
+    Rotation: rotationFor(kind),
+    ThreeObject: {},
+    ThreeMesh: {},
+    ThreeGeometryRef: {
+      descriptor: geometryDescriptor(kind),
+    },
+    ThreeMaterialRef: {
+      descriptor: { ...DEFAULT_MATERIAL },
+    },
+  };
+}

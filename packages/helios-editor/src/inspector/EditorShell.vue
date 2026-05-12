@@ -6,6 +6,7 @@
         :selected-eid="selectedEid"
         @select="onSelect"
         @create="onCreateEntity"
+        @create-primitive="onCreatePrimitiveEntity"
         @delete="onDeleteEntity"
         @copy="onCopyEntity"
         @paste="onPasteEntity"
@@ -50,6 +51,10 @@ import type { ComponentMap, EngineAPI, EntitySnapshot } from "@merlinn/helios-co
 import type { ISelectionBus } from "../selection/SelectionBus";
 import EntityListPanel from "./EntityListPanel.vue";
 import InspectorPanel from "./InspectorPanel.vue";
+import {
+  defaultEditorPrimitiveComponents,
+  type EditorPrimitiveKind,
+} from "../presets/defaultEditorPrimitiveComponents";
 import {
   readEditorEntityClipboardJson,
   tryParseEditorEntityClipboardJson,
@@ -132,6 +137,14 @@ function onSelect(eid: number): void {
 
 function onCreateEntity(): void {
   const eid = props.engineApi.createEntity();
+  refreshEntityList();
+  selectedEid.value = eid;
+  props.selection.set(eid);
+  refreshInspector();
+}
+
+function onCreatePrimitiveEntity(kind: EditorPrimitiveKind): void {
+  const eid = props.engineApi.createEntityFromComponents(defaultEditorPrimitiveComponents(kind));
   refreshEntityList();
   selectedEid.value = eid;
   props.selection.set(eid);
