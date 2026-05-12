@@ -8,7 +8,20 @@ export const ThreeMesh = defineComponent({ geometry: THREE.BufferGeometry.protot
 
 export const ThreeCamera = defineComponent({fov: Types.f32, aspect: Types.f32, near: Types.f32, far: Types.f32});
 
-export const ThreeLight = defineComponent({ intensity: Types.f32 });
+/** Use for {@link ThreeDirectionalLight.targetEntity} when `light.target` is not owned by another ECS entity (placed under world root). */
+export const THREE_DIRECTIONAL_LIGHT_NO_TARGET_ENTITY = 0xffffffff;
+
+export const ThreeAmbientLight = defineComponent({ intensity: Types.f32 });
+
+/**
+ * Directional light marker. Runtime: `THREE.DirectionalLight` on {@link ThreeObject}.
+ * When {@link targetEntity} is {@link THREE_DIRECTIONAL_LIGHT_NO_TARGET_ENTITY}, `light.target` is attached to the world root only.
+ * Otherwise `ThreeObject.get(targetEntity).object` receives `directionalLight.target` (spawn that entity before this one in scene order).
+ */
+export const ThreeDirectionalLight = defineComponent({
+    intensity: Types.f32,
+    targetEntity: Types.ui32,
+});
 
 /** Empty-string schema fields store optional GUID strings via the defineComponent resource proxy. */
 const STRING_FIELD = '';

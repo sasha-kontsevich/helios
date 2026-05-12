@@ -1,84 +1,90 @@
-import { addComponent, addEntity, defineQuery, enterQuery, exitQuery } from 'bitecs';
+import { defineQuery, enterQuery, entityExists, exitQuery } from 'bitecs';
 import { System } from '@merlinn/helios-core';
 import * as THREE from 'three';
-import { ThreeLight, ThreeObject } from '../components';
+import {
+    THREE_DIRECTIONAL_LIGHT_NO_TARGET_ENTITY,
+    ThreeAmbientLight,
+    ThreeDirectionalLight,
+    ThreeObject,
+} from '../components';
+import { getThreeRenderContext } from '../ThreeRenderContext';
 
 /**
- * Bootstrap lights for scenes that don't define any.
- *
- * Creates:
- * - AmbientLight for base visibility
- * - DirectionalLight for shading
- *
- * If any `ThreeLight` exists (e.g. loaded from a scene), bootstrap is skipped.
+ * Instantiates THREE lights for {@link ThreeAmbientLight} / {@link ThreeDirectionalLight} + {@link ThreeObject}.
+ * Scenes must define lights in data (no engine bootstrap).
  */
 export class UpdateThreeLightSystem extends System {
-    private readonly lightQuery = defineQuery([ThreeLight, ThreeObject]);
-    private readonly lightEnter = enterQuery(this.lightQuery);
-    private readonly lightExit = exitQuery(this.lightQuery);
-    private readonly anyLightQuery = defineQuery([ThreeLight]);
+    private readonly ambientQuery = defineQuery([ThreeAmbientLight, ThreeObject]);
+    private readonly ambientEnter = enterQuery(this.ambientQuery);
+    private readonly ambientExit = exitQuery(this.ambientQuery);
 
-    async start(): Promise<void> {
-        if (this.anyLightQuery(this.world).length > 0) {
-            return;
-        }
-
-        // Ambient
-        {
-            const eid = addEntity(this.world);
-            addComponent(this.world, ThreeLight, eid);
-            addComponent(this.world, ThreeObject, eid);
-            // Keep ambient low enough so directional shading is visible.
-            ThreeLight.intensity[eid] = 0.25;
-            ThreeObject.get(eid).object = new THREE.AmbientLight(0xffffff, ThreeLight.intensity[eid]);
-        }
-
-        // Directional
-        {
-            const lightEid = addEntity(this.world);
-            addComponent(this.world, ThreeLight, lightEid);
-            addComponent(this.world, ThreeObject, lightEid);
-            ThreeLight.intensity[lightEid] = 1.2;
-            const light = new THREE.DirectionalLight(0xffffff, ThreeLight.intensity[lightEid]);
-            light.position.set(3, 5, 2);
-
-            // Three.js expects the target to be part of the scene graph.
-            // Create a separate ECS entity for `light.target` so `ThreeSceneSystem` adds it.
-            const targetEid = addEntity(this.world);
-            addComponent(this.world, ThreeObject, targetEid);
-            light.target.position.set(0, 0, 0);
-            ThreeObject.get(targetEid).object = light.target;
-
-            ThreeObject.get(lightEid).object = light;
-        }
-    }
+    private readonly directionalQuery = defineQuery([ThreeDirectionalLight, ThreeObject]);
+    private readonly directionalEnter = enterQuery(this.directionalQuery);
+    private readonly directionalExit = exitQuery(this.directionalQuery);
 
     update(): void {
         const world = this.world;
+        const root = getThreeRenderContext(this.context).getWorldRoot();
 
-        // Create missing objects for newly added lights (e.g. scene-loaded entities).
-        this.lightEnter(world).forEach((eid) => {
-            const obj = ThreeObject.get(eid).object;
-            if (obj) return;
-            ThreeObject.get(eid).object = new THREE.AmbientLight(0xffffff, ThreeLight.intensity[eid] || 1);
+        this.ambientEnter(world).forEach((eid) => {
+            if (ThreeObject.get(eid).object) return;
+            const i = ThreeAmbientLight.intensity[eid] ?? 1;
+            ThreeObject.get(eid).object = new THREE.AmbientLight(0xffffff, i);
         });
 
-        // Keep intensity in sync.
-        this.lightQuery(world).forEach((eid) => {
-            const obj = ThreeObject.get(eid).object as THREE.Object3D | undefined;
-            if (!obj) return;
-            if (obj instanceof THREE.Light) {
-                obj.intensity = ThreeLight.intensity[eid];
+        this.directionalEnter(world).forEach((eid) => {
+            if (ThreeObject.get(eid).object) return;
+            const intensity = ThreeDirectionalLight.intensity[eid] ?? 1;
+            const light = new THREE.DirectionalLight(0xffffff, intensity);
+            light.position.set(0, 0, 0);
+
+            const rawTarget = ThreeDirectionalLight.targetEntity[eid];
+            /** `0` = field omitted in scene JSON (do not bind to eid 0). Use {@link THREE_DIRECTIONAL_LIGHT_NO_TARGET_ENTITY} for explicit “no ECS target”. */
+            const useExplicitTarget =
+                rawTarget !== THREE_DIRECTIONAL_LIGHT_NO_TARGET_ENTITY &&
+                rawTarget !== 0 &&
+                entityExists(world, rawTarget);
+
+            if (useExplicitTarget) {
+                light.target.position.set(0, 0, 0);
+                ThreeObject.get(rawTarget).object = light.target;
+            } else {
+                light.target.position.set(0, 0, 0);
+                root.add(light.target);
+                (light.userData as { heliosImplicitTarget?: boolean }).heliosImplicitTarget = true;
             }
+
+            ThreeObject.get(eid).object = light;
         });
 
-        // Cleanup scene graph on exit.
-        this.lightExit(world).forEach((eid) => {
+        this.ambientQuery(world).forEach((eid) => {
+            const obj = ThreeObject.get(eid).object;
+            if (!obj || !(obj instanceof THREE.AmbientLight)) return;
+            obj.intensity = ThreeAmbientLight.intensity[eid] ?? 1;
+        });
+
+        this.directionalQuery(world).forEach((eid) => {
+            const obj = ThreeObject.get(eid).object;
+            if (!obj || !(obj instanceof THREE.DirectionalLight)) return;
+            obj.intensity = ThreeDirectionalLight.intensity[eid] ?? 1;
+        });
+
+        this.ambientExit(world).forEach((eid) => {
             const obj = ThreeObject.get(eid).object as THREE.Object3D | undefined;
-            if (!obj) return;
-            obj.parent?.remove(obj);
+            if (obj) obj.parent?.remove(obj);
+            (ThreeObject as any).object[eid] = 0;
+        });
+
+        this.directionalExit(world).forEach((eid) => {
+            const obj = ThreeObject.get(eid).object as THREE.DirectionalLight | undefined;
+            if (obj instanceof THREE.DirectionalLight) {
+                const implicit = (obj.userData as { heliosImplicitTarget?: boolean }).heliosImplicitTarget;
+                if (implicit) {
+                    obj.target.parent?.remove(obj.target);
+                }
+                obj.parent?.remove(obj);
+            }
             (ThreeObject as any).object[eid] = 0;
         });
     }
 }
-
