@@ -13,6 +13,7 @@ export class InspectorEditorPlugin implements EditorPlugin {
         this.app = createApp(EditorShell, {
             engineApi: context.api,
             selection: context.selection,
+            transformTools: context.transformTools ?? null,
         });
         this.app.mount(context.root);
     }

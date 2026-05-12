@@ -14,6 +14,53 @@
     </aside>
     <main class="shell__center">
       <div
+        v-if="transformTools"
+        class="shell__transformToolbar"
+        role="toolbar"
+        aria-label="Инструменты трансформации"
+      >
+        <button
+          type="button"
+          class="shell__toolBtn"
+          :class="{ 'shell__toolBtn--active': transformMode === 'translate' }"
+          title="Перенос (W)"
+          aria-label="Перенос (W)"
+          @click="setTransformMode('translate')"
+        >
+          <TransformToolIcon kind="move" />
+        </button>
+        <button
+          type="button"
+          class="shell__toolBtn"
+          :class="{ 'shell__toolBtn--active': transformMode === 'rotate' }"
+          title="Поворот (E)"
+          aria-label="Поворот (E)"
+          @click="setTransformMode('rotate')"
+        >
+          <TransformToolIcon kind="rotate" />
+        </button>
+        <button
+          type="button"
+          class="shell__toolBtn"
+          :class="{ 'shell__toolBtn--active': transformMode === 'scale' }"
+          title="Масштаб (R)"
+          aria-label="Масштаб (R)"
+          @click="setTransformMode('scale')"
+        >
+          <TransformToolIcon kind="scale" />
+        </button>
+        <button
+          type="button"
+          class="shell__toolBtn shell__toolBtn--gizmo"
+          :class="{ 'shell__toolBtn--active': transformGizmoVisible }"
+          title="Показать / скрыть гизмо (Q)"
+          :aria-label="transformGizmoVisible ? 'Скрыть гизмо (Q)' : 'Показать гизмо (Q)'"
+          @click="toggleTransformGizmo"
+        >
+          <TransformToolIcon :kind="transformGizmoVisible ? 'eye' : 'eye-off'" />
+        </button>
+      </div>
+      <div
         class="shell__sceneHud"
         title="Свободная камера: orbit и полёт (ПКМ). Сущность с ThreeCamera: вид для предпросмотра, поза из ECS."
       >
@@ -50,9 +97,11 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from "vue";
 import type { ComponentMap, EngineAPI, EntitySnapshot } from "@merlinn/helios-core";
+import type { ITransformToolController, TransformToolMode } from "../manipulators/ITransformToolController";
 import type { ISelectionBus } from "../selection/SelectionBus";
 import EntityListPanel from "./EntityListPanel.vue";
 import InspectorPanel from "./InspectorPanel.vue";
+import TransformToolIcon from "./TransformToolIcon.vue";
 import {
   defaultEditorPrimitiveComponents,
   type EditorPrimitiveKind,
@@ -69,10 +118,13 @@ const REFRESH_MS = 160;
 const props = defineProps<{
   engineApi: EngineAPI;
   selection: ISelectionBus;
+  transformTools?: ITransformToolController | null;
 }>();
 
 const entities = shallowRef<EntitySnapshot[]>([]);
 const selectedEid = ref<number | null>(null);
+const transformMode = ref<TransformToolMode>("translate");
+const transformGizmoVisible = ref(true);
 /** ECS entity id for editor viewport camera, or `null` for the free orbit camera. */
 const editorRenderCameraEid = ref<number | null>(null);
 
@@ -85,6 +137,29 @@ const inspectorEditing = ref(false);
 const availableComponents = ref<string[]>([]);
 
 let pollTimer: ReturnType<typeof setInterval> | undefined;
+let selectionUnsub: (() => void) | undefined;
+let transformToolUnsub: (() => void) | undefined;
+
+function syncTransformToolbar(): void {
+  const t = props.transformTools;
+  if (!t) {
+    return;
+  }
+  transformMode.value = t.getMode();
+  transformGizmoVisible.value = t.getGizmoUiVisible();
+}
+
+function setTransformMode(mode: TransformToolMode): void {
+  props.transformTools?.setMode(mode);
+}
+
+function toggleTransformGizmo(): void {
+  const t = props.transformTools;
+  if (!t) {
+    return;
+  }
+  t.setGizmoUiVisible(!t.getGizmoUiVisible());
+}
 
 function sortEntities(list: EntitySnapshot[]): EntitySnapshot[] {
   return [...list].sort((a, b) => a.eid - b.eid);
@@ -303,6 +378,16 @@ onMounted(() => {
   refreshEntityList();
   editorRenderCameraEid.value = props.engineApi.getEditorRenderCameraEid();
   refreshInspector();
+  selectionUnsub = props.selection.subscribe((eid) => {
+    selectedEid.value = eid;
+  });
+  const tt = props.transformTools;
+  if (tt) {
+    syncTransformToolbar();
+    transformToolUnsub = tt.subscribe(() => {
+      syncTransformToolbar();
+    });
+  }
   window.addEventListener("keydown", onGlobalKeydown);
   pollTimer = setInterval(() => {
     refreshEntityList();
@@ -313,6 +398,10 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  selectionUnsub?.();
+  selectionUnsub = undefined;
+  transformToolUnsub?.();
+  transformToolUnsub = undefined;
   window.removeEventListener("keydown", onGlobalKeydown);
   if (pollTimer !== undefined) {
     clearInterval(pollTimer);
@@ -346,6 +435,50 @@ onUnmounted(() => {
   min-height: 0;
   position: relative;
   background: #222;
+}
+.shell__transformToolbar {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid #444;
+  pointer-events: auto;
+}
+.shell__toolBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 28px;
+  padding: 0 6px;
+  border-radius: 3px;
+  border: 1px solid #555;
+  background: #2a2a2a;
+  color: #c8c8c8;
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+.shell__toolBtn:hover {
+  background: #353535;
+  color: #eee;
+}
+.shell__toolBtn--active {
+  background: #1e4a6e;
+  border-color: #3a7ab0;
+  color: #e8f4ff;
+}
+.shell__toolBtn--gizmo.shell__toolBtn--active {
+  background: #2d4a2d;
+  border-color: #4a8a4a;
+  color: #e0ffe0;
 }
 .shell__sceneHud {
   position: absolute;

@@ -8,5 +8,15 @@ export { EditorSceneView } from "./view/EditorSceneView";
 export type { SceneNavigationPolicy } from "./view/picking/SceneNavigationPolicy";
 export { UnityLikeSceneNavigationPolicy } from "./view/picking/SceneNavigationPolicy";
 export { pickEntityAtCanvasPoint } from "./view/picking/pickEntityAtCanvasPoint";
+export {
+    CompositeViewportPointerGate,
+    createViewportPickContext,
+    type IEditorViewportNavigation,
+    type IViewportPointerGate,
+    type ViewportPickContext,
+} from "./viewport";
+export { EditorTransformManipulator } from "./manipulators/EditorTransformManipulator";
+export type { ITransformToolController, TransformToolMode } from "./manipulators/ITransformToolController";
+export { writeEcsTransformFromObject3D } from "./manipulators/writeEcsTransformFromObject3D";
 export { InspectorEditorPlugin } from "./inspector/InspectorEditorPlugin";
 export { createDefaultEditorPlugins } from "./inspector/createDefaultEditorPlugins";

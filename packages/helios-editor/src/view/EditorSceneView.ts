@@ -3,6 +3,9 @@ import { THREE_RENDERER_CAPABILITY, type ThreeRenderContext } from "@merlinn/hel
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import type { ISelectionBus } from "../selection/SelectionBus";
+import { createViewportPickContext } from "../viewport/ViewportPickContext";
+import type { IEditorViewportNavigation } from "../viewport/IEditorViewportNavigation";
+import type { IViewportPointerGate } from "../viewport/IViewportPointerGate";
 import { pickEntityAtCanvasPoint } from "./picking/pickEntityAtCanvasPoint";
 import {
     type SceneNavigationPolicy,
@@ -22,7 +25,7 @@ const FLY_CODES = new Set(["KeyW", "KeyA", "KeyS", "KeyD", "KeyQ", "KeyE"]);
  * **Unity-like scene controls:** LMB ray-picks entities (see `pickEntityAtCanvasPoint`); **Alt+LMB** and
  * **MMB** orbit; **RMB** fly (WASD + look). OrbitControls does not use RMB so fly keeps priority.
  */
-export class EditorSceneView {
+export class EditorSceneView implements IEditorViewportNavigation {
     private engine: Engine | null = null;
     private renderContext: ThreeRenderContext | null = null;
     private controls: OrbitControls | null = null;
@@ -37,6 +40,9 @@ export class EditorSceneView {
     private shiftHeld = false;
     private altHeld = false;
     private lastTickTime = 0;
+
+    /** Nested requests to keep orbit off (gizmo drag, future tools). Fly mode overrides separately. */
+    private sceneNavigationHoldCount = 0;
 
     private readonly navigationPolicy: SceneNavigationPolicy;
 
@@ -61,8 +67,32 @@ export class EditorSceneView {
     constructor(
         private readonly selection: ISelectionBus,
         navigationPolicy?: SceneNavigationPolicy,
+        private readonly pointerGate?: IViewportPointerGate,
     ) {
         this.navigationPolicy = navigationPolicy ?? new UnityLikeSceneNavigationPolicy();
+    }
+
+    /** @inheritdoc */
+    setSceneNavigationEnabled(enabled: boolean): void {
+        if (enabled) {
+            this.sceneNavigationHoldCount = Math.max(0, this.sceneNavigationHoldCount - 1);
+        } else {
+            this.sceneNavigationHoldCount++;
+        }
+        this.applyOrbitEnabled();
+    }
+
+    /** @inheritdoc */
+    isFlyActive(): boolean {
+        return this.flyActive;
+    }
+
+    private applyOrbitEnabled(): void {
+        if (!this.controls) {
+            return;
+        }
+        const allow = !this.flyActive && this.sceneNavigationHoldCount === 0;
+        this.controls.enabled = allow;
     }
 
     attach(engine: Engine): void {
@@ -159,6 +189,7 @@ export class EditorSceneView {
             controls.target.copy(editorFree.position).addScaledVector(this.tmpViewDir, 8);
             this.controls = controls;
             this.applyOrbitMouseButtons();
+            this.applyOrbitEnabled();
         }
     }
 
@@ -203,6 +234,12 @@ export class EditorSceneView {
         if (!this.engine || !this.canvas) {
             return;
         }
+        if (this.pointerGate) {
+            const ctx = createViewportPickContext(this.engine, this.canvas);
+            if (ctx && this.pointerGate.shouldSuppressEntityPickCapture(e, ctx)) {
+                return;
+            }
+        }
         const eid = pickEntityAtCanvasPoint(this.engine, this.canvas, e.clientX, e.clientY);
         this.selection.set(eid);
         e.preventDefault();
@@ -212,7 +249,7 @@ export class EditorSceneView {
     private onPointerDown(e: PointerEvent): void {
         if (e.button !== 2 || !this.controls || !this.camera || !this.canvas || !this.isFreeEditorCamera()) return;
         this.flyActive = true;
-        this.controls.enabled = false;
+        this.applyOrbitEnabled();
         try {
             this.canvas.setPointerCapture(e.pointerId);
         } catch {
@@ -235,9 +272,7 @@ export class EditorSceneView {
         if (!this.flyActive) return;
         this.flyActive = false;
         this.keysDown.clear();
-        if (this.controls) {
-            this.controls.enabled = true;
-        }
+        this.applyOrbitEnabled();
     }
 
     /** After fly, keep orbit pivot in front of the camera so orbit does not jump. */
@@ -324,6 +359,7 @@ export class EditorSceneView {
         this.shiftHeld = false;
         this.altHeld = false;
         this.endFly();
+        this.sceneNavigationHoldCount = 0;
 
         if (this.canvas) {
             this.canvas.removeEventListener("pointerdown", this.boundPickPointerDown, true);

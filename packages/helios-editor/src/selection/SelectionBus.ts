@@ -3,7 +3,7 @@ export type SelectionEid = number | null;
 export type SelectionSubscriber = (eid: SelectionEid) => void;
 
 /**
- * Minimal pub/sub for the primary selected entity id (editor shell, scene overlay, future picking/gizmo).
+ * Minimal pub/sub for the primary selected entity id (editor shell, scene overlay, transform manipulator).
  */
 export interface ISelectionBus {
     get(): SelectionEid;
