@@ -90,6 +90,8 @@ export class EditorSelectionOverlay {
             });
             const lines = new THREE.LineSegments(edges, mat);
             lines.renderOrder = 1000;
+            /** Selection outline must not raycast — default Line threshold would steal picks near this mesh. */
+            lines.raycast = (): void => {};
             child.add(lines);
             this.outlineParts.push(lines);
         });
