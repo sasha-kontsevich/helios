@@ -8,6 +8,7 @@ import {
     ThreeObject,
 } from '../components';
 import { getThreeRenderContext } from '../ThreeRenderContext';
+import { clearEntityPickingTag, tagObject3DForEntityPicking } from '../picking/tagThreeObjectForPicking';
 
 /**
  * Instantiates THREE lights for {@link ThreeAmbientLight} / {@link ThreeDirectionalLight} + {@link ThreeObject}.
@@ -29,7 +30,9 @@ export class UpdateThreeLightSystem extends System {
         this.ambientEnter(world).forEach((eid) => {
             if (ThreeObject.get(eid).object) return;
             const i = ThreeAmbientLight.intensity[eid] ?? 1;
-            ThreeObject.get(eid).object = new THREE.AmbientLight(0xffffff, i);
+            const amb = new THREE.AmbientLight(0xffffff, i);
+            ThreeObject.get(eid).object = amb;
+            tagObject3DForEntityPicking(amb, eid);
         });
 
         this.directionalEnter(world).forEach((eid) => {
@@ -48,6 +51,7 @@ export class UpdateThreeLightSystem extends System {
             if (useExplicitTarget) {
                 light.target.position.set(0, 0, 0);
                 ThreeObject.get(rawTarget).object = light.target;
+                tagObject3DForEntityPicking(light.target, rawTarget);
             } else {
                 light.target.position.set(0, 0, 0);
                 root.add(light.target);
@@ -55,6 +59,7 @@ export class UpdateThreeLightSystem extends System {
             }
 
             ThreeObject.get(eid).object = light;
+            tagObject3DForEntityPicking(light, eid);
         });
 
         this.ambientQuery(world).forEach((eid) => {
@@ -71,13 +76,17 @@ export class UpdateThreeLightSystem extends System {
 
         this.ambientExit(world).forEach((eid) => {
             const obj = ThreeObject.get(eid).object as THREE.Object3D | undefined;
-            if (obj) obj.parent?.remove(obj);
+            if (obj) {
+                clearEntityPickingTag(obj);
+                obj.parent?.remove(obj);
+            }
             (ThreeObject as any).object[eid] = 0;
         });
 
         this.directionalExit(world).forEach((eid) => {
             const obj = ThreeObject.get(eid).object as THREE.DirectionalLight | undefined;
             if (obj instanceof THREE.DirectionalLight) {
+                clearEntityPickingTag(obj);
                 const implicit = (obj.userData as { heliosImplicitTarget?: boolean }).heliosImplicitTarget;
                 if (implicit) {
                     obj.target.parent?.remove(obj.target);

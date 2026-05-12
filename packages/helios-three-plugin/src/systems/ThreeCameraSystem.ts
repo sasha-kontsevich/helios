@@ -3,6 +3,7 @@ import { System } from "@merlinn/helios-core";
 import * as THREE from "three";
 import { ThreeCamera, ThreeObject } from "../components";
 import { getThreeRenderContext } from "../ThreeRenderContext";
+import { clearEntityPickingTag, tagObject3DForEntityPicking } from "../picking/tagThreeObjectForPicking";
 
 export class UpdateThreeCameraSystem extends System {
     private readonly cameraQuery = defineQuery([ThreeCamera, ThreeObject]);
@@ -20,6 +21,7 @@ export class UpdateThreeCameraSystem extends System {
             cameraData.near,
             cameraData.far
         );
+        tagObject3DForEntityPicking(objectComp.object, eid);
     }
 
     update(dt: number): void {
@@ -54,6 +56,7 @@ export class UpdateThreeCameraSystem extends System {
                 if (renderContext.getActiveCamera() === objectComp.object) {
                     renderContext.setActiveCamera(undefined);
                 }
+                clearEntityPickingTag(objectComp.object);
                 if (objectComp.object.parent) {
                     objectComp.object.parent.remove(objectComp.object);
                 }

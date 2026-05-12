@@ -2,6 +2,7 @@ import {defineQuery, enterQuery, exitQuery} from 'bitecs';
 import {System} from "@merlinn/helios-core";
 import * as THREE from "three";
 import {ThreeMesh, ThreeObject} from "../components";
+import { clearEntityPickingTag, tagObject3DForEntityPicking } from "../picking/tagThreeObjectForPicking";
 
 export class UpdateThreeMeshSystem extends System {
     private readonly meshQuery = defineQuery([ThreeObject, ThreeMesh]);
@@ -22,7 +23,9 @@ export class UpdateThreeMeshSystem extends System {
 
             const geometry = this.context.resources.get<THREE.BufferGeometry>(geoId);
             const material = this.context.resources.get<THREE.Material>(matId);
-            objectComponent.object = new THREE.Mesh(geometry, material);
+            const mesh = new THREE.Mesh(geometry, material);
+            objectComponent.object = mesh;
+            tagObject3DForEntityPicking(mesh, eid);
         });
 
         // Fallback: если сущность вошла в query до резолва ресурсов билдерами — создаём позже.
@@ -36,7 +39,9 @@ export class UpdateThreeMeshSystem extends System {
 
             const geometry = this.context.resources.get<THREE.BufferGeometry>(geoId);
             const material = this.context.resources.get<THREE.Material>(matId);
-            objectComponent.object = new THREE.Mesh(geometry, material);
+            const mesh = new THREE.Mesh(geometry, material);
+            objectComponent.object = mesh;
+            tagObject3DForEntityPicking(mesh, eid);
         });
 
         // Удалённые сущности — очищаем
@@ -44,6 +49,7 @@ export class UpdateThreeMeshSystem extends System {
             const objectComponent = ThreeObject.get(eid);
             if (objectComponent.object) {
                 const object = objectComponent.object;
+                clearEntityPickingTag(object);
                 if (object.parent) {
                     object.parent.remove(object); // удалить из сцены, если есть
                 }

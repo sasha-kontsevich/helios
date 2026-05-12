@@ -15,3 +15,4 @@ export * from './builders/descriptors'
 export * from './builders/ThreeMeshResourceBuilder'
 
 export * from './editor/tryGetEntityThreeObject'
+export * from './picking/tagThreeObjectForPicking'
