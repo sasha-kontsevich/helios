@@ -42,4 +42,12 @@ const ui = createEditor({ api: engine.api, root: document.getElementById("editor
 ui.dispose();
 ```
 
-Требуются peer-зависимости: `vue` и `@merlinn/helios-core` (см. `packages/helios-editor/package.json`).
+Требуются peer-зависимости: `vue`, `@merlinn/helios-core`, `@merlinn/helios-three-plugin`, `three` (см. `packages/helios-editor/package.json`).
+
+## Документация
+
+- [docs/README.md](docs/README.md) — оглавление документации.
+- [docs/architecture.md](docs/architecture.md) — **архитектура проекта** (пакеты, редактор, ядро, Three.js, пример astris).
+- [docs/overview.md](docs/overview.md) — краткий обзор и диаграмма потока данных.
+- [docs/maintaining-documentation.md](docs/maintaining-documentation.md) — как **поддерживать документацию актуальной** при изменениях кода.
+- [AGENTS.md](AGENTS.md) — соглашения для ассистентов и автоматизации.

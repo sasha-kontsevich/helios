@@ -1,0 +1,12 @@
+---
+description: Keep docs in sync when changing architecture, public API, or editor UX
+alwaysApply: true
+---
+
+# Documentation maintenance (Helios)
+
+When your change affects **public behavior, package boundaries, or developer-facing workflows**, update documentation in the **same task / PR**—do not leave docs stale.
+
+1. Read **`docs/maintaining-documentation.md`** for the **code → doc file** matrix and PR checklist.
+2. Prefer updating **`docs/architecture.md`** for substantive architecture or API changes; **`README.md`** / **`AGENTS.md`** for root scripts, workspaces, and agent commands; **`docs/overview.md`** for high-level package blurbs or peer dependencies.
+3. If you only refactor internals without changing contracts or user-visible flows, documentation updates are optional unless paths or module names referenced in docs changed.
