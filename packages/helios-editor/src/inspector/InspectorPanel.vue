@@ -1,21 +1,7 @@
 <template>
-  <div class="inspector">
+  <div class="inspector" @contextmenu="onInspectorPanelContextMenu">
     <div class="inspector__header">
       <span>Components</span>
-      <div class="inspector__header-actions" v-if="selectedEid !== null">
-        <select class="inspector__select" v-model="addSelected">
-          <option value="" disabled>Add component…</option>
-          <option v-if="availableComponents.length === 0" value="" disabled>
-            No components registered
-          </option>
-          <option v-for="name in availableComponents" :key="name" :value="name">
-            {{ name }}
-          </option>
-        </select>
-        <button class="inspector__btn" :disabled="!addSelected" @click="onAddComponent">
-          Add
-        </button>
-      </div>
     </div>
     <div v-if="selectedEid === null" class="inspector__empty">Select an entity</div>
     <div v-else-if="snapshot" class="inspector__body">
@@ -24,17 +10,11 @@
         :key="compName"
         class="inspector__component"
       >
-        <div class="inspector__comp-row">
+        <div
+          class="inspector__comp-row"
+          @contextmenu.stop.prevent="onComponentRowContextMenu($event, String(compName))"
+        >
           <h3 class="inspector__comp-title">{{ compName }}</h3>
-          <button
-            class="inspector__icon-btn"
-            type="button"
-            :aria-label="`Remove component ${String(compName)}`"
-            title="Remove component"
-            @click="onRemoveComponent(String(compName))"
-          >
-            ×
-          </button>
         </div>
         <div
           v-for="(value, fieldKey) in fields"
@@ -328,12 +308,22 @@
       </section>
     </div>
     <div v-else class="inspector__empty">No snapshot</div>
+    <ContextMenu
+      :visible="ctxVisible"
+      :x="ctxX"
+      :y="ctxY"
+      :items="ctxItems"
+      @close="closeContextMenu"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from "vue";
 import type { EntitySnapshot } from "@merlinn/helios-core";
+import ContextMenu from "../ui/contextMenu/ContextMenu.vue";
+import type { ContextMenuEntry, ContextMenuItem } from "../ui/contextMenu/contextMenuTypes";
+import { useContextMenu } from "../ui/contextMenu/useContextMenu";
 import { isReadonlyResourceField } from "./readonlyResourceFields";
 
 const props = defineProps<{
@@ -347,6 +337,8 @@ const emit = defineEmits<{
   editingChanged: [isEditing: boolean];
   addComponent: [componentName: string];
   removeComponent: [componentName: string];
+  copyComponent: [componentName: string];
+  pasteComponents: [];
 }>();
 
 const edits = reactive<Record<string, string>>({});
@@ -366,17 +358,83 @@ const drag = reactive({
   lastAppliedValue: 0,
 });
 
-const addSelected = ref<string>("");
 const availableComponents = computed(() => props.availableComponents ?? []);
 
-function onAddComponent(): void {
-  if (!addSelected.value) return;
-  emit("addComponent", addSelected.value);
-  addSelected.value = "";
+const { visible: ctxVisible, x: ctxX, y: ctxY, items: ctxItems, open, close: closeContextMenu } =
+  useContextMenu();
+
+const missingComponents = computed(() => {
+  const snap = props.snapshot;
+  const list = availableComponents.value;
+  if (!snap) return list;
+  return list.filter((name) => !Object.prototype.hasOwnProperty.call(snap.components, name));
+});
+
+function onInspectorPanelContextMenu(ev: MouseEvent): void {
+  const t = ev.target;
+  if (t instanceof Element) {
+    if (t.closest("input, textarea, select") || t.closest('[contenteditable="true"]')) {
+      return;
+    }
+  }
+  ev.preventDefault();
+
+  const sel = props.selectedEid;
+  const snap = props.snapshot;
+
+  const addChildren: ContextMenuItem[] =
+    sel !== null && snap
+      ? missingComponents.value.length === 0
+        ? [{ id: "add-none", label: "All components added", disabled: true, onSelect: () => {} }]
+        : missingComponents.value.map((name) => ({
+            id: `add-${name}`,
+            label: name,
+            onSelect: () => {
+              emit("addComponent", name);
+            },
+          }))
+      : [{ id: "add-need-entity", label: "Select an entity first", disabled: true, onSelect: () => {} }];
+
+  const panelItems: ContextMenuEntry[] = [
+    {
+      id: "add-submenu",
+      label: "Add",
+      disabled: sel === null || !snap,
+      children: addChildren,
+    },
+    {
+      id: "paste-components",
+      label: "Paste",
+      shortcut: "Ctrl+V",
+      disabled: sel === null,
+      onSelect: () => {
+        emit("pasteComponents");
+      },
+    },
+  ];
+  open(ev.clientX, ev.clientY, panelItems);
 }
 
-function onRemoveComponent(componentName: string): void {
-  emit("removeComponent", componentName);
+function onComponentRowContextMenu(ev: MouseEvent, componentName: string): void {
+  const rowItems: ContextMenuItem[] = [
+    {
+      id: "copy-component",
+      label: "Copy",
+      shortcut: "Ctrl+C",
+      onSelect: () => {
+        emit("copyComponent", componentName);
+      },
+    },
+    {
+      id: "remove-component",
+      label: "Remove",
+      danger: true,
+      onSelect: () => {
+        emit("removeComponent", componentName);
+      },
+    },
+  ];
+  open(ev.clientX, ev.clientY, rowItems);
 }
 
 function isEditableField(fieldKey: string, value: unknown): boolean {
@@ -665,13 +723,8 @@ watch(
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 8px;
-}
-.inspector__header-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
 }
 .inspector__select {
   height: 22px;
@@ -711,39 +764,6 @@ watch(
   font-weight: 600;
   color: #9cf;
   text-transform: none;
-}
-.inspector__btn {
-  height: 22px;
-  padding: 0 8px;
-  font-size: 11px;
-  color: #eee;
-  background: #1b1b1b;
-  border: 1px solid #444;
-  border-radius: 2px;
-  cursor: pointer;
-}
-.inspector__btn:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-.inspector__icon-btn {
-  width: 22px;
-  height: 22px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  line-height: 1;
-  color: #ddd;
-  background: transparent;
-  border: 1px solid #444;
-  border-radius: 2px;
-  cursor: pointer;
-}
-.inspector__icon-btn:hover {
-  background: #2a1515;
-  border-color: #5a2a2a;
-  color: #fff;
 }
 .inspector__field {
   display: grid;

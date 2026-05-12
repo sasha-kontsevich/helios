@@ -40,6 +40,8 @@
         @editing-changed="onEditingChanged"
         @add-component="onAddComponent"
         @remove-component="onRemoveComponent"
+        @copy-component="onCopyComponent"
+        @paste-components="onPasteComponents"
       />
     </aside>
   </div>
@@ -249,6 +251,36 @@ function onRemoveComponent(componentName: string): void {
   const id = selectedEid.value;
   if (id === null) return;
   props.engineApi.removeComponent(id, componentName as keyof ComponentMap);
+  refreshInspector();
+  refreshEntityList();
+}
+
+async function onCopyComponent(componentName: string): Promise<void> {
+  const id = selectedEid.value;
+  if (id === null) return;
+  try {
+    const json = props.engineApi.serializeEditorComponentClipboard(id, componentName);
+    await writeEditorEntityClipboard(json);
+  } catch (e) {
+    console.warn("[HeliosEditor] Copy component:", e);
+  }
+}
+
+async function onPasteComponents(): Promise<void> {
+  const id = selectedEid.value;
+  if (id === null) return;
+  const raw = await readEditorEntityClipboardJson();
+  const parsed = tryParseEditorEntityClipboardJson(raw);
+  if (!parsed) {
+    console.warn("[HeliosEditor] Paste components: clipboard is empty or invalid.");
+    return;
+  }
+  try {
+    props.engineApi.mergeEntityFromEditorClipboardPayload(id, parsed);
+  } catch (e) {
+    console.warn("[HeliosEditor] Paste components:", e);
+    return;
+  }
   refreshInspector();
   refreshEntityList();
 }
