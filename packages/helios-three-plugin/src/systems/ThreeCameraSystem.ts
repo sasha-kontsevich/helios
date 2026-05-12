@@ -11,6 +11,19 @@ export class UpdateThreeCameraSystem extends System {
     /** If any camera exists (e.g. loaded from a scene asset), skip default bootstrap. */
     private readonly anyThreeCameraQuery = defineQuery([ThreeCamera]);
 
+    /** (Re)create THREE camera when `ThreeObject.object` was cleared after mesh teardown or similar. */
+    private ensurePerspectiveCamera(eid: number): void {
+        const objectComp = ThreeObject.get(eid);
+        if (objectComp.object) return;
+        const cameraData = ThreeCamera.get(eid);
+        objectComp.object = new THREE.PerspectiveCamera(
+            cameraData.fov,
+            cameraData.aspect,
+            cameraData.near,
+            cameraData.far
+        );
+    }
+
     async start(): Promise<void> {
         if (this.anyThreeCameraQuery(this.world).length > 0) {
             return;
@@ -47,19 +60,11 @@ export class UpdateThreeCameraSystem extends System {
         const renderContext = getThreeRenderContext(this.context);
 
         this.cameraEnter(world).forEach(eid => {
-            const cameraData = ThreeCamera.get(eid);
-            const objectComp = ThreeObject.get(eid);
-            if (!objectComp.object) {
-                objectComp.object = new THREE.PerspectiveCamera(
-                    cameraData.fov,
-                    cameraData.aspect,
-                    cameraData.near,
-                    cameraData.far
-                );
-            }
+            this.ensurePerspectiveCamera(eid);
         });
 
         this.cameraQuery(world).forEach(eid => {
+            this.ensurePerspectiveCamera(eid);
             const camera = ThreeObject.get(eid).object as THREE.PerspectiveCamera;
             const canvas = renderContext.getCanvas();
             if (canvas && canvas.width && canvas.height) {
