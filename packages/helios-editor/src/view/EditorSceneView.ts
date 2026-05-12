@@ -2,6 +2,12 @@ import type { Engine } from "@merlinn/helios-core";
 import { THREE_RENDERER_CAPABILITY, type ThreeRenderContext } from "@merlinn/helios-three-plugin";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import type { ISelectionBus } from "../selection/SelectionBus";
+import { pickEntityAtCanvasPoint } from "./picking/pickEntityAtCanvasPoint";
+import {
+    type SceneNavigationPolicy,
+    UnityLikeSceneNavigationPolicy,
+} from "./picking/SceneNavigationPolicy";
 
 const FLY_MOVE_SPEED = 6;
 const FLY_SHIFT_SPEED_MULT = 3;
@@ -12,9 +18,9 @@ const FLY_CODES = new Set(["KeyW", "KeyA", "KeyS", "KeyD", "KeyQ", "KeyE"]);
 
 /**
  * Wires an editor-only orbit camera to {@link ThreeRenderContext} (not ECS, not `worldRoot`).
- * Hold **RMB** for first-person style fly: mouse looks, **W/S** on horizontal plane, **A/D** strafe,
- * **Q/E** world down/up. **Shift** multiplies move speed while flying. Orbit pivot stays in front
- * of the camera. While RMB fly is active, {@link OrbitControls} is disabled and not updated.
+ *
+ * **Unity-like scene controls:** LMB ray-picks entities (see `pickEntityAtCanvasPoint`); **Alt+LMB** and
+ * **MMB** orbit; **RMB** fly (WASD + look). OrbitControls does not use RMB so fly keeps priority.
  */
 export class EditorSceneView {
     private engine: Engine | null = null;
@@ -29,7 +35,10 @@ export class EditorSceneView {
     private flyActive = false;
     private readonly keysDown = new Set<string>();
     private shiftHeld = false;
+    private altHeld = false;
     private lastTickTime = 0;
+
+    private readonly navigationPolicy: SceneNavigationPolicy;
 
     /** Full 3D view direction (for orbit sync). */
     private readonly tmpViewDir = new THREE.Vector3();
@@ -41,12 +50,20 @@ export class EditorSceneView {
     private readonly tmpEuler = new THREE.Euler();
 
     private boundCtxMenu!: (e: Event) => void;
+    private boundPickPointerDown!: (e: PointerEvent) => void;
     private boundPointerDown!: (e: PointerEvent) => void;
     private boundPointerUp!: (e: PointerEvent) => void;
     private boundPointerMove!: (e: PointerEvent) => void;
     private boundKeyDown!: (e: KeyboardEvent) => void;
     private boundKeyUp!: (e: KeyboardEvent) => void;
     private boundBlur!: () => void;
+
+    constructor(
+        private readonly selection: ISelectionBus,
+        navigationPolicy?: SceneNavigationPolicy,
+    ) {
+        this.navigationPolicy = navigationPolicy ?? new UnityLikeSceneNavigationPolicy();
+    }
 
     attach(engine: Engine): void {
         this.detach();
@@ -66,6 +83,7 @@ export class EditorSceneView {
         this.ensureControlsMatchRenderCamera();
 
         this.boundCtxMenu = (e: Event) => e.preventDefault();
+        this.boundPickPointerDown = this.onPickPointerDownCapture.bind(this);
         this.boundPointerDown = this.onPointerDown.bind(this);
         this.boundPointerUp = this.onPointerUp.bind(this);
         this.boundPointerMove = this.onPointerMove.bind(this);
@@ -73,6 +91,7 @@ export class EditorSceneView {
         this.boundKeyUp = this.onKeyUp.bind(this);
         this.boundBlur = this.onWindowBlur.bind(this);
 
+        canvas.addEventListener("pointerdown", this.boundPickPointerDown, true);
         canvas.addEventListener("contextmenu", this.boundCtxMenu);
         canvas.addEventListener("pointerdown", this.boundPointerDown);
         canvas.addEventListener("pointerup", this.boundPointerUp);
@@ -139,7 +158,55 @@ export class EditorSceneView {
             editorFree.getWorldDirection(this.tmpViewDir);
             controls.target.copy(editorFree.position).addScaledVector(this.tmpViewDir, 8);
             this.controls = controls;
+            this.applyOrbitMouseButtons();
         }
+    }
+
+    /** Unity-like: LMB only orbits when Alt is held; MMB orbits; RMB unused by OrbitControls (fly). */
+    private applyOrbitMouseButtons(): void {
+        const c = this.controls;
+        if (!c) {
+            return;
+        }
+        const left = this.navigationPolicy.orbitLeftMouseEnabled(this.altHeld)
+            ? THREE.MOUSE.ROTATE
+            : undefined;
+        (c as unknown as { mouseButtons: Record<string, number | undefined> }).mouseButtons = {
+            LEFT: left,
+            MIDDLE: THREE.MOUSE.ROTATE,
+            RIGHT: undefined,
+        };
+    }
+
+    private syncAltFromKeyboardEvent(e: KeyboardEvent): void {
+        const next = e.getModifierState("Alt");
+        if (next === this.altHeld) {
+            return;
+        }
+        this.altHeld = next;
+        this.applyOrbitMouseButtons();
+    }
+
+    /**
+     * Capture phase: LMB without Alt selects/deselects before OrbitControls sees the event.
+     */
+    private onPickPointerDownCapture(e: PointerEvent): void {
+        if (e.button !== 0) {
+            return;
+        }
+        if (e.altKey) {
+            return;
+        }
+        if (this.flyActive) {
+            return;
+        }
+        if (!this.engine || !this.canvas) {
+            return;
+        }
+        const eid = pickEntityAtCanvasPoint(this.engine, this.canvas, e.clientX, e.clientY);
+        this.selection.set(eid);
+        e.preventDefault();
+        e.stopImmediatePropagation();
     }
 
     private onPointerDown(e: PointerEvent): void {
@@ -190,10 +257,13 @@ export class EditorSceneView {
 
     private onWindowBlur(): void {
         this.shiftHeld = false;
+        this.altHeld = false;
+        this.applyOrbitMouseButtons();
         this.endFly();
     }
 
     private onKeyDown(e: KeyboardEvent): void {
+        this.syncAltFromKeyboardEvent(e);
         if (e.code === "ShiftLeft" || e.code === "ShiftRight") {
             this.shiftHeld = true;
             return;
@@ -204,6 +274,7 @@ export class EditorSceneView {
     }
 
     private onKeyUp(e: KeyboardEvent): void {
+        this.syncAltFromKeyboardEvent(e);
         if (e.code === "ShiftLeft" || e.code === "ShiftRight") {
             this.shiftHeld = false;
             return;
@@ -251,9 +322,11 @@ export class EditorSceneView {
 
     detach(): void {
         this.shiftHeld = false;
+        this.altHeld = false;
         this.endFly();
 
         if (this.canvas) {
+            this.canvas.removeEventListener("pointerdown", this.boundPickPointerDown, true);
             this.canvas.removeEventListener("contextmenu", this.boundCtxMenu);
             this.canvas.removeEventListener("pointerdown", this.boundPointerDown);
             this.canvas.removeEventListener("pointerup", this.boundPointerUp);

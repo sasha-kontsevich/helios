@@ -5,5 +5,8 @@ export type { EditorPlugin } from "./EditorPlugin";
 export { Editor, type EditorOptions } from "./Editor";
 export { createEditor, type CreateEditorOptions, type EditorHandle } from "./createEditor";
 export { EditorSceneView } from "./view/EditorSceneView";
+export type { SceneNavigationPolicy } from "./view/picking/SceneNavigationPolicy";
+export { UnityLikeSceneNavigationPolicy } from "./view/picking/SceneNavigationPolicy";
+export { pickEntityAtCanvasPoint } from "./view/picking/pickEntityAtCanvasPoint";
 export { InspectorEditorPlugin } from "./inspector/InspectorEditorPlugin";
 export { createDefaultEditorPlugins } from "./inspector/createDefaultEditorPlugins";

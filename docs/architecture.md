@@ -46,7 +46,7 @@
 - **Камера ECS:** движок **не** создаёт камеру по умолчанию. Сущность с **`ThreeCamera`** должна появиться из загружаемой сцены, префаба или спавна через API; **`UpdateThreeCameraSystem`** только синхронизирует уже существующие компоненты с `THREE.PerspectiveCamera`.
 - **Свет ECS:** маркеры **`ThreeAmbientLight`** и **`ThreeDirectionalLight`** (вместе с **`ThreeObject`** и при необходимости **`Position`**). Источники не создаются автоматически — только из данных сцены или спавна. У **`ThreeDirectionalLight`** поле **`targetEntity`**: sentinel **`THREE_DIRECTIONAL_LIGHT_NO_TARGET_ENTITY`** (или опускание поля/`0` в JSON) — тогда `light.target` вешается на корень мира; иначе заданный **`targetEntity`** получает `THREE.Object3D` цели направленного света.
 - **Системы (обзор):** синхронизация мешей и объектов Three с ECS, камера, свет, сцена, отрисовка; дескрипторы геометрии/материалов и билдеры ресурсов — см. исходники в `systems/` и `builders/`.
-- **Редактор:** вспомогательные функции вроде **`tryGetEntityThreeObject`** связывают выделенную сущность с объектом в сцене для подсветки и манипуляций.
+- **Редактор:** вспомогательные функции вроде **`tryGetEntityThreeObject`** связывают выделенную сущность с объектом в сцене для подсветки и манипуляций; для **ray pick** на мешах/светах/камерах на корневой `Object3D` пишется **`userData.heliosEntityEid`** ([`tagThreeObjectForPicking`](../packages/helios-three-plugin/src/picking/tagThreeObjectForPicking.ts)).
 
 ## Редактор (`helios-editor`)
 
@@ -57,7 +57,13 @@
 
 ### Состояние выделения
 
-- **`SelectionBus`** — общая шина: список сущностей, инспектор и оверлей подписаны на одни и те же события выделения.
+- **`SelectionBus`** — общая шина: список сущностей, инспектор, оверлей и **ray pick во вьюпорте** подписаны на одни и те же события выделения.
+
+### Управление вьюпортом (Unity-like)
+
+- **ЛКМ** без Alt — луч в `worldRoot`, выбор сущности через **`SelectionBus`** ([`pickEntityAtCanvasPoint`](../packages/helios-editor/src/view/picking/pickEntityAtCanvasPoint.ts)); клик по пустоте снимает выделение.
+- **Alt+ЛКМ** и **СКМ (MMB)** — вращение камеры (`OrbitControls`); **ПКМ** — режим полёта (как раньше). `OrbitControls` не использует ПКМ, чтобы не конфликтовать с fly.
+- Политику жестов можно подменить через **`SceneNavigationPolicy`** ([`SceneNavigationPolicy.ts`](../packages/helios-editor/src/view/picking/SceneNavigationPolicy.ts)) — задел под Hand tool (Q) и т.п.
 
 ### Выделение объекта во вьюпорте
 
@@ -69,7 +75,7 @@
 | Область | Путь / файлы |
 |---------|----------------|
 | Оболочка и панели | `inspector/EditorShell.vue`, `EntityListPanel.vue`, `InspectorPanel.vue` |
-| Сценовый вид и выделение | `view/EditorSceneView.ts`, `view/EditorSelectionOverlay.ts` |
+| Сценовый вид, пикинг, выделение | `view/EditorSceneView.ts`, `view/picking/`, `view/EditorSelectionOverlay.ts` |
 | Выделение | `selection/SelectionBus.ts` |
 | Плагины редактора (ядро UI) | `inspector/InspectorEditorPlugin.ts`, `createDefaultEditorPlugins.ts` |
 | Буфер ↔ API | `inspector/editorEntityClipboardBridge.ts` |

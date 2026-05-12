@@ -23,7 +23,7 @@ export function createEditor(options: CreateEditorOptions): EditorHandle {
     const { api, engine: initialEngine, ...rest } = options;
     const selection = options.selection ?? new SelectionBus();
     const editor = new Editor(api, { ...rest, selection });
-    const sceneView = new EditorSceneView();
+    const sceneView = new EditorSceneView(selection);
     const selectionOverlay = new EditorSelectionOverlay(selection);
     if (initialEngine) {
         sceneView.attach(initialEngine);

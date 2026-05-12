@@ -13,8 +13,8 @@
 | Изменили | Обновить |
 |----------|----------|
 | Публичный API **`helios-core`** (`EngineAPI`, экспорты, формат буфера, спавн/merge) | `docs/architecture.md` (раздел «Ядро»), при необходимости `AGENTS.md` |
-| **`helios-three-plugin`**: capability, `ThreeRenderContext`, `worldRoot` / `editorRoot`, системы рендера | `docs/architecture.md` (раздел «Плагин Three.js») |
-| **`helios-editor`**: `createEditor`, жизненный цикл, панели, буфер, контекстные меню, выделение | `docs/architecture.md` (раздел «Редактор»), при смене peers — `README.md` и `docs/overview.md` |
+| **`helios-three-plugin`**: capability, `ThreeRenderContext`, `worldRoot` / `editorRoot`, системы рендера, **теги пикинга** (`heliosEntityEid`) | `docs/architecture.md` (раздел «Плагин Three.js») |
+| **`helios-editor`**: `createEditor`, жизненный цикл, панели, буфер, контекстные меню, выделение, **пикинг/жесты вьюпорта** | `docs/architecture.md` (раздел «Редактор»), при смене peers — `README.md` и `docs/overview.md` |
 | **`examples/astris`**: скрипты, способ подключения редактора | `README.md`, при необходимости `docs/architecture.md` (астрис) |
 | Корневые **`package.json`** скрипты, список workspace, команды CI | `README.md`, `AGENTS.md` |
 | Новый пакет в `packages/` или пример в `examples/` | `docs/architecture.md` (таблица пакетов), `docs/README.md`, `AGENTS.md` при необходимости |
