@@ -1,6 +1,8 @@
 import type { EngineAPI } from "@merlinn/helios-core";
 import type { EditorContext } from "./EditorContext";
 import type { EditorPlugin } from "./EditorPlugin";
+import type { ComponentInspectorExtension } from "./inspector/registry/inspectorTypes";
+import { createDefaultInspectorRegistry } from "./inspector/registry/createDefaultInspectorRegistry";
 import type { ITransformToolController } from "./manipulators/ITransformToolController";
 import { createDefaultEditorPlugins } from "./inspector/createDefaultEditorPlugins";
 import { noopSelectionBus, type ISelectionBus } from "./selection/SelectionBus";
@@ -12,6 +14,8 @@ export interface EditorOptions {
     plugins?: EditorPlugin[];
     /** Selection pub/sub; defaults to a noop bus when omitted (standalone {@link Editor} without shell sync). */
     selection?: ISelectionBus;
+    /** Extra inspector views; higher {@link ComponentInspectorExtension.priority} overrides built-ins. */
+    inspectorExtensions?: readonly ComponentInspectorExtension[];
     /** Viewport transform toolbar target; set by {@link createEditor} when manipulator is enabled. */
     transformTools?: ITransformToolController;
 }
@@ -31,10 +35,12 @@ export class Editor {
         const plugins = options.plugins ?? createDefaultEditorPlugins();
         const selection = options.selection ?? noopSelectionBus;
         const transformTools = options.transformTools;
+        const inspectorRegistry = createDefaultInspectorRegistry(options.inspectorExtensions);
         const context: EditorContext = {
             api: this.api,
             root,
             selection,
+            inspectorRegistry,
             ...(transformTools !== undefined ? { transformTools } : {}),
         };
 

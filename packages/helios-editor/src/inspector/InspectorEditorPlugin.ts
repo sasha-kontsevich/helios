@@ -14,6 +14,7 @@ export class InspectorEditorPlugin implements EditorPlugin {
             engineApi: context.api,
             selection: context.selection,
             transformTools: context.transformTools ?? null,
+            inspectorRegistry: context.inspectorRegistry,
         });
         this.app.mount(context.root);
     }

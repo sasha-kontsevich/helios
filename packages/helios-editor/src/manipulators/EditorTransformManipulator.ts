@@ -92,7 +92,7 @@ export class EditorTransformManipulator implements ITransformToolController {
 
     private selectionUnsub: (() => void) | null = null;
     private unregisterGate: (() => void) | null = null;
-    private rafId = 0;
+    private unregisterBeforeRender: (() => void) | null = null;
 
     private gizmoUiVisible = true;
 
@@ -219,11 +219,10 @@ export class EditorTransformManipulator implements ITransformToolController {
 
         window.addEventListener("keydown", this.boundKeyDown);
 
-        const tick = (): void => {
-            this.rafId = requestAnimationFrame(tick);
+        this.unregisterBeforeRender = rc.registerBeforeRender(() => {
             this.syncCameraToControls();
-        };
-        this.rafId = requestAnimationFrame(tick);
+            this.syncTransformControlsToSelection();
+        });
         this.notifyToolListeners();
     }
 
@@ -232,9 +231,9 @@ export class EditorTransformManipulator implements ITransformToolController {
             this.navigation.setSceneNavigationEnabled(true);
         }
 
-        if (this.rafId !== 0) {
-            cancelAnimationFrame(this.rafId);
-            this.rafId = 0;
+        if (this.unregisterBeforeRender) {
+            this.unregisterBeforeRender();
+            this.unregisterBeforeRender = null;
         }
 
         window.removeEventListener("keydown", this.boundKeyDown);
@@ -282,6 +281,43 @@ export class EditorTransformManipulator implements ITransformToolController {
         const cam = rc.resolveRenderCamera(engine.context.ecsWorld);
         if (cam instanceof THREE.PerspectiveCamera) {
             tc.camera = cam;
+        }
+    }
+
+    /**
+     * After mesh rebuild (e.g. geometry descriptor), `ThreeObject` points at a new `THREE.Mesh`.
+     * Re-attach {@link TransformControls} so it never targets an object that left the scene graph.
+     */
+    private syncTransformControlsToSelection(): void {
+        const tc = this.transformControls;
+        const engine = this.engine;
+        if (!tc || !engine) {
+            return;
+        }
+        const eid = this.selection.get();
+        if (eid === null) {
+            if (tc.object !== undefined) {
+                tc.detach();
+                this.applyGizmoUiVisibility();
+                this.notifyToolListeners();
+            }
+            return;
+        }
+        const obj = tryGetEntityThreeObject(engine.context.ecsWorld, eid);
+        if (!obj) {
+            if (tc.object !== undefined) {
+                tc.detach();
+                this.applyGizmoUiVisibility();
+                this.notifyToolListeners();
+            }
+            return;
+        }
+        const attached = tc.object as THREE.Object3D | undefined;
+        if (attached !== obj) {
+            tc.setSpace(this.api.hasComponent(eid, "Parent" as never) ? "local" : "world");
+            tc.attach(obj);
+            this.applyGizmoUiVisibility();
+            this.notifyToolListeners();
         }
     }
 

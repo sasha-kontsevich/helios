@@ -83,6 +83,7 @@
         :selected-eid="selectedEid"
         :snapshot="inspectorSnapshot"
         :available-components="availableComponents"
+        :inspector-registry="inspectorRegistry"
         @apply-patch="onApplyPatch"
         @editing-changed="onEditingChanged"
         @add-component="onAddComponent"
@@ -99,6 +100,7 @@ import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from "vue";
 import type { ComponentMap, EngineAPI, EntitySnapshot } from "@merlinn/helios-core";
 import type { ITransformToolController, TransformToolMode } from "../manipulators/ITransformToolController";
 import type { ISelectionBus } from "../selection/SelectionBus";
+import type { EditorInspectorRegistry } from "./registry/EditorInspectorRegistry";
 import EntityListPanel from "./EntityListPanel.vue";
 import InspectorPanel from "./InspectorPanel.vue";
 import TransformToolIcon from "./TransformToolIcon.vue";
@@ -119,6 +121,7 @@ const props = defineProps<{
   engineApi: EngineAPI;
   selection: ISelectionBus;
   transformTools?: ITransformToolController | null;
+  inspectorRegistry: EditorInspectorRegistry;
 }>();
 
 const entities = shallowRef<EntitySnapshot[]>([]);
@@ -321,6 +324,9 @@ function onAddComponent(componentName: string): void {
   const id = selectedEid.value;
   if (id === null) return;
   props.engineApi.addComponent(id, componentName as keyof ComponentMap);
+  if (componentName === "Scale" && props.engineApi.hasComponent(id, "Scale" as keyof ComponentMap)) {
+    props.engineApi.applyComponentPatch(id, "Scale" as keyof ComponentMap, { x: 1, y: 1, z: 1 });
+  }
   refreshInspector();
   refreshEntityList();
 }

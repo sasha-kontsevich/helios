@@ -1,4 +1,4 @@
-import {defineQuery, enterQuery, exitQuery} from 'bitecs';
+import {defineQuery, enterQuery, entityExists, exitQuery} from 'bitecs';
 import {System} from "@merlinn/helios-core";
 import * as THREE from "three";
 import {ThreeMesh, ThreeObject} from "../components";
@@ -11,6 +11,27 @@ export class UpdateThreeMeshSystem extends System {
 
     update(dt: number): void {
         const world = this.world;
+
+        // Сначала выходы: иначе в одном кадре enter + exit по одному eid сначала создаст меш,
+        // а meshExit ниже снимет его и обнулит ThreeObject (меш «пропадает» без явной ошибки).
+        this.meshExit(world).forEach((eid) => {
+            if (!entityExists(world as any, eid)) {
+                return;
+            }
+            const objectComponent = ThreeObject.get(eid);
+            if (objectComponent.object) {
+                const object = objectComponent.object;
+                clearEntityPickingTag(object);
+                if (object.parent) {
+                    object.parent.remove(object); // удалить из сцены, если есть
+                }
+                if (object instanceof THREE.Mesh) {
+                    object.geometry.dispose?.();
+                    object.material.dispose?.();
+                }
+                ThreeObject.object[eid] = 0;
+            }
+        });
 
         // Новые сущности — создаём THREE.Mesh (только когда ресурсы готовы)
         this.meshEnter(world).forEach(eid => {
@@ -42,23 +63,6 @@ export class UpdateThreeMeshSystem extends System {
             const mesh = new THREE.Mesh(geometry, material);
             objectComponent.object = mesh;
             tagObject3DForEntityPicking(mesh, eid);
-        });
-
-        // Удалённые сущности — очищаем
-        this.meshExit(world).forEach(eid => {
-            const objectComponent = ThreeObject.get(eid);
-            if (objectComponent.object) {
-                const object = objectComponent.object;
-                clearEntityPickingTag(object);
-                if (object.parent) {
-                    object.parent.remove(object); // удалить из сцены, если есть
-                }
-                if (object instanceof THREE.Mesh) {
-                    object.geometry.dispose?.();
-                    object.material.dispose?.();
-                }
-                ThreeObject.object[eid] = 0;
-            }
         });
 
         // Основной апдейт — можно позже добавить перемещения и т.п.

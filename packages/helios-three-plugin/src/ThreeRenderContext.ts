@@ -39,6 +39,9 @@ export class ThreeRenderContext {
      */
     private editorRenderCameraEid: number | null = null;
 
+    /** Invoked each frame immediately before `WebGLRenderer.render` (after ECS systems). */
+    private readonly beforeRenderHooks: Array<() => void> = [];
+
     constructor(private readonly options: ThreePluginOptions = {}) {
         this.worldRoot.name = "HeliosWorldRoot";
         this.editorRoot.name = "HeliosEditorRoot";
@@ -189,8 +192,36 @@ export class ThreeRenderContext {
         return this.activeCamera;
     }
 
+    /**
+     * Register a callback to run immediately before the renderer draws the scene each frame
+     * (after all ECS systems have run). Used by the editor to re-sync `TransformControls` when
+     * runtime meshes are rebuilt (e.g. descriptor edits).
+     */
+    registerBeforeRender(callback: () => void): () => void {
+        this.beforeRenderHooks.push(callback);
+        return () => {
+            const i = this.beforeRenderHooks.indexOf(callback);
+            if (i >= 0) {
+                this.beforeRenderHooks.splice(i, 1);
+            }
+        };
+    }
+
+    /** @internal Called by {@link RenderSystem} only. */
+    invokeBeforeRender(): void {
+        const hooks = this.beforeRenderHooks.slice();
+        for (const h of hooks) {
+            try {
+                h();
+            } catch (err) {
+                console.error("[ThreeRenderContext] beforeRender hook failed:", err);
+            }
+        }
+    }
+
     dispose(): void {
         this.editorRenderCameraEid = null;
+        this.beforeRenderHooks.length = 0;
         this.editorRoot.clear();
         this.editorRoot.removeFromParent();
         this.editorViewCamera = undefined;

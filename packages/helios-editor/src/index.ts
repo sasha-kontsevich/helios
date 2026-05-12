@@ -20,3 +20,10 @@ export type { ITransformToolController, TransformToolMode } from "./manipulators
 export { writeEcsTransformFromObject3D } from "./manipulators/writeEcsTransformFromObject3D";
 export { InspectorEditorPlugin } from "./inspector/InspectorEditorPlugin";
 export { createDefaultEditorPlugins } from "./inspector/createDefaultEditorPlugins";
+export {
+    INTERNAL_INSPECTOR_COMPONENT_NAMES,
+    isInternalInspectorComponent,
+} from "./inspector/internalComponents";
+export type { ComponentInspectorExtension } from "./inspector/registry/inspectorTypes";
+export { EditorInspectorRegistry } from "./inspector/registry/EditorInspectorRegistry";
+export { createDefaultInspectorRegistry } from "./inspector/registry/createDefaultInspectorRegistry";

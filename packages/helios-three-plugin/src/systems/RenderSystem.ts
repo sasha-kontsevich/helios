@@ -15,6 +15,7 @@ export class RenderSystem extends System {
         }
 
         renderContext.syncViewportSize();
+        renderContext.invokeBeforeRender();
         renderContext.getRenderer().render(renderContext.getScene(), camera);
     }
 }
