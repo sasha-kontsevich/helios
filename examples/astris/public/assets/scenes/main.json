@@ -5,6 +5,7 @@
     {
       "id": "camera-1",
       "components": {
+        "Name": { "label": "Главная камера" },
         "ThreeCamera": {
           "fov": 75,
           "aspect": 1.7777777778,
@@ -23,6 +24,7 @@
     {
       "id": "cube-1",
       "components": {
+        "Name": { "label": "Демо-куб" },
         "Rotating": { "speed": 1 },
         "Position": { "x": 1, "y": 1, "z": 1 },
         "Rotation": { "x": 0, "y": 0, "z": 0 },
@@ -45,6 +47,23 @@
             "wireframe": false
           }
         }
+      }
+    },
+    {
+      "id": "light-ambient",
+      "components": {
+        "Name": { "label": "Окружающий свет" },
+        "ThreeAmbientLight": { "intensity": 0.25 },
+        "ThreeObject": {}
+      }
+    },
+    {
+      "id": "light-directional",
+      "components": {
+        "Name": { "label": "Солнце" },
+        "ThreeDirectionalLight": { "intensity": 1.2 },
+        "ThreeObject": {},
+        "Position": { "x": 3, "y": 5, "z": 2 }
       }
     }
   ]
