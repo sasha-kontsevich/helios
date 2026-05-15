@@ -12,6 +12,10 @@
 
 Интеграция **Three.js**: capability **`renderer.three`**, **`ThreeRenderContext`**, **`worldRoot`** и **`editorRoot`**, системы мешей/камеры/света и ресурсные билдеры.
 
+### `@merlinn/helios-input-plugin`
+
+Ввод **game viewport**: **`ViewportInputPlugin`** → capability **`game.viewportInput`**, **`ViewportFlyCameraSystem`** пишет **`Position`** / **`Rotation`** сущности с тегом **`ViewportCameraControl`**. Редакторский canvas не затрагивается.
+
 ### `@merlinn/helios-editor`
 
 Редактор на **Vue 3**: **`createEditor`**, **`SelectionBus`**, панели сущностей и инспектора, **`EditorSceneView`**, оверлей выделения, контекстные меню в **`ui/contextMenu/`**.
