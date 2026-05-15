@@ -1,13 +1,16 @@
 import { defineQuery } from "bitecs";
 import { Position, Rotation, System } from "@merlinn/helios-core";
+import { ThreeObject } from "@merlinn/helios-three-plugin";
+import * as THREE from "three";
 import { ViewportCameraControl } from "../components/ViewportCameraControl";
-import { applyFlyLook, applyFlyMovement } from "../camera/applyFlyMovement";
+import { applyFlyLookOnCamera, applyFlyMoveOnCamera } from "../camera/flyCameraThree";
+import { syncCameraPoseToEcs } from "../camera/syncCameraPose";
 import { getViewportInput } from "../getViewportInput";
 
 export class ViewportFlyCameraSystem extends System {
     static override readonly runsInEditor = true;
 
-    private readonly query = defineQuery([ViewportCameraControl, Position, Rotation]);
+    private readonly query = defineQuery([ViewportCameraControl, Position, Rotation, ThreeObject]);
 
     update(dt: number): void {
         const input = getViewportInput(this.context);
@@ -29,26 +32,16 @@ export class ViewportFlyCameraSystem extends System {
         }
 
         for (const eid of this.query(this.world)) {
-            const pose = {
-                x: Position.x[eid],
-                y: Position.y[eid],
-                z: Position.z[eid],
-                rotX: Rotation.x[eid],
-                rotY: Rotation.y[eid],
-                rotZ: Rotation.z[eid],
-            };
-
-            if (input.flyActive) {
-                applyFlyLook(pose, input.lookDeltaX, input.lookDeltaY);
-                applyFlyMovement(pose, input.keysDown, input.shiftHeld, dt);
+            const object = ThreeObject.get(eid).object;
+            if (!(object instanceof THREE.PerspectiveCamera)) {
+                continue;
             }
 
-            Position.x[eid] = pose.x;
-            Position.y[eid] = pose.y;
-            Position.z[eid] = pose.z;
-            Rotation.x[eid] = pose.rotX;
-            Rotation.y[eid] = pose.rotY;
-            Rotation.z[eid] = pose.rotZ;
+            if (input.flyActive) {
+                applyFlyLookOnCamera(object, input.lookDeltaX, input.lookDeltaY);
+                applyFlyMoveOnCamera(object, input.keysDown, input.shiftHeld, dt);
+                syncCameraPoseToEcs(eid, object);
+            }
         }
 
         input.beginFrame();

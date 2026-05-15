@@ -17,13 +17,14 @@ export class UpdateThreeCameraSystem extends System {
         const objectComp = ThreeObject.get(eid);
         if (objectComp.object) return;
         const cameraData = ThreeCamera.get(eid);
-        objectComp.object = new THREE.PerspectiveCamera(
+        const camera = new THREE.PerspectiveCamera(
             cameraData.fov,
             cameraData.aspect,
             cameraData.near,
             cameraData.far
         );
-        tagObject3DForEntityPicking(objectComp.object, eid);
+        objectComp.object = camera;
+        tagObject3DForEntityPicking(camera, eid);
     }
 
     update(dt: number): void {

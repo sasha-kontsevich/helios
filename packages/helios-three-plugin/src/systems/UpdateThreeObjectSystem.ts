@@ -23,7 +23,12 @@ export class UpdateThreeObjectSystem extends System {
 
             // --- Обновляем вращение ---
             if (hasComponent(world, Rotation, eid)) {
-                object.rotation.set(Rotation.x[eid], Rotation.y[eid], Rotation.z[eid]);
+                object.quaternion.set(
+                    Rotation.x[eid],
+                    Rotation.y[eid],
+                    Rotation.z[eid],
+                    Rotation.w[eid],
+                );
             }
 
             // --- Обновляем масштаб ---
