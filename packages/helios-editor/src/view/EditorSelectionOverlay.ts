@@ -25,8 +25,22 @@ export class EditorSelectionOverlay {
     private world: IWorld | null = null;
     private unsub: (() => void) | null = null;
     private rafId = 0;
+    /** When true (shell game tab), no outlines — selection is editor-only chrome. */
+    private presentationSuppressed = false;
 
     constructor(private readonly selection: ISelectionBus) {}
+
+    /**
+     * Hide selection outlines while the shell is in game viewport mode; restore when returning to editor.
+     */
+    setGamePresentationActive(active: boolean): void {
+        this.presentationSuppressed = active;
+        if (active) {
+            this.clearHelper();
+            return;
+        }
+        this.applySelection(this.selection.get());
+    }
 
     attach(engine: Engine): void {
         this.detach();
@@ -62,6 +76,9 @@ export class EditorSelectionOverlay {
 
     private applySelection(eid: SelectionEid): void {
         this.clearHelper();
+        if (this.presentationSuppressed) {
+            return;
+        }
         if (eid === null || this.world === null || this.editorRoot === null) {
             return;
         }

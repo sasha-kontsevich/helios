@@ -3,6 +3,11 @@ import { THREE_RENDERER_CAPABILITY, type ThreeRenderContext } from "@merlinn/hel
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import type { ISelectionBus } from "../selection/SelectionBus";
+import {
+    GAME_VIEWPORT_POINTER_SINK_CAPABILITY,
+    type IGameViewportPointerSink,
+} from "../viewport/GameViewportPointerSink";
+import type { EditorViewportInteractionMode } from "../viewport/EditorViewportInteractionMode";
 import { createViewportPickContext } from "../viewport/ViewportPickContext";
 import type { IEditorViewportNavigation } from "../viewport/IEditorViewportNavigation";
 import type { IViewportPointerGate } from "../viewport/IViewportPointerGate";
@@ -31,8 +36,10 @@ export class EditorSceneView implements IEditorViewportNavigation {
     private controls: OrbitControls | null = null;
     private camera: THREE.PerspectiveCamera | null = null;
     private canvas: HTMLCanvasElement | null = null;
+    /** Game tab canvas — LMB forwarded to {@link GAME_VIEWPORT_POINTER_SINK_CAPABILITY}. */
+    private gameCanvas: HTMLCanvasElement | null = null;
     private rafId = 0;
-    /** Last camera returned by {@link ThreeRenderContext.resolveRenderCamera} (controls attach to the free editor camera only). */
+    /** Last camera returned by {@link ThreeRenderContext.resolveEditorViewportCamera} (orbit vs ECS preview). */
     private lastResolvedRenderCamera: THREE.Camera | undefined = undefined;
 
     private flyActive = false;
@@ -45,6 +52,8 @@ export class EditorSceneView implements IEditorViewportNavigation {
     private sceneNavigationHoldCount = 0;
 
     private readonly navigationPolicy: SceneNavigationPolicy;
+
+    private interactionMode: EditorViewportInteractionMode = "editor";
 
     /** Full 3D view direction (for orbit sync). */
     private readonly tmpViewDir = new THREE.Vector3();
@@ -72,6 +81,19 @@ export class EditorSceneView implements IEditorViewportNavigation {
         this.navigationPolicy = navigationPolicy ?? new UnityLikeSceneNavigationPolicy();
     }
 
+    /** Entity picking (LMB) vs forwarding to {@link GAME_VIEWPORT_POINTER_SINK_CAPABILITY} in game mode. */
+    setInteractionMode(mode: EditorViewportInteractionMode): void {
+        this.interactionMode = mode;
+        if (mode === "game") {
+            this.endFly();
+        }
+        this.applyOrbitEnabled();
+    }
+
+    getInteractionMode(): EditorViewportInteractionMode {
+        return this.interactionMode;
+    }
+
     /** @inheritdoc */
     setSceneNavigationEnabled(enabled: boolean): void {
         if (enabled) {
@@ -91,7 +113,8 @@ export class EditorSceneView implements IEditorViewportNavigation {
         if (!this.controls) {
             return;
         }
-        const allow = !this.flyActive && this.sceneNavigationHoldCount === 0;
+        const allow =
+            this.interactionMode !== "game" && !this.flyActive && this.sceneNavigationHoldCount === 0;
         this.controls.enabled = allow;
     }
 
@@ -101,13 +124,13 @@ export class EditorSceneView implements IEditorViewportNavigation {
         const rc = engine.context.capabilities.get<ThreeRenderContext>(THREE_RENDERER_CAPABILITY);
         this.engine = engine;
         this.renderContext = rc;
-        rc.setRenderView("editor");
 
         const canvas = rc.getCanvas();
         if (!canvas) {
             throw new Error("[EditorSceneView] Three canvas is not available yet.");
         }
         this.canvas = canvas;
+        this.gameCanvas = rc.getGameCanvas() ?? null;
 
         this.lastResolvedRenderCamera = undefined;
         this.ensureControlsMatchRenderCamera();
@@ -122,6 +145,9 @@ export class EditorSceneView implements IEditorViewportNavigation {
         this.boundBlur = this.onWindowBlur.bind(this);
 
         canvas.addEventListener("pointerdown", this.boundPickPointerDown, true);
+        if (this.gameCanvas) {
+            this.gameCanvas.addEventListener("pointerdown", this.boundPickPointerDown, true);
+        }
         canvas.addEventListener("contextmenu", this.boundCtxMenu);
         canvas.addEventListener("pointerdown", this.boundPointerDown);
         canvas.addEventListener("pointerup", this.boundPointerUp);
@@ -138,9 +164,9 @@ export class EditorSceneView implements IEditorViewportNavigation {
             const dt = Math.min(0.05, Math.max(0, (now - this.lastTickTime) / 1000));
             this.lastTickTime = now;
 
-            if (this.flyActive && this.camera && this.isFreeEditorCamera()) {
+            if (this.interactionMode !== "game" && this.flyActive && this.camera && this.isFreeEditorCamera()) {
                 this.applyFlyMove(dt);
-            } else {
+            } else if (this.interactionMode !== "game") {
                 this.controls?.update();
             }
         };
@@ -163,7 +189,7 @@ export class EditorSceneView implements IEditorViewportNavigation {
             return;
         }
         const world = this.engine.context.ecsWorld;
-        const resolved = this.renderContext.resolveRenderCamera(world);
+        const resolved = this.renderContext.resolveEditorViewportCamera(world);
         if (!resolved || !(resolved instanceof THREE.PerspectiveCamera)) {
             return;
         }
@@ -234,6 +260,25 @@ export class EditorSceneView implements IEditorViewportNavigation {
         if (!this.engine || !this.canvas) {
             return;
         }
+        const eventCanvas = e.currentTarget as HTMLCanvasElement;
+        if (this.interactionMode === "game") {
+            if (this.gameCanvas && eventCanvas !== this.gameCanvas) {
+                return;
+            }
+            const sinkCanvas = this.gameCanvas ?? this.canvas;
+            const sink = this.engine.context.capabilities.getOrUndefined<IGameViewportPointerSink>(
+                GAME_VIEWPORT_POINTER_SINK_CAPABILITY,
+            );
+            const handled = sink ? sink.tryHandlePointerDown(this.engine, sinkCanvas, e) : true;
+            if (handled) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+            }
+            return;
+        }
+        if (eventCanvas !== this.canvas) {
+            return;
+        }
         if (this.pointerGate) {
             const ctx = createViewportPickContext(this.engine, this.canvas);
             if (ctx && this.pointerGate.shouldSuppressEntityPickCapture(e, ctx)) {
@@ -247,6 +292,9 @@ export class EditorSceneView implements IEditorViewportNavigation {
     }
 
     private onPointerDown(e: PointerEvent): void {
+        if (this.interactionMode === "game") {
+            return;
+        }
         if (e.button !== 2 || !this.controls || !this.camera || !this.canvas || !this.isFreeEditorCamera()) return;
         this.flyActive = true;
         this.applyOrbitEnabled();
@@ -258,6 +306,9 @@ export class EditorSceneView implements IEditorViewportNavigation {
     }
 
     private onPointerUp(e: PointerEvent): void {
+        if (this.interactionMode === "game") {
+            return;
+        }
         if (e.button !== 2 || !this.controls || !this.camera || !this.canvas || !this.isFreeEditorCamera()) return;
         this.endFly();
         try {
@@ -283,6 +334,9 @@ export class EditorSceneView implements IEditorViewportNavigation {
     }
 
     private onPointerMove(e: PointerEvent): void {
+        if (this.interactionMode === "game") {
+            return;
+        }
         if (!this.flyActive || !this.camera || !this.isFreeEditorCamera() || (e.buttons & 2) === 0) return;
 
         this.camera.rotation.y -= e.movementX * FLY_LOOK_SENS;
@@ -303,7 +357,8 @@ export class EditorSceneView implements IEditorViewportNavigation {
             this.shiftHeld = true;
             return;
         }
-        if (!this.flyActive || !this.isFreeEditorCamera() || !FLY_CODES.has(e.code)) return;
+        if (!this.flyActive || !this.isFreeEditorCamera() || !FLY_CODES.has(e.code) || this.interactionMode === "game")
+            return;
         this.keysDown.add(e.code);
         e.preventDefault();
     }
@@ -369,6 +424,10 @@ export class EditorSceneView implements IEditorViewportNavigation {
             this.canvas.removeEventListener("pointermove", this.boundPointerMove);
             this.canvas = null;
         }
+        if (this.gameCanvas) {
+            this.gameCanvas.removeEventListener("pointerdown", this.boundPickPointerDown, true);
+            this.gameCanvas = null;
+        }
         window.removeEventListener("keydown", this.boundKeyDown);
         window.removeEventListener("keyup", this.boundKeyUp);
         window.removeEventListener("blur", this.boundBlur);
@@ -383,7 +442,6 @@ export class EditorSceneView implements IEditorViewportNavigation {
 
         if (this.renderContext) {
             this.renderContext.setEditorRenderCameraEid(null);
-            this.renderContext.setRenderView("game");
             this.renderContext = null;
         }
         this.engine = null;

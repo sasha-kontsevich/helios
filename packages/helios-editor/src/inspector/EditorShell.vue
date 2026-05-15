@@ -1,7 +1,30 @@
 <template>
   <div class="shell">
     <aside class="shell__left">
+      <div class="shell__leftTabs" role="tablist" aria-label="Левая панель">
+        <button
+          type="button"
+          class="shell__leftTab"
+          role="tab"
+          :aria-selected="leftPanelTab === 'entities'"
+          :class="{ 'shell__leftTab--active': leftPanelTab === 'entities' }"
+          @click="leftPanelTab = 'entities'"
+        >
+          Entities
+        </button>
+        <button
+          type="button"
+          class="shell__leftTab"
+          role="tab"
+          :aria-selected="leftPanelTab === 'systems'"
+          :class="{ 'shell__leftTab--active': leftPanelTab === 'systems' }"
+          @click="leftPanelTab = 'systems'"
+        >
+          Systems
+        </button>
+      </div>
       <EntityListPanel
+        v-show="leftPanelTab === 'entities'"
         :entities="entities"
         :selected-eid="selectedEid"
         @select="onSelect"
@@ -11,10 +34,75 @@
         @copy="onCopyEntity"
         @paste="onPasteEntity"
       />
+      <SystemListPanel
+        v-show="leftPanelTab === 'systems'"
+        :systems="systemSnapshots"
+        @toggle-enabled="onToggleSystemEnabled"
+      />
     </aside>
     <main class="shell__center">
+      <div class="shell__centerInner">
+        <div class="shell__tabStrip">
+          <div class="shell__tabStripTabs" role="tablist" aria-label="Редактор или Игра">
+            <button
+              type="button"
+              class="shell__windowTab"
+              role="tab"
+              :aria-selected="centerView === 'editor'"
+              :class="{ 'shell__windowTab--active': centerView === 'editor' }"
+              @click="setCenterView('editor')"
+            >
+              Редактор
+            </button>
+            <button
+              type="button"
+              class="shell__windowTab"
+              role="tab"
+              :aria-selected="centerView === 'game'"
+              :class="{ 'shell__windowTab--active': centerView === 'game' }"
+              @click="setCenterView('game')"
+            >
+              Игра
+            </button>
+          </div>
+          <div class="shell__tabStripTransport" role="toolbar" aria-label="Воспроизведение сцены">
+            <button
+              type="button"
+              class="shell__tabTransportBtn"
+              :class="{ 'shell__tabTransportBtn--stop': playSessionActive }"
+              :title="
+                playSessionActive
+                  ? 'Остановить воспроизведение и вернуть сцену редактора'
+                  : 'Воспроизвести снимок сцены'
+              "
+              :aria-label="
+                playSessionActive
+                  ? 'Остановить воспроизведение и вернуть сцену редактора'
+                  : 'Воспроизвести снимок сцены'
+              "
+              @click="onPlayToggle"
+            >
+              <TransformToolIcon :kind="playSessionActive ? 'stop' : 'play'" :size="CHROME_TAB_ICON_SIZE" />
+            </button>
+            <button
+              v-if="gameSimulationCapabilityKey"
+              type="button"
+              class="shell__tabTransportBtn"
+              :class="{ 'shell__tabTransportBtn--toggled': gamePausePressed }"
+              :aria-pressed="gamePausePressed"
+              :title="gamePauseTitle"
+              :aria-label="gamePauseLabel"
+              @click="onGamePauseClick"
+            >
+              <TransformToolIcon :kind="gamePausePressed ? 'play' : 'pause'" :size="CHROME_TAB_ICON_SIZE" />
+            </button>
+          </div>
+          <div class="shell__tabStripFiller" aria-hidden="true" />
+        </div>
+
+        <div class="shell__viewportColumn">
       <div
-        v-if="transformTools"
+        v-if="transformTools && centerView === 'editor'"
         class="shell__transformToolbar"
         role="toolbar"
         aria-label="Инструменты трансформации"
@@ -61,6 +149,7 @@
         </button>
       </div>
       <div
+        v-show="centerView === 'editor'"
         class="shell__sceneHud"
         title="Свободная камера: orbit и полёт (ПКМ). Сущность с ThreeCamera: вид для предпросмотра, поза из ECS."
       >
@@ -76,7 +165,19 @@
           </select>
         </label>
       </div>
-      <canvas id="three-scene" class="shell__canvas"></canvas>
+          <div class="shell__viewportWrap">
+            <div v-show="centerView === 'editor'" class="shell__viewportPane">
+              <canvas id="helios-editor-view" class="shell__canvas"></canvas>
+            </div>
+            <div
+              v-show="centerView === 'game'"
+              class="shell__viewportPane shell__viewportPane--game"
+            >
+              <canvas id="helios-game-view" class="shell__canvas shell__canvas--game"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
     <aside class="shell__right">
       <InspectorPanel
@@ -96,12 +197,22 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from "vue";
-import type { ComponentMap, EngineAPI, EntitySnapshot } from "@merlinn/helios-core";
+import { computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch } from "vue";
+import {
+  EDITOR_SHELL_ACTIVE_VIEW_CAPABILITY,
+  type ComponentMap,
+  type EditorShellActiveViewState,
+  type EngineAPI,
+  type EntitySnapshot,
+  type SystemRuntimeSnapshot,
+} from "@merlinn/helios-core";
+import type { GameSimulationControls } from "../gameSimulationControls";
+import type { PlayModeController } from "../play/PlayModeController";
 import type { ITransformToolController, TransformToolMode } from "../manipulators/ITransformToolController";
 import type { ISelectionBus } from "../selection/SelectionBus";
 import type { EditorInspectorRegistry } from "./registry/EditorInspectorRegistry";
 import EntityListPanel from "./EntityListPanel.vue";
+import SystemListPanel from "./SystemListPanel.vue";
 import InspectorPanel from "./InspectorPanel.vue";
 import TransformToolIcon from "./TransformToolIcon.vue";
 import {
@@ -114,17 +225,31 @@ import {
   writeEditorEntityClipboard,
 } from "./editorEntityClipboardBridge";
 import { entityDisplayLabel } from "../utils/entityDisplayLabel";
+import type { EditorViewportInteractionController } from "../viewport/EditorViewportInteractionMode";
 
 const REFRESH_MS = 160;
+
+/** Pixels; mirrors `--helios-chrome-tab-icon-size` in `ui/heliosChrome.css`. */
+const CHROME_TAB_ICON_SIZE = 13;
 
 const props = defineProps<{
   engineApi: EngineAPI;
   selection: ISelectionBus;
   transformTools?: ITransformToolController | null;
   inspectorRegistry: EditorInspectorRegistry;
+  viewportInteraction?: EditorViewportInteractionController | null;
+  gameSimulationCapabilityKey?: string | null;
+  playMode: PlayModeController;
 }>();
 
+const pauseUiTick = ref(0);
+/** Unity-like Play Mode: snapshot run / restore (see {@link PlayModeController}). */
+const playSessionActive = ref(false);
+const centerView = ref<"editor" | "game">("editor");
+const leftPanelTab = ref<"entities" | "systems">("entities");
+
 const entities = shallowRef<EntitySnapshot[]>([]);
+const systemSnapshots = shallowRef<SystemRuntimeSnapshot[]>([]);
 const selectedEid = ref<number | null>(null);
 const transformMode = ref<TransformToolMode>("translate");
 const transformGizmoVisible = ref(true);
@@ -164,8 +289,78 @@ function toggleTransformGizmo(): void {
   t.setGizmoUiVisible(!t.getGizmoUiVisible());
 }
 
+/** Драйвер {@link RenderSystem}: какой GPU-проход крутить этот кадр. */
+function syncShellActiveViewCapability(): void {
+  const st = props.engineApi.getCapability<EditorShellActiveViewState>(
+    EDITOR_SHELL_ACTIVE_VIEW_CAPABILITY,
+  );
+  if (!st) {
+    return;
+  }
+  st.activeView = centerView.value === "game" ? "game" : "editor";
+}
+
+function setCenterView(mode: "editor" | "game"): void {
+  centerView.value = mode;
+  props.viewportInteraction?.setMode(mode);
+  syncShellActiveViewCapability();
+}
+
+const gameSimulationControls = computed(() => {
+  const key = props.gameSimulationCapabilityKey;
+  if (!key) {
+    return null;
+  }
+  return props.engineApi.getCapability<GameSimulationControls>(key) ?? null;
+});
+
+const gamePauseLabel = computed(() => {
+  void pauseUiTick.value;
+  return gameSimulationControls.value?.paused ? "Продолжить" : "Пауза";
+});
+
+const gamePauseTitle = computed(() =>
+  gameSimulationControls.value?.paused
+    ? "Возобновить шаги симуляции"
+    : "Приостановить шаги симуляции",
+);
+
+const gamePausePressed = computed(() => {
+  void pauseUiTick.value;
+  return gameSimulationControls.value?.paused ?? false;
+});
+
+function onGamePauseClick(): void {
+  gameSimulationControls.value?.togglePause();
+  pauseUiTick.value += 1;
+}
+
+async function onPlayToggle(): Promise<void> {
+  await props.playMode.togglePlay();
+  playSessionActive.value = props.playMode.isPlaying;
+  await nextTick();
+  refreshEntityList();
+  refreshSystemList();
+  selectedEid.value = null;
+  props.selection.set(null);
+  refreshInspector();
+}
+
 function sortEntities(list: EntitySnapshot[]): EntitySnapshot[] {
   return [...list].sort((a, b) => a.eid - b.eid);
+}
+
+function refreshSystemList(): void {
+  systemSnapshots.value = props.engineApi.listSystemRuntimeSnapshots();
+}
+
+async function onToggleSystemEnabled(name: string, enabled: boolean): Promise<void> {
+  try {
+    await props.engineApi.setSystemEnabled(name, enabled);
+  } catch (err) {
+    console.error("[HeliosEditor] setSystemEnabled failed:", err);
+  }
+  refreshSystemList();
 }
 
 function refreshEntityList(): void {
@@ -381,7 +576,12 @@ watch(selectedEid, () => {
 });
 
 onMounted(() => {
+  if (props.viewportInteraction) {
+    centerView.value = props.viewportInteraction.getMode();
+  }
+  syncShellActiveViewCapability();
   refreshEntityList();
+  refreshSystemList();
   editorRenderCameraEid.value = props.engineApi.getEditorRenderCameraEid();
   refreshInspector();
   selectionUnsub = props.selection.subscribe((eid) => {
@@ -396,7 +596,9 @@ onMounted(() => {
   }
   window.addEventListener("keydown", onGlobalKeydown);
   pollTimer = setInterval(() => {
+    syncShellActiveViewCapability();
     refreshEntityList();
+    refreshSystemList();
     if (!inspectorEditing.value) {
       refreshInspector();
     }
@@ -435,23 +637,171 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
 }
+.shell__leftTabs {
+  flex-shrink: 0;
+  display: flex;
+  align-items: stretch;
+  height: var(--helios-chrome-row-height);
+  gap: 0;
+  padding: 0;
+  border-bottom: 1px solid #333;
+  background: #252525;
+}
+.shell__leftTab {
+  flex: 1;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 var(--helios-chrome-row-pad-x);
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  background: transparent;
+  color: #9ca3af;
+  font-size: var(--helios-chrome-tab-font-size);
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+}
+.shell__leftTab:hover {
+  color: #e5e7eb;
+}
+.shell__leftTab--active {
+  color: #f3f4f6;
+  border-bottom-color: #5a8ab8;
+}
+.shell__left > .entity-list,
+.shell__left > .system-list {
+  flex: 1;
+  min-height: 0;
+}
 .shell__center {
   flex: 1;
   min-width: 0;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #222;
+}
+.shell__centerInner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.shell__tabStrip {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: end;
+  column-gap: 6px;
+  min-height: var(--helios-chrome-row-height);
+  padding: 0 4px;
+  background: #2a2a2a;
+  border-bottom: 1px solid #3d3d3d;
+}
+.shell__tabStripTabs {
+  grid-column: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-self: start;
+  gap: 0;
+}
+.shell__tabStripTransport {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  align-self: center;
+}
+.shell__tabStripFiller {
+  grid-column: 3;
+  min-width: 0;
+}
+.shell__windowTab {
   position: relative;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  min-height: var(--helios-chrome-row-height);
+  padding: 0 11px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  background: #232323;
+  color: #9ca3af;
+  font-size: var(--helios-chrome-tab-font-size);
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: -1px;
+}
+.shell__windowTab:hover {
+  color: #e5e7eb;
+  background: #2e2e2e;
+}
+.shell__windowTab--active {
+  z-index: 1;
+  background: #222;
+  color: #f3f4f6;
+  border-color: #3d3d3d;
+  border-bottom-color: #222;
+  box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.04) inset;
+}
+.shell__tabTransportBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--helios-chrome-icon-hit);
+  height: var(--helios-chrome-icon-hit);
+  padding: 0;
+  border-radius: 4px;
+  border: 1px solid #4b5563;
+  background: #2a3038;
+  color: #b8c9e0;
+  cursor: pointer;
+  user-select: none;
+}
+.shell__tabTransportBtn:hover {
+  background: #374151;
+  color: #f1f5f9;
+  border-color: #64748b;
+}
+.shell__tabTransportBtn--stop {
+  background: #3f1f1f;
+  border-color: #924949;
+  color: #fecaca;
+}
+.shell__tabTransportBtn--stop:hover {
+  background: #522626;
+  color: #fff;
+  border-color: #b85555;
+}
+.shell__tabTransportBtn--toggled {
+  background: #3a3524;
+  border-color: #78703a;
+  color: #fde68a;
+}
+.shell__viewportColumn {
+  flex: 1;
+  position: relative;
+  min-height: 0;
   background: #222;
 }
 .shell__transformToolbar {
   position: absolute;
-  top: 8px;
+  top: 10px;
   left: 8px;
   z-index: 2;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
-  padding: 4px 6px;
+  gap: var(--helios-overlay-toolbar-gap);
+  padding: var(--helios-overlay-toolbar-pad-y) var(--helios-overlay-toolbar-pad-x);
   border-radius: 4px;
   background: rgba(0, 0, 0, 0.45);
   border: 1px solid #444;
@@ -461,8 +811,8 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 30px;
-  height: 28px;
+  min-width: var(--helios-overlay-control-height);
+  height: var(--helios-overlay-control-height);
   padding: 0 6px;
   border-radius: 3px;
   border: 1px solid #555;
@@ -488,13 +838,15 @@ onUnmounted(() => {
 }
 .shell__sceneHud {
   position: absolute;
-  top: 8px;
+  top: 10px;
   right: 8px;
   z-index: 2;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 8px;
+  box-sizing: border-box;
+  min-height: var(--helios-overlay-control-height);
+  padding: 0 8px;
   border-radius: 4px;
   background: rgba(0, 0, 0, 0.45);
   border: 1px solid #444;
@@ -519,6 +871,17 @@ onUnmounted(() => {
   background: #2a2a2a;
   color: #e8e8e8;
   font-size: 12px;
+}
+.shell__viewportWrap {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+}
+.shell__viewportPane {
+  position: absolute;
+  inset: 0;
+  min-width: 0;
+  min-height: 0;
 }
 .shell__canvas {
   display: block;

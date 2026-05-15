@@ -10,11 +10,15 @@ export class InspectorEditorPlugin implements EditorPlugin {
     private app: App | null = null;
 
     setup(context: EditorContext): void {
+        context.root.dataset.heliosEditor = "";
         this.app = createApp(EditorShell, {
             engineApi: context.api,
             selection: context.selection,
             transformTools: context.transformTools ?? null,
             inspectorRegistry: context.inspectorRegistry,
+            viewportInteraction: context.viewportInteraction ?? null,
+            gameSimulationCapabilityKey: context.gameSimulationCapabilityKey ?? null,
+            playMode: context.playMode,
         });
         this.app.mount(context.root);
     }

@@ -21,7 +21,7 @@ export function pickEntityAtCanvasPoint(
         return null;
     }
     const world = engine.context.ecsWorld;
-    const camera = rc.resolveRenderCamera(world);
+    const camera = rc.resolveEditorViewportCamera(world);
     if (!camera) {
         return null;
     }

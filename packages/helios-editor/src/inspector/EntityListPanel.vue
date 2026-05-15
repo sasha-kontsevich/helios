@@ -1,10 +1,6 @@
 <template>
   <div class="entity-list" @contextmenu.prevent="onPanelContextMenu">
-    <div class="entity-list__header">
-      <span>Entities</span>
-    </div>
-    <div class="entity-list__body">
-      <ul class="entity-list__ul">
+    <ul class="entity-list__ul">
         <li
           v-for="ent in entities"
           :key="ent.eid"
@@ -18,7 +14,6 @@
           <span class="entity-list__comps">{{ componentSummary(ent) }}</span>
         </li>
       </ul>
-    </div>
     <ContextMenu
       :visible="ctxVisible"
       :x="ctxX"
@@ -151,24 +146,6 @@ function componentSummary(ent: EntitySnapshot): string {
   height: 100%;
   min-height: 0;
 }
-.entity-list__header {
-  padding: 8px 10px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #bbb;
-  border-bottom: 1px solid #333;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
-  flex-shrink: 0;
-}
-.entity-list__body {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
 .entity-list__ul {
   list-style: none;
   margin: 0;
@@ -182,7 +159,9 @@ function componentSummary(ent: EntitySnapshot): string {
   flex-direction: row;
   align-items: center;
   gap: 8px;
-  padding: 6px 10px;
+  box-sizing: border-box;
+  min-height: var(--helios-list-row-height);
+  padding: 0 var(--helios-list-row-pad-x);
   cursor: pointer;
   font-size: 12px;
   color: #ddd;

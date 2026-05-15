@@ -26,7 +26,7 @@ export function createViewportPickContext(engine: Engine, canvas: HTMLCanvasElem
         canvas,
         getRaycasterForPointerEvent(e: PointerEvent): THREE.Raycaster | null {
             const world = engine.context.ecsWorld;
-            const camera = rc.resolveRenderCamera(world);
+            const camera = rc.resolveEditorViewportCamera(world);
             if (!camera) {
                 return null;
             }

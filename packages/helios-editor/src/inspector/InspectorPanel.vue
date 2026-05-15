@@ -217,8 +217,10 @@ function onComponentRowContextMenu(ev: MouseEvent, componentName: string): void 
   min-height: 0;
 }
 .inspector__header {
-  padding: 8px 10px;
-  font-size: 12px;
+  box-sizing: border-box;
+  min-height: var(--helios-chrome-row-height);
+  padding: 0 var(--helios-chrome-row-pad-x);
+  font-size: var(--helios-chrome-title-font-size);
   font-weight: 600;
   color: #bbb;
   border-bottom: 1px solid #333;

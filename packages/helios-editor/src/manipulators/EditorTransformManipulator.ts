@@ -90,6 +90,9 @@ export class EditorTransformManipulator implements ITransformToolController {
     private transformControls: HeliosTransformControls | null = null;
     private canvas: HTMLCanvasElement | null = null;
 
+    /** When true, gizmo stays detached (game viewport uses LMB for something else). */
+    private gameViewportActive = false;
+
     private selectionUnsub: (() => void) | null = null;
     private unregisterGate: (() => void) | null = null;
     private unregisterBeforeRender: (() => void) | null = null;
@@ -174,6 +177,21 @@ export class EditorTransformManipulator implements ITransformToolController {
         private readonly navigation: IEditorViewportNavigation,
     ) {}
 
+    /** Detach gizmo while the shell is in game viewport mode (LMB not for ECS picking). */
+    setGameViewportActive(active: boolean): void {
+        this.gameViewportActive = active;
+        if (active) {
+            const tc = this.transformControls;
+            if (tc && tc.object !== undefined) {
+                tc.detach();
+                this.applyGizmoUiVisibility();
+                this.notifyToolListeners();
+            }
+        } else {
+            this.syncTransformControlsToSelection();
+        }
+    }
+
     attach(engine: Engine): void {
         this.detach();
 
@@ -191,10 +209,9 @@ export class EditorTransformManipulator implements ITransformToolController {
             return;
         }
         this.canvas = canvas;
-        const scene = rc.getScene();
 
         const world = engine.context.ecsWorld;
-        const camera = rc.resolveRenderCamera(world);
+        const camera = rc.resolveEditorViewportCamera(world);
         if (!(camera instanceof THREE.PerspectiveCamera)) {
             this.detachPartial();
             return;
@@ -209,7 +226,7 @@ export class EditorTransformManipulator implements ITransformToolController {
         this.transformControls = tc;
         const helper = tc.getHelper();
         softenTransformControlsHelperMaterials(helper);
-        scene.add(helper);
+        rc.getEditorOverlayRoot().add(helper);
 
         this.unregisterGate = this.pointerGate.register(this.pickGate, -100);
 
@@ -278,7 +295,7 @@ export class EditorTransformManipulator implements ITransformToolController {
         if (!engine || !tc || !rc) {
             return;
         }
-        const cam = rc.resolveRenderCamera(engine.context.ecsWorld);
+        const cam = rc.resolveEditorViewportCamera(engine.context.ecsWorld);
         if (cam instanceof THREE.PerspectiveCamera) {
             tc.camera = cam;
         }
@@ -292,6 +309,14 @@ export class EditorTransformManipulator implements ITransformToolController {
         const tc = this.transformControls;
         const engine = this.engine;
         if (!tc || !engine) {
+            return;
+        }
+        if (this.gameViewportActive) {
+            if (tc.object !== undefined) {
+                tc.detach();
+                this.applyGizmoUiVisibility();
+                this.notifyToolListeners();
+            }
             return;
         }
         const eid = this.selection.get();
@@ -325,6 +350,15 @@ export class EditorTransformManipulator implements ITransformToolController {
         const tc = this.transformControls;
         const engine = this.engine;
         if (!tc || !engine) {
+            return;
+        }
+
+        if (this.gameViewportActive) {
+            if (tc.object !== undefined) {
+                tc.detach();
+                this.applyGizmoUiVisibility();
+                this.notifyToolListeners();
+            }
             return;
         }
 
@@ -407,6 +441,9 @@ export class EditorTransformManipulator implements ITransformToolController {
     }
 
     private shouldSuppressEntityPickCapture(e: PointerEvent, _ctx: ViewportPickContext): boolean {
+        if (this.gameViewportActive) {
+            return false;
+        }
         if (e.button !== 0 || e.altKey) {
             return false;
         }

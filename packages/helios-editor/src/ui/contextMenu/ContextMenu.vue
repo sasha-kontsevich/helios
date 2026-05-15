@@ -159,7 +159,7 @@ function onPick(it: ContextMenuItem): void {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
     "Noto Sans", "Liberation Sans", sans-serif;
-  font-size: 12px;
+  font-size: var(--helios-menu-font-size);
   color: #e8e8e8;
 }
 
@@ -169,7 +169,9 @@ function onPick(it: ContextMenuItem): void {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 6px 12px;
+  box-sizing: border-box;
+  min-height: var(--helios-menu-row-height);
+  padding: 0 var(--helios-menu-row-pad-x);
   border: none;
   background: transparent;
   color: inherit;
@@ -246,6 +248,7 @@ function onPick(it: ContextMenuItem): void {
 }
 
 .ctx-menu__flyout .ctx-menu__item {
-  padding: 6px 12px;
+  min-height: var(--helios-menu-row-height);
+  padding: 0 var(--helios-menu-row-pad-x);
 }
 </style>

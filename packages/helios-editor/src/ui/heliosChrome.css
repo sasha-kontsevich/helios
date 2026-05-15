@@ -1,0 +1,77 @@
+/**
+ * Shared vertical rhythm for Helios editor UI.
+ * Override on a host wrapper (e.g. `[data-helios-editor] { ... }`) if the app needs different sizing.
+ */
+:root {
+  /* Top tab strip and side panel title rows (align when panels sit beside the center). */
+  --helios-chrome-row-height: 32px;
+  --helios-chrome-row-pad-x: 10px;
+  --helios-chrome-title-font-size: 12px;
+  --helios-chrome-tab-font-size: 11px;
+
+  /* Context menus, flyouts. */
+  --helios-menu-row-height: 28px;
+  --helios-menu-row-pad-x: 12px;
+  --helios-menu-font-size: 12px;
+
+  /* Entity list and similar dense lists (optional; keeps list vs menu rows aligned). */
+  --helios-list-row-height: 28px;
+  --helios-list-row-pad-x: 10px;
+
+  /* Square icon controls in the chrome row (play / pause on tab strip). */
+  --helios-chrome-icon-hit: 22px;
+  --helios-chrome-tab-icon-size: 13px;
+
+  /* Floating toolbars over the canvas (gizmo, HUD chips). */
+  --helios-overlay-control-height: 26px;
+  --helios-overlay-toolbar-gap: 4px;
+  --helios-overlay-toolbar-pad-y: 4px;
+  --helios-overlay-toolbar-pad-x: 6px;
+
+  /* Matches editor panel borders (#333); scrollbar thumb uses the same tone as chitalka $color-border. */
+  --helios-color-border: #333;
+}
+
+/*
+ * Thin scrollbars (same pattern as chitalka: transparent track, flat thumb, no arrow buttons).
+ * Scoped to the editor mount node and teleported context menus.
+ */
+[data-helios-editor],
+[data-helios-editor] *,
+[data-context-menu-root],
+[data-context-menu-root] * {
+  @supports not selector(::-webkit-scrollbar) {
+    scrollbar-width: thin;
+    scrollbar-color: var(--helios-color-border) transparent;
+  }
+}
+
+[data-helios-editor]::-webkit-scrollbar,
+[data-helios-editor] *::-webkit-scrollbar,
+[data-context-menu-root]::-webkit-scrollbar,
+[data-context-menu-root] *::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+[data-helios-editor]::-webkit-scrollbar-track,
+[data-helios-editor] *::-webkit-scrollbar-track,
+[data-context-menu-root]::-webkit-scrollbar-track,
+[data-context-menu-root] *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+[data-helios-editor]::-webkit-scrollbar-thumb,
+[data-helios-editor] *::-webkit-scrollbar-thumb,
+[data-context-menu-root]::-webkit-scrollbar-thumb,
+[data-context-menu-root] *::-webkit-scrollbar-thumb {
+  background: var(--helios-color-border);
+  border-radius: 0;
+}
+
+[data-helios-editor]::-webkit-scrollbar-button,
+[data-helios-editor] *::-webkit-scrollbar-button,
+[data-context-menu-root]::-webkit-scrollbar-button,
+[data-context-menu-root] *::-webkit-scrollbar-button {
+  display: none;
+}

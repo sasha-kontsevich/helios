@@ -2,8 +2,8 @@
   <svg
     class="shell__toolIcon"
     viewBox="0 0 24 24"
-    width="18"
-    height="18"
+    :width="size"
+    :height="size"
     aria-hidden="true"
     fill="none"
     stroke="currentColor"
@@ -39,15 +39,42 @@
       <path d="M17.5 17.5A10.7 10.7 0 0 1 2 12c0-1.5.3-2.9.8-4.2" />
       <line x1="2" y1="2" x2="22" y2="22" />
     </template>
+    <template v-else-if="kind === 'play'">
+      <path
+        fill="currentColor"
+        stroke="none"
+        d="M8 5.5v13L19 12 8 5.5Z"
+      />
+    </template>
+    <template v-else-if="kind === 'stop'">
+      <rect x="7" y="7" width="10" height="10" rx="1.5" fill="currentColor" stroke="none" />
+    </template>
+    <template v-else-if="kind === 'pause'">
+      <rect x="7" y="6" width="3.5" height="12" rx="0.75" fill="currentColor" stroke="none" />
+      <rect x="13.5" y="6" width="3.5" height="12" rx="0.75" fill="currentColor" stroke="none" />
+    </template>
   </svg>
 </template>
 
 <script setup lang="ts">
-export type TransformToolIconKind = "move" | "rotate" | "scale" | "eye" | "eye-off";
+export type TransformToolIconKind =
+  | "move"
+  | "rotate"
+  | "scale"
+  | "eye"
+  | "eye-off"
+  | "play"
+  | "stop"
+  | "pause";
 
-defineProps<{
-  kind: TransformToolIconKind;
-}>();
+withDefaults(
+  defineProps<{
+    kind: TransformToolIconKind;
+    /** Pixel size of the icon (width and height). */
+    size?: number;
+  }>(),
+  { size: 18 },
+);
 </script>
 
 <style scoped>
