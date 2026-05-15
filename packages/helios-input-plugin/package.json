@@ -1,0 +1,40 @@
+{
+  "name": "@merlinn/helios-input-plugin",
+  "version": "0.0.1",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js"
+    }
+  },
+  "peerDependencies": {
+    "@merlinn/helios-core": "^0.0.1",
+    "@merlinn/helios-three-plugin": "^0.0.1",
+    "bitecs": "^0.3.40",
+    "three": "^0.176.0"
+  },
+  "dependencies": {
+    "bitecs": "^0.3.40"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@merlinn/helios-core": "workspace:*",
+    "@merlinn/helios-three-plugin": "workspace:*",
+    "@types/three": "^0.176.0",
+    "three": "^0.176.0",
+    "tsup": "^8.5.0",
+    "typescript": "~5.6.0"
+  }
+}
