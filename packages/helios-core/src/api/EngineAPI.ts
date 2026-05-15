@@ -3,12 +3,19 @@
 import { extractComponentData } from "../utils/snapshot";
 import {
     buildEditorEntityClipboardV1,
+    buildEditorSceneSnapshotV1,
+    CaptureSceneSnapshotOptions,
     ComponentMap,
     EditorEntityClipboardV1,
+    EditorSceneSnapshotEntityV1,
+    EditorSceneSnapshotV1,
     EntitySnapshot,
     parseEditorEntityClipboardJson,
     parseEditorEntityClipboardPayload,
+    parseEditorSceneSnapshotJson,
+    parseEditorSceneSnapshotPayload,
 } from "../types";
+import type { SystemRuntimeSnapshot } from "../types/SystemRuntimeSnapshot";
 import { Context } from "../engine/Context";
 import { mergeComponentMapOntoEntity, spawnEntityFromComponentMap } from "../engine/spawnEntityFromComponents";
 
@@ -114,6 +121,60 @@ export class EngineAPI {
         for (const eid of eids) result.push(this.getEntitySnapshot(eid));
 
         return result;
+    }
+
+    /**
+     * Serializable scene snapshot (stripped runtime fields). Used for Play Mode enter/exit.
+     */
+    captureSceneSnapshot(options?: CaptureSceneSnapshotOptions): EditorSceneSnapshotV1 {
+        const exclude = options?.shouldExcludeEntity;
+        const entities: EditorSceneSnapshotEntityV1[] = [];
+        for (const snap of this.getAllEntities()) {
+            if (exclude?.(snap.eid, snap)) {
+                continue;
+            }
+            const payload = this.buildEditorEntityClipboardPayload(snap.eid);
+            entities.push({ components: payload.components });
+        }
+        return buildEditorSceneSnapshotV1(entities);
+    }
+
+    /** Remove every ECS entity (e.g. before loading a snapshot or new scene). Clears editor ECS camera selection. */
+    clearWorld(): void {
+        const world = this.context.ecsWorld as any;
+        const eids = [...getAllEntities(world)];
+        for (const eid of eids) {
+            if (entityExists(world, eid)) {
+                removeEntity(world, eid);
+            }
+        }
+        this.setEditorRenderCameraEid(null);
+    }
+
+    /**
+     * Replace the entire world with snapshot entities (clears first). Same spawn path as scene JSON / clipboard.
+     */
+    applySceneSnapshot(snapshot: EditorSceneSnapshotV1 | string): void {
+        const data =
+            typeof snapshot === "string"
+                ? parseEditorSceneSnapshotJson(snapshot)
+                : parseEditorSceneSnapshotPayload(snapshot as unknown);
+        this.clearWorld();
+        for (const inst of data.entities) {
+            spawnEntityFromComponentMap(this.context, inst.components);
+        }
+    }
+
+    serializeSceneSnapshot(snapshot: EditorSceneSnapshotV1): string {
+        return JSON.stringify(snapshot);
+    }
+
+    parseSceneSnapshotJson(text: string): EditorSceneSnapshotV1 {
+        return parseEditorSceneSnapshotJson(text);
+    }
+
+    parseSceneSnapshotPayload(data: unknown): EditorSceneSnapshotV1 {
+        return parseEditorSceneSnapshotPayload(data);
     }
 
     /** Пример метода: получить компонент у сущности */
@@ -233,5 +294,46 @@ export class EngineAPI {
     /** Current editor viewport ECS camera entity id, or `null` for the free camera. */
     getEditorRenderCameraEid(): number | null {
         return this.getThreeRenderContextEditorCamera()?.getEditorRenderCameraEid?.() ?? null;
+    }
+
+    /**
+     * Editor host: disable simulation systems until Enter Play.
+     * Call after registering `EDITOR_PLAY_SESSION_CAPABILITY` and before `engine.start()`.
+     */
+    applyEditorSystemHostPolicy(): void {
+        this.context.systems.applyEditorHostPolicy();
+    }
+
+    /**
+     * Enter Play: enable + start simulation systems, then restart editor presentation layer.
+     */
+    async beginPlaySessionSystems(): Promise<void> {
+        await this.context.systems.beginPlaySessionSystems();
+        await this.context.systems.restartEditorPresentationSystems();
+    }
+
+    /**
+     * Exit Play: stop + disable simulation systems, then restart editor presentation layer.
+     */
+    async endPlaySessionSystems(): Promise<void> {
+        await this.context.systems.endPlaySessionSystems();
+        await this.context.systems.restartEditorPresentationSystems();
+    }
+
+    /** Read-only runtime view of registered systems (editor diagnostics). */
+    listSystemRuntimeSnapshots(): SystemRuntimeSnapshot[] {
+        return this.context.systems.listRuntimeSnapshots();
+    }
+
+    /** Enable or disable a system (`start` on enable, `stop` on disable). */
+    async setSystemEnabled(name: string, enabled: boolean): Promise<void> {
+        await this.context.systems.setSystemEnabled(name, enabled);
+    }
+
+    /**
+     * Read an optional capability from the engine context (host-registered bridges, e.g. game pause).
+     */
+    getCapability<T>(key: string): T | undefined {
+        return this.context.capabilities.getOrUndefined<T>(key);
     }
 }

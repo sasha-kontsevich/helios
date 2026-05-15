@@ -34,7 +34,7 @@ export class SceneManager {
 
         this.current = scene;
 
-        // TODO: reset ECS world when switching scenes (needs coordinated system teardown).
+        this.ctx.engine.api.clearWorld();
 
         if (scene.resources) {
             // TODO: resolve scene.resources entries (GUID refs, nested loads).

@@ -3,6 +3,13 @@ import {ResourceManager} from "./ResourceManager";
 import {ComponentManager} from "./ComponentManager";
 
 export abstract class System {
+    /**
+     * When `true`, this system's `update` runs while the editor play session is inactive
+     * (requires `EDITOR_PLAY_SESSION_CAPABILITY`). Default `false`: simulation runs only after Enter Play.
+     * Standalone builds without that capability always invoke `update` for every system.
+     */
+    static readonly runsInEditor: boolean = false;
+
     protected enabled: boolean = true;
     protected readonly context: Context;
     protected readonly world;
