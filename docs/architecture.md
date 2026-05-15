@@ -38,6 +38,7 @@
 - **Сущности из данных:** спавн из карты компонентов и слияние карты на существующую сущность — точки входа для вставки из буфера и пресетов.
 - **Имя сущности:** компонент **`Name`** с полем **`label`** (строка) — для списка сущностей в редакторе и сцен; в сцене JSON обычные строки в `label` не считаются GUID ассетов, если путь не зарегистрирован в `AssetManager`.
 - **Буфер редактора:** формат **`EditorEntityClipboardV1`** и операции уровня API (копирование/вставка сущности или компонента, слияние на выбранную сущность) живут в core, чтобы UI не дублировал правила данных.
+- **Системы и Play в редакторе:** у **`System`** статическое **`runsInEditor`** (по умолчанию `false`). Хост с capability **`EDITOR_PLAY_SESSION_CAPABILITY`** при `attachEngine` вызывает **`EngineAPI.applyEditorSystemHostPolicy()`** — симуляционные системы **disabled**, без `start`/`update`. Слой редактора (`runsInEditor === true`) стартует с **`engine.start()`**. Enter Play: **`beginPlaySessionSystems()`** (enable + start симуляции, restart editor-систем после снимка); Exit Play: **`endPlaySessionSystems()`** (stop + disable симуляции, restart editor-систем). Снимок UI — **`SystemRuntimeSnapshot`** / **`listSystemRuntimeSnapshots()`**.
 
 ## Плагин Three.js (`helios-three-plugin`)
 
@@ -58,12 +59,14 @@
 ### Состояние выделения
 
 - **`SelectionBus`** — общая шина: список сущностей, инспектор, оверлей и **ray pick во вьюпорте** подписаны на одни и те же события выделения.
+- **Левая колонка:** вкладки **Entities** / **Systems**; список систем опрашивает **`EngineAPI.listSystemRuntimeSnapshots()`** (индикаторы enabled, started, runsInEditor, updateActive).
 
 ### Управление вьюпортом (Unity-like)
 
 - **ЛКМ** без Alt — луч в `worldRoot`, выбор сущности через **`SelectionBus`** ([`pickEntityAtCanvasPoint`](../packages/helios-editor/src/view/picking/pickEntityAtCanvasPoint.ts)); клик по пустоте снимает выделение.
 - **Alt+ЛКМ** и **СКМ (MMB)** — вращение камеры (`OrbitControls`); **ПКМ** — режим полёта (как раньше). `OrbitControls` не использует ПКМ, чтобы не конфликтовать с fly.
 - Политику жестов можно подменить через **`SceneNavigationPolicy`** ([`SceneNavigationPolicy.ts`](../packages/helios-editor/src/view/picking/SceneNavigationPolicy.ts)) — задел под Hand tool (Q) и т.п.
+- **Вкладка «Игра»:** отдельный canvas и режим ввода; `EDITOR_SHELL_ACTIVE_VIEW_CAPABILITY` переключает game/editor render pass. Детали и backlog — [editor-game-viewport-future.md](editor-game-viewport-future.md).
 
 ### Выделение объекта во вьюпорте
 
@@ -74,7 +77,7 @@
 
 | Область | Путь / файлы |
 |---------|----------------|
-| Оболочка и панели | `inspector/EditorShell.vue`, `EntityListPanel.vue`, `InspectorPanel.vue` |
+| Оболочка и панели | `inspector/EditorShell.vue`, `EntityListPanel.vue`, `SystemListPanel.vue`, `InspectorPanel.vue` |
 | Сценовый вид, пикинг, выделение | `view/EditorSceneView.ts`, `view/picking/`, `view/EditorSelectionOverlay.ts` |
 | Выделение | `selection/SelectionBus.ts` |
 | Плагины редактора (ядро UI) | `inspector/InspectorEditorPlugin.ts`, `createDefaultEditorPlugins.ts` |
@@ -99,6 +102,7 @@ flowchart TB
   subgraph ui [Редактор Vue]
     Shell[EditorShell]
     List[EntityListPanel]
+    SysList[SystemListPanel]
     Insp[InspectorPanel]
     View[EditorSceneView]
     Overlay[EditorSelectionOverlay]
@@ -110,6 +114,7 @@ flowchart TB
   View --> Bus
   Overlay --> Bus
   Shell --> API[EngineAPI]
+  SysList --> API
   API --> ECS[ECS / bitecs]
   ECS --> Three[ThreePlugin systems]
   Three --> RC[ThreeRenderContext]
