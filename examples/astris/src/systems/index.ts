@@ -1,4 +1,5 @@
 import {SystemConstructor} from "@merlinn/helios-core";
+import { ViewportFlyCameraSystem } from "@merlinn/helios-input-plugin";
 import {
     UpdateThreeObjectSystem,
     RenderSystem,
@@ -19,6 +20,7 @@ export const Systems: SystemConstructor[] = [
     GameOfLifeStepSystem,
     ThreeResourceBuildSystem,
     UpdateThreeMeshSystem,
+    ViewportFlyCameraSystem,
     UpdateThreeObjectSystem,
     ThreeSceneSystem,
     RenderSystem,

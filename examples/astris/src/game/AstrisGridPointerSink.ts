@@ -14,6 +14,9 @@ export class AstrisGridPointerSink implements IGameViewportPointerSink {
     constructor(private readonly queue: GridClickQueue) {}
 
     tryHandlePointerDown(engine: Engine, canvas: HTMLCanvasElement, e: PointerEvent): boolean {
+        if (e.altKey) {
+            return false;
+        }
         const rc = engine.context.capabilities.getOrUndefined<ThreeRenderContext>(THREE_RENDERER_CAPABILITY);
         if (!rc) {
             return true;

@@ -18,3 +18,4 @@ export {
     ThreeMaterialRef,
     ThreeResourcesBuilt,
 } from "@merlinn/helios-three-plugin";
+export { ViewportCameraControl } from "@merlinn/helios-input-plugin";

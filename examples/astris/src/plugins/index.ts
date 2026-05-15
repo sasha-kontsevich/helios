@@ -1,3 +1,4 @@
+import { ViewportInputPlugin } from "@merlinn/helios-input-plugin";
 import { ThreePlugin } from "@merlinn/helios-three-plugin";
 
 import { GameOfLifeViewportPlugin } from "./GameOfLifeViewportPlugin";
@@ -15,6 +16,8 @@ export const Plugins = [
         gameCanvasId: "helios-game-view",
 
     }),
+
+    new ViewportInputPlugin(),
 
     new GameOfLifeViewportPlugin(),
 
