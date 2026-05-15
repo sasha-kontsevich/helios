@@ -1,6 +1,7 @@
 import { addComponent, addEntity, hasComponent, removeComponent } from 'bitecs';
 import type { Context } from './Context';
 import type { ComponentMap } from '../types';
+import { normalizeRotationSpawnFields } from '../utils/rotation';
 
 /**
  * Writes prefab/scene field values onto bitecs component storage for one entity.
@@ -55,7 +56,9 @@ export function applyComponentsToEntity(
         }
         const schema = ctx.components.get(compName as keyof ComponentMap);
         addComponent(ctx.ecsWorld, schema, eid);
-        applyComponentFields(ctx, schema as unknown as Record<string, unknown>, eid, fields);
+        const payload =
+            compName === "Rotation" ? normalizeRotationSpawnFields(fields) : fields;
+        applyComponentFields(ctx, schema as unknown as Record<string, unknown>, eid, payload);
     }
 }
 
@@ -89,6 +92,8 @@ export function mergeComponentMapOntoEntity(
             removeComponent(world, schema, eid);
         }
         addComponent(world, schema, eid);
-        applyComponentFields(ctx, schema as unknown as Record<string, unknown>, eid, fields);
+        const payload =
+            compName === "Rotation" ? normalizeRotationSpawnFields(fields) : fields;
+        applyComponentFields(ctx, schema as unknown as Record<string, unknown>, eid, payload);
     }
 }
