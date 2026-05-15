@@ -5,6 +5,8 @@ import {ThreeMesh, ThreeObject} from "../components";
 import { clearEntityPickingTag, tagObject3DForEntityPicking } from "../picking/tagThreeObjectForPicking";
 
 export class UpdateThreeMeshSystem extends System {
+    static override readonly runsInEditor = true;
+
     private readonly meshQuery = defineQuery([ThreeObject, ThreeMesh]);
     private readonly meshEnter = enterQuery(this.meshQuery);
     private readonly meshExit = exitQuery(this.meshQuery);

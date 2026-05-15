@@ -15,6 +15,8 @@ import { clearEntityPickingTag, tagObject3DForEntityPicking } from '../picking/t
  * Scenes must define lights in data (no engine bootstrap).
  */
 export class UpdateThreeLightSystem extends System {
+    static override readonly runsInEditor = true;
+
     private readonly ambientQuery = defineQuery([ThreeAmbientLight, ThreeObject]);
     private readonly ambientEnter = enterQuery(this.ambientQuery);
     private readonly ambientExit = exitQuery(this.ambientQuery);

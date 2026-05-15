@@ -37,6 +37,8 @@ function resolveRefField(
  * Turns `ThreeGeometryRef`/`ThreeMaterialRef` into runtime resources on `ThreeMesh`.
  */
 export class ThreeResourceBuildSystem extends System {
+    static override readonly runsInEditor = true;
+
     private readonly query = defineQuery([ThreeMesh, ThreeObject]);
 
     update(): void {

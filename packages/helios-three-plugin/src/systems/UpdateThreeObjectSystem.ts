@@ -4,6 +4,8 @@ import { ThreeObject } from "../components";
 import { getThreeRenderContext } from "../ThreeRenderContext";
 
 export class UpdateThreeObjectSystem extends System {
+    static override readonly runsInEditor = true;
+
     private readonly objectQuery = defineQuery([ThreeObject]);
 
     update(deltaTime: number): void {

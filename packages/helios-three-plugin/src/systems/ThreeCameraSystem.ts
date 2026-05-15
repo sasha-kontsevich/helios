@@ -6,6 +6,8 @@ import { getThreeRenderContext } from "../ThreeRenderContext";
 import { clearEntityPickingTag, tagObject3DForEntityPicking } from "../picking/tagThreeObjectForPicking";
 
 export class UpdateThreeCameraSystem extends System {
+    static override readonly runsInEditor = true;
+
     private readonly cameraQuery = defineQuery([ThreeCamera, ThreeObject]);
     private readonly cameraEnter = enterQuery(this.cameraQuery);
     private readonly cameraExit = exitQuery(this.cameraQuery);
@@ -44,9 +46,8 @@ export class UpdateThreeCameraSystem extends System {
             camera.near = ThreeCamera.near[eid];
             camera.far = ThreeCamera.far[eid];
             camera.updateProjectionMatrix();
-            if (renderContext.getRenderView() === "game") {
-                renderContext.setActiveCamera(camera);
-            }
+            /** Game tab render uses {@link ThreeRenderContext#getActiveCamera}; editor tab ignores it. */
+            renderContext.setActiveCamera(camera);
         });
 
         this.cameraExit(world).forEach(eid => {

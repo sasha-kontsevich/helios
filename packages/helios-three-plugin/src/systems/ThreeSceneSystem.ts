@@ -4,6 +4,8 @@ import { ThreeObject } from '../components';
 import { getThreeRenderContext } from "../ThreeRenderContext";
 
 export class ThreeSceneSystem extends System {
+    static override readonly runsInEditor = true;
+
     private readonly query = defineQuery([ThreeObject]);
     private readonly objectExitQuery = exitQuery(this.query);
 
