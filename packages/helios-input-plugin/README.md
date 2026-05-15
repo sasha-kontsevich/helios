@@ -33,6 +33,6 @@ Tag the player camera entity with `ViewportCameraControl` in the scene (plus `Po
 
 - Listeners attach to the **game** canvas only; editor orbit/fly stays in `helios-editor`.
 - When `EDITOR_SHELL_ACTIVE_VIEW_CAPABILITY` is present, input is active only while `activeView === "game"`.
-- Fly: RMB + look, WASDQE (+ Shift), same feel as editor `EditorSceneView`.
+- Fly: RMB + look, WASDQE (+ Shift); pose stored in **`Rotation`** as quaternion.
 
 Orbit (Alt+LMB / MMB) is planned as a follow-up in this package.

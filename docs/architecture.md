@@ -73,7 +73,8 @@
 
 - **`ViewportInputPlugin`** (`requires` **`renderer.three`**): слушатели на **game canvas**, регистрирует мутабельный **`ViewportInputState`** под **`game.viewportInput`**.
 - **Гейт:** если зарегистрирован **`EDITOR_SHELL_ACTIVE_VIEW_CAPABILITY`**, ввод активен только при **`activeView === "game"`**; без shell capability — всегда активен (standalone).
-- **`ViewportFlyCameraSystem`** (`runsInEditor: true`): для сущностей с **`ViewportCameraControl`** + **`Position`** + **`Rotation`** применяет look/move (как Unity fly в редакторе).
+- **`Rotation`** (core): ориентация как **кватернион** `{ x, y, z, w }`; **`UpdateThreeObjectSystem`** синхронизирует в `object.quaternion`. Старый JSON с тремя полями euler (XYZ) конвертируется при спавне. Инспектор показывает **Euler XYZ** и пишет обратно в quat.
+- **`ViewportFlyCameraSystem`** (`runsInEditor: true`): fly на `THREE.PerspectiveCamera`, запись **`Position`** + **`Rotation`** (quat).
 - **Порядок систем:** `ViewportFlyCameraSystem` → **`UpdateThreeObjectSystem`** → **`UpdateThreeCameraSystem`** → **`RenderSystem`**.
 
 ### Выделение объекта во вьюпорте
