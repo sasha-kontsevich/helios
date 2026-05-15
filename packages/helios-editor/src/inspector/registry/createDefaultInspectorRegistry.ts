@@ -1,12 +1,14 @@
 import { markRaw } from "vue";
 import ThreeGeometryRefInspector from "../ThreeGeometryRefInspector.vue";
 import ThreeMaterialRefInspector from "../ThreeMaterialRefInspector.vue";
+import RotationInspector from "../RotationInspector.vue";
 import Vec3ComponentInspector from "../Vec3ComponentInspector.vue";
 import { EditorInspectorRegistry } from "./EditorInspectorRegistry";
 import type { ComponentInspectorExtension } from "./inspectorTypes";
 
 function builtInExtensions(): ComponentInspectorExtension[] {
     const Vec3 = markRaw(Vec3ComponentInspector);
+    const Rot = markRaw(RotationInspector);
     const Geo = markRaw(ThreeGeometryRefInspector);
     const Mat = markRaw(ThreeMaterialRefInspector);
     return [
@@ -22,7 +24,7 @@ function builtInExtensions(): ComponentInspectorExtension[] {
             componentNames: ["Rotation"],
             priority: 0,
             supportsRaw: true,
-            view: Vec3,
+            view: Rot,
         },
         {
             id: "builtin-inspector-scale",

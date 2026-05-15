@@ -1,3 +1,5 @@
+import { quatFromEulerXYZ } from "@merlinn/helios-core";
+
 /**
  * Default mesh primitives for the editor (ThreeGeometryRef descriptors match
  * {@link packages/helios-three-plugin/src/builders/descriptors.ts} defaults).
@@ -50,11 +52,12 @@ function positionFor(kind: EditorPrimitiveKind): { x: number; y: number; z: numb
   return { x: 0, y: 0.5, z: 0 };
 }
 
-function rotationFor(kind: EditorPrimitiveKind): { x: number; y: number; z: number } {
-  if (kind === "plane") {
-    return { x: -Math.PI / 2, y: 0, z: 0 };
-  }
-  return { x: 0, y: 0, z: 0 };
+function rotationFor(kind: EditorPrimitiveKind): { x: number; y: number; z: number; w: number } {
+  const euler =
+    kind === "plane"
+      ? { x: -Math.PI / 2, y: 0, z: 0 }
+      : { x: 0, y: 0, z: 0 };
+  return quatFromEulerXYZ(euler.x, euler.y, euler.z);
 }
 
 export function defaultEditorPrimitiveComponents(kind: EditorPrimitiveKind): Record<string, Record<string, unknown>> {

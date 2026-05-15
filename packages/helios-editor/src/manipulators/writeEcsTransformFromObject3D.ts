@@ -1,13 +1,10 @@
 import type { EngineAPI } from "@merlinn/helios-core";
 import type { Object3D } from "three";
+import { setRotationEulerHintFromQuat } from "../inspector/rotationEulerHintStore";
 
 /**
- * Copies local `position` / `rotation` (Euler) / `scale` from a `THREE.Object3D` into ECS
- * {@link Position}, {@link Rotation}, {@link Scale} via {@link EngineAPI.applyComponentPatch},
- * adding missing transform components first.
- *
- * Component names match `helios-core` defaults; hosts with a custom `ComponentMap` should register
- * equivalent transform components.
+ * Copies local transform from a `THREE.Object3D` into ECS
+ * {@link Position}, {@link Rotation} (quaternion), {@link Scale}.
  */
 export function writeEcsTransformFromObject3D(api: EngineAPI, eid: number, object: Object3D): void {
     if (!api.entityExists(eid)) {
@@ -22,9 +19,10 @@ export function writeEcsTransformFromObject3D(api: EngineAPI, eid: number, objec
     ensure("Rotation");
     ensure("Scale");
     const p = object.position;
-    const r = object.rotation;
+    const q = object.quaternion;
     const s = object.scale;
+    setRotationEulerHintFromQuat(eid, { x: q.x, y: q.y, z: q.z, w: q.w });
     api.applyComponentPatch(eid, "Position" as never, { x: p.x, y: p.y, z: p.z });
-    api.applyComponentPatch(eid, "Rotation" as never, { x: r.x, y: r.y, z: r.z });
+    api.applyComponentPatch(eid, "Rotation" as never, { x: q.x, y: q.y, z: q.z, w: q.w });
     api.applyComponentPatch(eid, "Scale" as never, { x: s.x, y: s.y, z: s.z });
 }
