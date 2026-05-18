@@ -23,12 +23,14 @@ export { pickEntityAtCanvasPoint } from "./view/picking/pickEntityAtCanvasPoint"
 export {
     CompositeViewportPointerGate,
     createViewportPickContext,
-    GAME_VIEWPORT_POINTER_SINK_CAPABILITY,
     type IEditorViewportNavigation,
-    type IGameViewportPointerSink,
     type IViewportPointerGate,
     type ViewportPickContext,
 } from "./viewport";
+export {
+    GAME_VIEWPORT_POINTER_SINK_CAPABILITY,
+    type IGameViewportPointerSink,
+} from "./viewport/GameViewportPointerSink";
 export { EditorTransformManipulator } from "./manipulators/EditorTransformManipulator";
 export type { ITransformToolController, TransformToolMode } from "./manipulators/ITransformToolController";
 export { writeEcsTransformFromObject3D } from "./manipulators/writeEcsTransformFromObject3D";
