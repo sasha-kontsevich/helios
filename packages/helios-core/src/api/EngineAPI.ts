@@ -330,6 +330,21 @@ export class EngineAPI {
         await this.context.systems.setSystemEnabled(name, enabled);
     }
 
+    /** Pause or resume simulation systems (`System.runsInEditor !== true`) without stopping them. */
+    setSimulationPaused(paused: boolean): void {
+        this.context.systems.setSimulationPaused(paused);
+    }
+
+    toggleSimulationPaused(): boolean {
+        const next = !this.context.systems.isSimulationPaused();
+        this.context.systems.setSimulationPaused(next);
+        return next;
+    }
+
+    isSimulationPaused(): boolean {
+        return this.context.systems.isSimulationPaused();
+    }
+
     /**
      * Read an optional capability from the engine context (host-registered bridges, e.g. game pause).
      */

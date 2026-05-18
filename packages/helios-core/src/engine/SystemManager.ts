@@ -13,6 +13,7 @@ export class SystemManager {
     private systems: System[] = [];
     private systemMap = new Map<string, System>();
     private readonly started = new Set<System>();
+    private simulationPaused = false;
 
     constructor(private readonly context: Context) {}
 
@@ -36,9 +37,13 @@ export class SystemManager {
 
     update(deltaTime: number): void {
         for (const system of this.systems) {
-            if (system.isEnabled()) {
-                system.update(deltaTime);
+            if (!system.isEnabled()) {
+                continue;
             }
+            if (this.simulationPaused && !readRunsInEditor(system)) {
+                continue;
+            }
+            system.update(deltaTime);
         }
     }
 
@@ -72,6 +77,7 @@ export class SystemManager {
 
     /** Enter Play: enable and start simulation layer. */
     async beginPlaySessionSystems(): Promise<void> {
+        this.simulationPaused = false;
         for (const system of this.simulationSystems()) {
             system.enable();
         }
@@ -80,6 +86,7 @@ export class SystemManager {
 
     /** Exit Play: stop and disable simulation layer. */
     async endPlaySessionSystems(): Promise<void> {
+        this.simulationPaused = false;
         this.stopSystems(this.simulationSystems());
         for (const system of this.simulationSystems()) {
             system.disable();
@@ -130,6 +137,14 @@ export class SystemManager {
         }
     }
 
+    setSimulationPaused(paused: boolean): void {
+        this.simulationPaused = paused;
+    }
+
+    isSimulationPaused(): boolean {
+        return this.simulationPaused;
+    }
+
     clear(): void {
         this.systems = [];
         this.systemMap.clear();
@@ -140,13 +155,15 @@ export class SystemManager {
         return this.systems.map((system, order) => {
             const runsInEditor = readRunsInEditor(system);
             const enabled = system.isEnabled();
+            const pausedBySimulationPause = enabled && this.simulationPaused && !runsInEditor;
             return {
                 name: system.constructor.name,
                 order,
                 enabled,
                 started: this.started.has(system),
                 runsInEditor,
-                updateActive: enabled,
+                updateActive: enabled && !pausedBySimulationPause,
+                pausedBySimulationPause,
             };
         });
     }

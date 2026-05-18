@@ -12,7 +12,9 @@ export interface SystemRuntimeSnapshot {
     /** Static `System.runsInEditor === true`. */
     readonly runsInEditor: boolean;
     /**
-     * Whether `update` runs this frame — same as `enabled` when editor host policy is applied.
+     * Whether `update` runs this frame — false when disabled or paused by simulation pause.
      */
     readonly updateActive: boolean;
+    /** True when enabled but skipped because the simulation layer is paused. */
+    readonly pausedBySimulationPause?: boolean;
 }
