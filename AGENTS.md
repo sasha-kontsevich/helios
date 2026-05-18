@@ -11,7 +11,7 @@ This file guides AI assistants and tooling working in the **helios** monorepo.
 |------|------|------|
 | ECS core | `packages/helios-core` | Engine, `EngineAPI`, components, spawn/merge entity/component maps, clipboard types |
 | Three.js plugin | `packages/helios-three-plugin` | `ThreePlugin`, `ThreeRenderContext`, mesh/camera/light systems, geometry/material descriptors |
-| Input plugin | `packages/helios-input-plugin` | `ViewportInputPlugin`, `game.viewportInput`, `ViewportFlyCameraSystem`, `ViewportCameraControl` |
+| Input plugin | `packages/helios-input-plugin` | `ViewportInputPlugin`, ECS `ViewportInput` singleton, `game.viewportInput` metadata |
 | Editor UI | `packages/helios-editor` | Vue shell, inspector, scene view, selection bus, context menus |
 | Example game | `examples/astris` | Vite app wiring engine + editor + input plugin |
 
@@ -37,7 +37,7 @@ After changing **`helios-core` public surface** (`EngineAPI`, exports), run **`p
 - **Clipboard:** `EditorEntityClipboardV1` — entity paste creates a **new** entity; inspector **Paste** merges onto the **selected** entity via `mergeEntityFromEditorClipboardPayload`.
 - **Systems panel:** left column tab **Systems**; data from `EngineAPI.listSystemRuntimeSnapshots()`. Editor host calls `applyEditorSystemHostPolicy()` on attach — simulation systems stay **disabled** (no `start`) until Play; render/Three systems use `runsInEditor = true`.
 - **Context menus:** Shared UI in `packages/helios-editor/src/ui/contextMenu/` (`ContextMenu.vue`, `useContextMenu`, viewport clamp in `clampContextMenuToViewport.ts`).
-- **Game viewport camera:** `ViewportInputPlugin` after `ThreePlugin`; `ViewportFlyCameraSystem` before `UpdateThreeObjectSystem`; tag camera with `ViewportCameraControl` in scene JSON.
+- **Game viewport input/camera:** `ViewportInputPlugin` after `ThreePlugin`; game code reads ECS `ViewportInput`. In Astris, `AstrisFlyCameraSystem` runs before `UpdateThreeObjectSystem`; tag camera with `AstrisFlyCamera` in scene JSON.
 - **Rotation:** ECS stores quaternion (`Rotation.x/y/z/w`); inspector shows Euler XYZ. Legacy scene JSON with 3 euler fields migrates at spawn.
 
 ## Conventions

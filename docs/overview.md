@@ -14,7 +14,7 @@
 
 ### `@merlinn/helios-input-plugin`
 
-Ввод **game viewport**: **`ViewportInputPlugin`** → capability **`game.viewportInput`**, **`ViewportFlyCameraSystem`** пишет **`Position`** / **`Rotation`** сущности с тегом **`ViewportCameraControl`**. Редакторский canvas не затрагивается.
+Ввод **game viewport**: **`ViewportInputPlugin`** пишет DOM-события в ECS singleton **`ViewportInput`** (`game.viewportInput`). Игровые системы (например, камера Astris) читают этот ввод сами; редакторский canvas не затрагивается.
 
 ### `@merlinn/helios-editor`
 

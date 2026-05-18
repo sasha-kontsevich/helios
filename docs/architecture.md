@@ -28,7 +28,7 @@
 |-------|------------|
 | `@merlinn/helios-core` | `Engine`, регистрация компонентов/систем, **`EngineAPI`** для инструментов и редактора, типы буфера обмена редактора, спавн/слияние сущностей из карт компонентов |
 | `@merlinn/helios-three-plugin` | Регистрация **`ThreePlugin`**, **`ThreeRenderContext`**, связь ECS ↔ `THREE.Object3D`, ресурсные билдеры мешей, системы камеры/света/сцены, хелпер для выделения в редакторе |
-| `@merlinn/helios-input-plugin` | **`ViewportInputPlugin`**, capability **`game.viewportInput`**, fly-камера во вкладке «Игра» через ECS (`ViewportFlyCameraSystem`, тег **`ViewportCameraControl`**) |
+| `@merlinn/helios-input-plugin` | **`ViewportInputPlugin`**, ECS singleton **`ViewportInput`**, capability metadata **`game.viewportInput`**; только ввод, без игровой логики камеры |
 | `@merlinn/helios-editor` | **`createEditor`**, Vue-оболочка (`EditorShell`), список сущностей, инспектор, сценовый вид с камерой, оверлей выделения, контекстные меню, мост буфера ↔ API |
 | `examples/astris` | Пример игры на Vite: подключение движка, плагинов и редактора |
 
@@ -67,15 +67,15 @@
 - **ЛКМ** без Alt — луч в `worldRoot`, выбор сущности через **`SelectionBus`** ([`pickEntityAtCanvasPoint`](../packages/helios-editor/src/view/picking/pickEntityAtCanvasPoint.ts)); клик по пустоте снимает выделение.
 - **Alt+ЛКМ** и **СКМ (MMB)** — вращение камеры (`OrbitControls`); **ПКМ** — режим полёта (как раньше). `OrbitControls` не использует ПКМ, чтобы не конфликтовать с fly.
 - Политику жестов можно подменить через **`SceneNavigationPolicy`** ([`SceneNavigationPolicy.ts`](../packages/helios-editor/src/view/picking/SceneNavigationPolicy.ts)) — задел под Hand tool (Q) и т.п.
-- **Вкладка «Игра»:** отдельный canvas и режим ввода; `EDITOR_SHELL_ACTIVE_VIEW_CAPABILITY` переключает game/editor render pass. ЛКМ в игре — опциональный **`GAME_VIEWPORT_POINTER_SINK_CAPABILITY`**; fly-камера (ПКМ + WASDQE) — пакет **`helios-input-plugin`** (DOM → **`game.viewportInput`** → **`ViewportFlyCameraSystem`** → `Position`/`Rotation`). Редакторский fly/orbit остаётся в **`EditorSceneView`**. Детали и backlog — [editor-game-viewport-future.md](editor-game-viewport-future.md).
+- **Вкладка «Игра»:** отдельный canvas и режим ввода; `EDITOR_SHELL_ACTIVE_VIEW_CAPABILITY` переключает game/editor render pass. ЛКМ в игре — опциональный **`GAME_VIEWPORT_POINTER_SINK_CAPABILITY`**; DOM-ввод game canvas пишет **`helios-input-plugin`** (DOM → **`ViewportInput`** singleton / **`game.viewportInput`**), а игровая камера реализуется системой игры (в Astris — **`AstrisFlyCameraSystem`** → `Position`/`Rotation`). Редакторский fly/orbit остаётся в **`EditorSceneView`**. Детали и backlog — [editor-game-viewport-future.md](editor-game-viewport-future.md).
 
 ## Плагин ввода (`helios-input-plugin`)
 
-- **`ViewportInputPlugin`** (`requires` **`renderer.three`**): слушатели на **game canvas**, регистрирует мутабельный **`ViewportInputState`** под **`game.viewportInput`**.
+- **`ViewportInputPlugin`** (`requires` **`renderer.three`**): слушатели на **game canvas**, регистрирует ECS singleton **`ViewportInput`** и capability metadata **`game.viewportInput`** (`inputEntity`).
 - **Гейт:** если зарегистрирован **`EDITOR_SHELL_ACTIVE_VIEW_CAPABILITY`**, ввод активен только при **`activeView === "game"`**; без shell capability — всегда активен (standalone).
+- **Контракт:** `ViewportInput.keys` / `buttons` — bitmask, `lookDeltaX/Y` — frame deltas; игровые системы сами решают, как использовать ввод.
 - **`Rotation`** (core): ориентация как **кватернион** `{ x, y, z, w }`; **`UpdateThreeObjectSystem`** синхронизирует в `object.quaternion`. Старый JSON с тремя полями euler (XYZ) конвертируется при спавне. Инспектор показывает **Euler XYZ** и пишет обратно в quat.
-- **`ViewportFlyCameraSystem`** (`runsInEditor: true`): fly на `THREE.PerspectiveCamera`, запись **`Position`** + **`Rotation`** (quat).
-- **Порядок систем:** `ViewportFlyCameraSystem` → **`UpdateThreeObjectSystem`** → **`UpdateThreeCameraSystem`** → **`RenderSystem`**.
+
 
 ### Выделение объекта во вьюпорте
 
