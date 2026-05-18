@@ -35,7 +35,7 @@ After changing **`helios-core` public surface** (`EngineAPI`, exports), run **`p
 - **Selection:** `SelectionBus` in editor context; scene highlights via `EditorSelectionOverlay` + `tryGetEntityThreeObject` (three-plugin).
 - **Three capability:** string key `renderer.three` → `ThreeRenderContext`; editor-only nodes under `getEditorRoot()`.
 - **Clipboard:** `EditorEntityClipboardV1` — entity paste creates a **new** entity; inspector **Paste** merges onto the **selected** entity via `mergeEntityFromEditorClipboardPayload`.
-- **Systems panel:** left column tab **Systems**; data from `EngineAPI.listSystemRuntimeSnapshots()`. Editor host calls `applyEditorSystemHostPolicy()` on attach — simulation systems stay **disabled** (no `start`) until Play; render/Three systems use `runsInEditor = true`.
+- **Systems panel:** left column tab **Systems**; data from `EngineAPI.listSystemRuntimeSnapshots()`. Editor host calls `applyEditorSystemHostPolicy()` on attach — simulation systems stay **disabled** (no `start`) until Play; render/Three systems use `runsInEditor = true`. Game pause uses `EngineAPI.setSimulationPaused()` and makes simulation `updateActive = false` without stopping systems.
 - **Context menus:** Shared UI in `packages/helios-editor/src/ui/contextMenu/` (`ContextMenu.vue`, `useContextMenu`, viewport clamp in `clampContextMenuToViewport.ts`).
 - **Game viewport input/camera:** `ViewportInputPlugin` after `ThreePlugin`; game code reads ECS `ViewportInput`. In Astris, `AstrisFlyCameraSystem` runs before `UpdateThreeObjectSystem`; tag camera with `AstrisFlyCamera` in scene JSON.
 - **Rotation:** ECS stores quaternion (`Rotation.x/y/z/w`); inspector shows Euler XYZ. Legacy scene JSON with 3 euler fields migrates at spawn.
