@@ -1,10 +1,10 @@
-import { LifeCell, Rotating, ViewportCameraControl } from "./components";
+import { AstrisFlyCamera, LifeCell, Rotating } from "./components";
 
 declare module "@merlinn/helios-core" {
     interface ComponentMap {
         Rotating: typeof Rotating;
         LifeCell: typeof LifeCell;
-        ViewportCameraControl: typeof ViewportCameraControl;
+        AstrisFlyCamera: typeof AstrisFlyCamera;
     }
 }
 

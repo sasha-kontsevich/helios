@@ -13,7 +13,7 @@
           "far": 1000
         },
         "ThreeObject": {},
-        "ViewportCameraControl": {},
+        "AstrisFlyCamera": {},
         "Position": { "x": 3.3, "y": 3.0, "z": 3.4 },
         "Rotation": {
           "x": -0.722979353401491,

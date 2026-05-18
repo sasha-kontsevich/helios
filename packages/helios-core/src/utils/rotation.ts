@@ -40,6 +40,24 @@ export function quatFromEulerXYZ(ex: number, ey: number, ez: number): Quat {
     });
 }
 
+/**
+ * Camera-style yaw/pitch orientation with no roll.
+ * Yaw is a world-Y turn; pitch is a local-X tilt after yaw.
+ */
+export function quatFromYawPitch(yawY: number, pitchX: number): Quat {
+    const cy = Math.cos(yawY / 2);
+    const sy = Math.sin(yawY / 2);
+    const cx = Math.cos(pitchX / 2);
+    const sx = Math.sin(pitchX / 2);
+
+    return normalizeQuat({
+        x: cy * sx,
+        y: sy * cx,
+        z: -sy * sx,
+        w: cy * cx,
+    });
+}
+
 /** Extract intrinsic Euler XYZ from a unit quaternion. */
 export function eulerXYZFromQuat(x: number, y: number, z: number, w: number): EulerXYZ {
     const q = normalizeQuat({ x, y, z, w });

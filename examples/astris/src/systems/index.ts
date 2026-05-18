@@ -1,5 +1,4 @@
 import {SystemConstructor} from "@merlinn/helios-core";
-import { ViewportFlyCameraSystem } from "@merlinn/helios-input-plugin";
 import {
     UpdateThreeObjectSystem,
     RenderSystem,
@@ -10,6 +9,7 @@ import {RotatingCubeSystem} from "./RotatingCubeSystem";
 import {GameGridVisualSystem} from "./GameGridVisualSystem";
 import {GameOfLifePointerDrainSystem} from "./GameOfLifePointerDrainSystem";
 import {GameOfLifeStepSystem} from "./GameOfLifeStepSystem";
+import { AstrisFlyCameraSystem } from "./AstrisFlyCameraSystem";
 
 export const Systems: SystemConstructor[] = [
     RotatingCubeSystem,
@@ -20,7 +20,7 @@ export const Systems: SystemConstructor[] = [
     GameOfLifeStepSystem,
     ThreeResourceBuildSystem,
     UpdateThreeMeshSystem,
-    ViewportFlyCameraSystem,
+    AstrisFlyCameraSystem,
     UpdateThreeObjectSystem,
     ThreeSceneSystem,
     RenderSystem,
