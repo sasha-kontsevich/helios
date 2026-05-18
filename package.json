@@ -1,6 +1,7 @@
 {
   "name": "helios-monorepo",
   "private": true,
+  "packageManager": "pnpm@10.0.0",
   "workspaces": [
     "packages/*",
     "examples/*"
