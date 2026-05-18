@@ -12,10 +12,14 @@ export class UpdateThreeCameraSystem extends System {
     private readonly cameraEnter = enterQuery(this.cameraQuery);
     private readonly cameraExit = exitQuery(this.cameraQuery);
 
-    /** (Re)create THREE camera when `ThreeObject.object` was cleared after mesh teardown or similar. */
+    /** (Re)create THREE camera when `ThreeObject.object` is missing or still holds a non-camera placeholder. */
     private ensurePerspectiveCamera(eid: number): void {
         const objectComp = ThreeObject.get(eid);
-        if (objectComp.object) return;
+        if (objectComp.object instanceof THREE.PerspectiveCamera) return;
+        if (objectComp.object) {
+            clearEntityPickingTag(objectComp.object);
+            objectComp.object.removeFromParent();
+        }
         const cameraData = ThreeCamera.get(eid);
         const camera = new THREE.PerspectiveCamera(
             cameraData.fov,
@@ -37,7 +41,10 @@ export class UpdateThreeCameraSystem extends System {
 
         this.cameraQuery(world).forEach(eid => {
             this.ensurePerspectiveCamera(eid);
-            const camera = ThreeObject.get(eid).object as THREE.PerspectiveCamera;
+            const camera = ThreeObject.get(eid).object;
+            if (!(camera instanceof THREE.PerspectiveCamera)) {
+                return;
+            }
             const canvas = renderContext.getCanvas();
             if (canvas && canvas.width && canvas.height) {
                 ThreeCamera.aspect[eid] = canvas.clientWidth / canvas.clientHeight;
