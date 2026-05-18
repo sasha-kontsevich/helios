@@ -166,7 +166,6 @@ export function createThreeMeshResourceBuilder(): {
                 }
             }
 
-            console.log(`[ThreeMeshResourceBuilder] checked=${checked} built=${builtCount}`);
         },
     };
 }

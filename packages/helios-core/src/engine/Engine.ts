@@ -24,8 +24,6 @@ export class Engine {
     }
 
     async init(config: EngineConfig) {
-        console.log("Initializing engine");
-
         registerDefaultAssetLoaders(this.context);
 
         if (config.assetIndex?.length) {
@@ -48,8 +46,6 @@ export class Engine {
             this.context.builders.registerAll(config.builders);
             await this.context.builders.runAll(this.context);
         }
-
-        console.log(this.context.components);
     }
 
     start() {
