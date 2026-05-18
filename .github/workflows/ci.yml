@@ -31,6 +31,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build workspace package types
+        run: |
+          pnpm --filter @merlinn/helios-core run build
+          pnpm --filter @merlinn/helios-three-plugin run build
+          pnpm --filter @merlinn/helios-input-plugin run build
+
       - name: Typecheck
         run: pnpm run typecheck
 
