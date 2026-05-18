@@ -6,8 +6,10 @@
     "examples/*"
   ],
   "scripts": {
-    "start": "npm run start --workspace examples/astris",
+    "dev": "pnpm --filter astris dev",
+    "start": "pnpm dev",
     "build": "pnpm -r run build",
+    "demo:build": "pnpm --filter astris build",
     "typecheck": "pnpm -r run typecheck",
     "test": "pnpm -r run test || true"
   },
