@@ -22,8 +22,6 @@ export interface EditorContext {
      * entity pick vs game pointer forwarding.
      */
     readonly viewportInteraction?: EditorViewportInteractionController;
-    /** When set, game tab may bind pause UI to {@link EngineAPI.getCapability}. */
-    readonly gameSimulationCapabilityKey?: string;
     /** Enter / Exit Play (snapshot restore). Always created by {@link Editor}. */
     readonly playMode: PlayModeController;
 }

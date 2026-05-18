@@ -14,7 +14,6 @@ export { SelectionBus, noopSelectionBus } from "./selection/SelectionBus";
 export type { EditorPlugin } from "./EditorPlugin";
 export { Editor, type EditorOptions } from "./Editor";
 export { createEditor, type CreateEditorOptions, type EditorHandle } from "./createEditor";
-export type { GameSimulationControls } from "./gameSimulationControls";
 export { PlayModeController, type PlayModeOptions } from "./play/PlayModeController";
 export type { EditorViewportInteractionController, EditorViewportInteractionMode } from "./viewport/EditorViewportInteractionMode";
 export { EditorSceneView } from "./view/EditorSceneView";

@@ -17,7 +17,6 @@ export class InspectorEditorPlugin implements EditorPlugin {
             transformTools: context.transformTools ?? null,
             inspectorRegistry: context.inspectorRegistry,
             viewportInteraction: context.viewportInteraction ?? null,
-            gameSimulationCapabilityKey: context.gameSimulationCapabilityKey ?? null,
             playMode: context.playMode,
         });
         this.app.mount(context.root);

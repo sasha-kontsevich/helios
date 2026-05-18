@@ -6,7 +6,6 @@ import { createDefaultInspectorRegistry } from "./inspector/registry/createDefau
 import type { ITransformToolController } from "./manipulators/ITransformToolController";
 import { createDefaultEditorPlugins } from "./inspector/createDefaultEditorPlugins";
 import { noopSelectionBus, type ISelectionBus } from "./selection/SelectionBus";
-import type { GameSimulationControls } from "./gameSimulationControls";
 import type { EditorViewportInteractionController } from "./viewport/EditorViewportInteractionMode";
 import { PlayModeController, type PlayModeOptions } from "./play/PlayModeController";
 
@@ -23,11 +22,6 @@ export interface EditorOptions {
     transformTools?: ITransformToolController;
     /** When set (e.g. by {@link createEditor}), the shell can switch editor vs game canvas interaction. */
     viewportInteraction?: EditorViewportInteractionController;
-    /**
-     * When set, the game tab shows a pause control bound to {@link EngineAPI.getCapability}(`key`)
-     * if the value implements {@link GameSimulationControls}.
-     */
-    gameSimulationCapabilityKey?: string;
     /** Play Mode hooks and snapshot exclusions (see {@link PlayModeController}). */
     playMode?: PlayModeOptions;
 }
@@ -57,9 +51,6 @@ export class Editor {
             playMode,
             ...(transformTools !== undefined ? { transformTools } : {}),
             ...(options.viewportInteraction !== undefined ? { viewportInteraction: options.viewportInteraction } : {}),
-            ...(options.gameSimulationCapabilityKey !== undefined
-                ? { gameSimulationCapabilityKey: options.gameSimulationCapabilityKey }
-                : {}),
         };
 
         for (const plugin of plugins) {

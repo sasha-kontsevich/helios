@@ -85,7 +85,6 @@
               <TransformToolIcon :kind="playSessionActive ? 'stop' : 'play'" :size="CHROME_TAB_ICON_SIZE" />
             </button>
             <button
-              v-if="gameSimulationCapabilityKey"
               type="button"
               class="shell__tabTransportBtn"
               :class="{ 'shell__tabTransportBtn--toggled': gamePausePressed }"
@@ -206,7 +205,6 @@ import {
   type EntitySnapshot,
   type SystemRuntimeSnapshot,
 } from "@merlinn/helios-core";
-import type { GameSimulationControls } from "../gameSimulationControls";
 import type { PlayModeController } from "../play/PlayModeController";
 import type { ITransformToolController, TransformToolMode } from "../manipulators/ITransformToolController";
 import type { ISelectionBus } from "../selection/SelectionBus";
@@ -238,7 +236,6 @@ const props = defineProps<{
   transformTools?: ITransformToolController | null;
   inspectorRegistry: EditorInspectorRegistry;
   viewportInteraction?: EditorViewportInteractionController | null;
-  gameSimulationCapabilityKey?: string | null;
   playMode: PlayModeController;
 }>();
 
@@ -306,33 +303,26 @@ function setCenterView(mode: "editor" | "game"): void {
   syncShellActiveViewCapability();
 }
 
-const gameSimulationControls = computed(() => {
-  const key = props.gameSimulationCapabilityKey;
-  if (!key) {
-    return null;
-  }
-  return props.engineApi.getCapability<GameSimulationControls>(key) ?? null;
-});
-
 const gamePauseLabel = computed(() => {
   void pauseUiTick.value;
-  return gameSimulationControls.value?.paused ? "Продолжить" : "Пауза";
+  return props.engineApi.isSimulationPaused() ? "Продолжить" : "Пауза";
 });
 
 const gamePauseTitle = computed(() =>
-  gameSimulationControls.value?.paused
+  props.engineApi.isSimulationPaused()
     ? "Возобновить шаги симуляции"
     : "Приостановить шаги симуляции",
 );
 
 const gamePausePressed = computed(() => {
   void pauseUiTick.value;
-  return gameSimulationControls.value?.paused ?? false;
+  return props.engineApi.isSimulationPaused();
 });
 
 function onGamePauseClick(): void {
-  gameSimulationControls.value?.togglePause();
+  props.engineApi.toggleSimulationPaused();
   pauseUiTick.value += 1;
+  refreshSystemList();
 }
 
 async function onPlayToggle(): Promise<void> {
