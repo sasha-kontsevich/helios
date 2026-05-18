@@ -2,8 +2,6 @@ import { defineQuery } from "bitecs";
 import { System } from "@merlinn/helios-core";
 import { LifeCell } from "../components";
 import { lifeCellComponentMap } from "../game/lifeCellPrefab";
-import { ASTRIS_GAME_OF_LIFE_RUNTIME_CAPABILITY } from "../game/gameOfLifeCapabilities";
-import type { GameSimulationControls } from "@merlinn/helios-editor";
 
 const NEIGHBOR_OFFSETS: ReadonlyArray<readonly [number, number]> = [
     [-1, -1],
@@ -37,13 +35,6 @@ export class GameOfLifeStepSystem extends System {
     private stepAccumulator = 0;
 
     update(deltaTime: number): void {
-        const runtime = this.context.capabilities.getOrUndefined<GameSimulationControls>(
-            ASTRIS_GAME_OF_LIFE_RUNTIME_CAPABILITY,
-        );
-        if (runtime?.paused) {
-            return;
-        }
-
         this.stepAccumulator += deltaTime;
         if (this.stepAccumulator < STEP_INTERVAL_SEC) {
             return;

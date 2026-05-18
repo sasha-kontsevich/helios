@@ -1,10 +1,8 @@
 import "./componentMapAugment";
 import { Engine } from "@merlinn/helios-core";
 import { createEditor } from "@merlinn/helios-editor";
-import { ASTRIS_GAME_OF_LIFE_RUNTIME_CAPABILITY } from "./game/gameOfLifeCapabilities";
 import { ASTRIS_GRID_CLICK_QUEUE_CAPABILITY } from "./game/gridInputCapabilities";
 import type { GridClickQueue } from "./game/GridClickQueue";
-import type { GameOfLifeRuntime } from "./game/GameOfLifeRuntime";
 import "@merlinn/helios-editor/style.css";
 import { config } from "./config";
 
@@ -21,7 +19,6 @@ async function bootstrap() {
     const editor = createEditor({
         api: engine.api,
         root,
-        gameSimulationCapabilityKey: ASTRIS_GAME_OF_LIFE_RUNTIME_CAPABILITY,
         playMode: {
             shouldExcludeEntity: (_, snap) => {
                 const name = snap.components.Name as { label?: string } | undefined;
@@ -29,11 +26,9 @@ async function bootstrap() {
             },
             onEnterPlay: () => {
                 engine.api.getCapability<GridClickQueue>(ASTRIS_GRID_CLICK_QUEUE_CAPABILITY)?.clear();
-                engine.api.getCapability<GameOfLifeRuntime>(ASTRIS_GAME_OF_LIFE_RUNTIME_CAPABILITY)?.clearPause();
             },
             onExitPlay: () => {
                 engine.api.getCapability<GridClickQueue>(ASTRIS_GRID_CLICK_QUEUE_CAPABILITY)?.clear();
-                engine.api.getCapability<GameOfLifeRuntime>(ASTRIS_GAME_OF_LIFE_RUNTIME_CAPABILITY)?.clearPause();
             },
         },
     });
