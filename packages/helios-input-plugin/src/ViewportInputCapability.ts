@@ -1,39 +1,27 @@
-/** Frame input for game viewport; registered by {@link ViewportInputPlugin}. */
+/** ECS viewport input singleton metadata registered by ViewportInputPlugin. */
 export const VIEWPORT_INPUT_CAPABILITY = "game.viewportInput" as const;
 
-const FLY_KEY_CODES = ["KeyW", "KeyA", "KeyS", "KeyD", "KeyQ", "KeyE"] as const;
-
-/**
- * Mutable input snapshot (DOM bridge writes, camera systems read).
- * Call {@link beginFrame} once per simulation tick before camera systems.
- */
-export class ViewportInputState {
-    /** False when editor shell is on the editor tab (if shell capability is present). */
-    enabled = true;
-
-    readonly keysDown = new Set<string>();
-
-    flyActive = false;
-
-    altHeld = false;
-
-    shiftHeld = false;
-
-    lookDeltaX = 0;
-
-    lookDeltaY = 0;
-
-    beginFrame(): void {
-        this.lookDeltaX = 0;
-        this.lookDeltaY = 0;
-    }
-
-    endFly(): void {
-        this.flyActive = false;
-        this.keysDown.clear();
-    }
-
-    shouldAcceptFlyKey(code: string): boolean {
-        return (FLY_KEY_CODES as readonly string[]).includes(code);
-    }
+export interface ViewportInputCapability {
+    inputEntity: number;
 }
+
+export const ViewportInputKey = {
+    W: 1 << 0,
+    A: 1 << 1,
+    S: 1 << 2,
+    D: 1 << 3,
+    Q: 1 << 4,
+    E: 1 << 5,
+    Shift: 1 << 6,
+    Alt: 1 << 7,
+} as const;
+
+export type ViewportInputKeyFlag = (typeof ViewportInputKey)[keyof typeof ViewportInputKey];
+
+export const ViewportInputButton = {
+    Left: 1 << 0,
+    Middle: 1 << 1,
+    Right: 1 << 2,
+} as const;
+
+export type ViewportInputButtonFlag = (typeof ViewportInputButton)[keyof typeof ViewportInputButton];

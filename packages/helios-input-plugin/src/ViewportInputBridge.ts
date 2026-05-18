@@ -1,9 +1,38 @@
 import {
     EDITOR_SHELL_ACTIVE_VIEW_CAPABILITY,
-    type EditorShellActiveViewState,
     type Context,
+    type EditorShellActiveViewState,
 } from "@merlinn/helios-core";
-import type { ViewportInputState } from "./ViewportInputCapability";
+import { ViewportInputButton, ViewportInputKey } from "./ViewportInputCapability";
+import { ViewportInput } from "./components/ViewportInput";
+
+function keyFlagForCode(code: string): number {
+    switch (code) {
+        case "KeyW": return ViewportInputKey.W;
+        case "KeyA": return ViewportInputKey.A;
+        case "KeyS": return ViewportInputKey.S;
+        case "KeyD": return ViewportInputKey.D;
+        case "KeyQ": return ViewportInputKey.Q;
+        case "KeyE": return ViewportInputKey.E;
+        case "ShiftLeft":
+        case "ShiftRight":
+            return ViewportInputKey.Shift;
+        case "AltLeft":
+        case "AltRight":
+            return ViewportInputKey.Alt;
+        default:
+            return 0;
+    }
+}
+
+function buttonFlagForButton(button: number): number {
+    switch (button) {
+        case 0: return ViewportInputButton.Left;
+        case 1: return ViewportInputButton.Middle;
+        case 2: return ViewportInputButton.Right;
+        default: return 0;
+    }
+}
 
 export class ViewportInputBridge {
     private canvas: HTMLCanvasElement | null = null;
@@ -18,7 +47,7 @@ export class ViewportInputBridge {
 
     constructor(
         private readonly context: Context,
-        private readonly state: ViewportInputState,
+        private readonly inputEntity: number,
     ) {}
 
     attach(canvas: HTMLCanvasElement): void {
@@ -28,10 +57,12 @@ export class ViewportInputBridge {
         canvas.addEventListener("contextmenu", this.boundCtxMenu);
         canvas.addEventListener("pointerdown", this.boundPointerDown);
         canvas.addEventListener("pointerup", this.boundPointerUp);
+        canvas.addEventListener("pointercancel", this.boundPointerUp);
         canvas.addEventListener("pointermove", this.boundPointerMove);
         window.addEventListener("keydown", this.boundKeyDown);
         window.addEventListener("keyup", this.boundKeyUp);
         window.addEventListener("blur", this.boundBlur);
+        this.refreshEnabled();
     }
 
     detach(): void {
@@ -39,32 +70,45 @@ export class ViewportInputBridge {
             this.canvas.removeEventListener("contextmenu", this.boundCtxMenu);
             this.canvas.removeEventListener("pointerdown", this.boundPointerDown);
             this.canvas.removeEventListener("pointerup", this.boundPointerUp);
+            this.canvas.removeEventListener("pointercancel", this.boundPointerUp);
             this.canvas.removeEventListener("pointermove", this.boundPointerMove);
             this.canvas = null;
         }
         window.removeEventListener("keydown", this.boundKeyDown);
         window.removeEventListener("keyup", this.boundKeyUp);
         window.removeEventListener("blur", this.boundBlur);
-        this.state.endFly();
+        this.clear();
     }
 
-    private refreshEnabled(): void {
+    refreshEnabled(): void {
         const shell = this.context.capabilities.getOrUndefined<EditorShellActiveViewState>(
             EDITOR_SHELL_ACTIVE_VIEW_CAPABILITY,
         );
         const enabled = !shell || shell.activeView === "game";
-        this.state.enabled = enabled;
+        ViewportInput.enabled[this.inputEntity] = enabled ? 1 : 0;
         if (!enabled) {
-            this.state.endFly();
+            this.clear();
         }
+    }
+
+    private clear(): void {
+        ViewportInput.enabled[this.inputEntity] = 0;
+        ViewportInput.keys[this.inputEntity] = 0;
+        ViewportInput.buttons[this.inputEntity] = 0;
+        ViewportInput.lookDeltaX[this.inputEntity] = 0;
+        ViewportInput.lookDeltaY[this.inputEntity] = 0;
     }
 
     private onPointerDown(e: PointerEvent): void {
         this.refreshEnabled();
-        if (!this.state.enabled || e.button !== 2) {
+        if (ViewportInput.enabled[this.inputEntity] === 0) {
             return;
         }
-        this.state.flyActive = true;
+        const flag = buttonFlagForButton(e.button);
+        if (flag === 0) {
+            return;
+        }
+        ViewportInput.buttons[this.inputEntity] |= flag;
         try {
             (e.currentTarget as HTMLCanvasElement).setPointerCapture(e.pointerId);
         } catch {
@@ -73,10 +117,10 @@ export class ViewportInputBridge {
     }
 
     private onPointerUp(e: PointerEvent): void {
-        if (e.button !== 2) {
-            return;
+        const flag = buttonFlagForButton(e.button);
+        if (flag !== 0) {
+            ViewportInput.buttons[this.inputEntity] &= ~flag;
         }
-        this.state.endFly();
         try {
             (e.currentTarget as HTMLCanvasElement).releasePointerCapture(e.pointerId);
         } catch {
@@ -86,43 +130,31 @@ export class ViewportInputBridge {
 
     private onPointerMove(e: PointerEvent): void {
         this.refreshEnabled();
-        if (!this.state.enabled || !this.state.flyActive || (e.buttons & 2) === 0) {
+        if (ViewportInput.enabled[this.inputEntity] === 0) {
             return;
         }
-        this.state.lookDeltaX += e.movementX;
-        this.state.lookDeltaY += e.movementY;
-    }
-
-    private syncAltFromKeyboardEvent(e: KeyboardEvent): void {
-        this.state.altHeld = e.getModifierState("Alt");
+        ViewportInput.lookDeltaX[this.inputEntity] += e.movementX;
+        ViewportInput.lookDeltaY[this.inputEntity] += e.movementY;
     }
 
     private onKeyDown(e: KeyboardEvent): void {
         this.refreshEnabled();
-        this.syncAltFromKeyboardEvent(e);
-        if (e.code === "ShiftLeft" || e.code === "ShiftRight") {
-            this.state.shiftHeld = true;
+        const flag = keyFlagForCode(e.code);
+        if (flag === 0 || ViewportInput.enabled[this.inputEntity] === 0) {
             return;
         }
-        if (!this.state.enabled || !this.state.flyActive || !this.state.shouldAcceptFlyKey(e.code)) {
-            return;
-        }
-        this.state.keysDown.add(e.code);
+        ViewportInput.keys[this.inputEntity] |= flag;
         e.preventDefault();
     }
 
     private onKeyUp(e: KeyboardEvent): void {
-        this.syncAltFromKeyboardEvent(e);
-        if (e.code === "ShiftLeft" || e.code === "ShiftRight") {
-            this.state.shiftHeld = false;
-            return;
+        const flag = keyFlagForCode(e.code);
+        if (flag !== 0) {
+            ViewportInput.keys[this.inputEntity] &= ~flag;
         }
-        this.state.keysDown.delete(e.code);
     }
 
     private onWindowBlur(): void {
-        this.state.shiftHeld = false;
-        this.state.altHeld = false;
-        this.state.endFly();
+        this.clear();
     }
 }
