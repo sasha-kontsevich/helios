@@ -6,34 +6,58 @@ const GRID_MAT = {
     wireframe: false,
 };
 
-/** Thin box along X at fixed Z (Game of Life board lines on XZ). */
-export function gridLineAlongX(half: number, z: number): Record<string, Record<string, unknown>> {
-    const len = 2 * half + 1;
+/** Empty parent for all floor grid line meshes. */
+export function gridRootComponents(): Record<string, Record<string, unknown>> {
     return {
         Name: { label: "Grid" },
-        Position: { x: 0, y: 0.01, z },
-        Rotation: { x: 0, y: 0, z: 0 },
         ThreeObject: {},
-        ThreeMesh: {},
-        ThreeGeometryRef: {
-            descriptor: { type: "box", width: len, height: 0.02, depth: 0.06 },
-        },
-        ThreeMaterialRef: { descriptor: GRID_MAT },
     };
 }
 
-/** Thin box along Z at fixed X. */
-export function gridLineAlongZ(half: number, x: number): Record<string, Record<string, unknown>> {
-    const len = 2 * half + 1;
+function gridLineBase(
+    half: number,
+    position: { x: number; y: number; z: number },
+    geometry: Record<string, unknown>,
+    parentEid: number,
+): Record<string, Record<string, unknown>> {
     return {
-        Name: { label: "Grid" },
-        Position: { x, y: 0.01, z: 0 },
+        Name: { label: "GridLine" },
+        Position: position,
         Rotation: { x: 0, y: 0, z: 0 },
         ThreeObject: {},
         ThreeMesh: {},
-        ThreeGeometryRef: {
-            descriptor: { type: "box", width: 0.06, height: 0.02, depth: len },
-        },
+        ThreeGeometryRef: { descriptor: geometry },
         ThreeMaterialRef: { descriptor: GRID_MAT },
+        Parent: { target: parentEid },
     };
+}
+
+/** Thin box along X at fixed Z (Game of Life board lines on XZ). */
+export function gridLineAlongX(
+    half: number,
+    z: number,
+    parentEid: number,
+): Record<string, Record<string, unknown>> {
+    const len = 2 * half + 1;
+    return gridLineBase(
+        half,
+        { x: 0, y: 0.01, z },
+        { type: "box", width: len, height: 0.02, depth: 0.06 },
+        parentEid,
+    );
+}
+
+/** Thin box along Z at fixed X. */
+export function gridLineAlongZ(
+    half: number,
+    x: number,
+    parentEid: number,
+): Record<string, Record<string, unknown>> {
+    const len = 2 * half + 1;
+    return gridLineBase(
+        half,
+        { x, y: 0.01, z: 0 },
+        { type: "box", width: 0.06, height: 0.02, depth: len },
+        parentEid,
+    );
 }

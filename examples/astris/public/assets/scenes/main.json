@@ -3,23 +3,18 @@
   "prefabs": [],
   "entities": [
     {
-      "id": "camera-1",
+      "id": "scene-root",
       "components": {
-        "Name": { "label": "Главная камера" },
-        "ThreeCamera": {
-          "fov": 75,
-          "aspect": 1.7777777778,
-          "near": 0.1,
-          "far": 1000
-        },
+        "Name": { "label": "Сцена" },
+        "ThreeObject": {}
+      }
+    },
+    {
+      "id": "demo-content",
+      "components": {
+        "Name": { "label": "Демо" },
         "ThreeObject": {},
-        "AstrisFlyCamera": {},
-        "Position": { "x": 3.3, "y": 3.0, "z": 3.4 },
-        "Rotation": {
-          "x": -0.722979353401491,
-          "y": 0.629130474869533,
-          "z": 0.47889997440704235
-        }
+        "Parent": { "target": "scene-root" }
       }
     },
     {
@@ -47,7 +42,16 @@
             "metalness": 0.15,
             "wireframe": false
           }
-        }
+        },
+        "Parent": { "target": "demo-content" }
+      }
+    },
+    {
+      "id": "lighting",
+      "components": {
+        "Name": { "label": "Освещение" },
+        "ThreeObject": {},
+        "Parent": { "target": "scene-root" }
       }
     },
     {
@@ -55,7 +59,8 @@
       "components": {
         "Name": { "label": "Окружающий свет" },
         "ThreeAmbientLight": { "intensity": 0.25 },
-        "ThreeObject": {}
+        "ThreeObject": {},
+        "Parent": { "target": "lighting" }
       }
     },
     {
@@ -64,7 +69,28 @@
         "Name": { "label": "Солнце" },
         "ThreeDirectionalLight": { "intensity": 1.2 },
         "ThreeObject": {},
-        "Position": { "x": 3, "y": 5, "z": 2 }
+        "Position": { "x": 3, "y": 5, "z": 2 },
+        "Parent": { "target": "lighting" }
+      }
+    },
+    {
+      "id": "camera-1",
+      "components": {
+        "Name": { "label": "Главная камера" },
+        "ThreeCamera": {
+          "fov": 75,
+          "aspect": 1.7777777778,
+          "near": 0.1,
+          "far": 1000
+        },
+        "ThreeObject": {},
+        "AstrisFlyCamera": {},
+        "Position": { "x": 3.3, "y": 3.0, "z": 3.4 },
+        "Rotation": {
+          "x": -0.722979353401491,
+          "y": 0.629130474869533,
+          "z": 0.47889997440704235
+        }
       }
     }
   ]

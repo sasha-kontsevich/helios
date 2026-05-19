@@ -22,7 +22,9 @@ async function bootstrap() {
         playMode: {
             shouldExcludeEntity: (_, snap) => {
                 const name = snap.components.Name as { label?: string } | undefined;
-                return name?.label === "Grid";
+                const label = name?.label;
+                // Exclude the whole grid group: lines reference Grid root eid in Parent.
+                return label === "Grid" || label === "GridLine";
             },
             onEnterPlay: () => {
                 engine.api.getCapability<GridClickQueue>(ASTRIS_GRID_CLICK_QUEUE_CAPABILITY)?.clear();
