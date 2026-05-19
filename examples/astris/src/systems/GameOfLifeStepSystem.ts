@@ -1,7 +1,8 @@
 import { defineQuery } from "bitecs";
-import { System } from "@merlinn/helios-core";
+import { Name, System } from "@merlinn/helios-core";
 import { LifeCell } from "../components";
 import { lifeCellComponentMap } from "../game/lifeCellPrefab";
+import { ensureLifeCellsRootEid } from "../game/lifeCellsRoot";
 
 const NEIGHBOR_OFFSETS: ReadonlyArray<readonly [number, number]> = [
     [-1, -1],
@@ -31,6 +32,7 @@ function parseCellKey(key: string): [number, number] {
  * Syncs ECS entities with {@link LifeCell} to match each generation.
  */
 export class GameOfLifeStepSystem extends System {
+    private readonly nameQuery = defineQuery([Name]);
     private readonly cellQuery = defineQuery([LifeCell]);
     private stepAccumulator = 0;
 
@@ -98,8 +100,9 @@ export class GameOfLifeStepSystem extends System {
                 toAdd.push({ gx, gz });
             }
         }
+        const cellsRootEid = ensureLifeCellsRootEid(api, world, this.nameQuery);
         for (const { gx, gz } of toAdd) {
-            api.createEntityFromComponents(lifeCellComponentMap(gx, gz));
+            api.createEntityFromComponents(lifeCellComponentMap(gx, gz, cellsRootEid));
         }
     }
 }

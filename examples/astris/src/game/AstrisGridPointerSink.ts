@@ -6,41 +6,82 @@ import type { GridClickQueue } from "./GridClickQueue";
 
 const _plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 const _hit = new THREE.Vector3();
+const _ndc = new THREE.Vector2();
 
 /**
  * LMB → ray onto Y=0 plane → snapped grid cell → {@link GridClickQueue}.
+ * Click toggles; drag with held LMB places cells (add only).
  */
 export class AstrisGridPointerSink implements IGameViewportPointerSink {
+    private lastPaintGx: number | null = null;
+    private lastPaintGz: number | null = null;
+
     constructor(private readonly queue: GridClickQueue) {}
 
     tryHandlePointerDown(engine: Engine, canvas: HTMLCanvasElement, e: PointerEvent): boolean {
-        if (e.altKey) {
+        this.resetPaintStroke();
+        const cell = this.pickCell(engine, canvas, e);
+        if (cell === null) {
+            return true;
+        }
+        this.queue.enqueue(cell.gx, cell.gz, "toggle");
+        return true;
+    }
+
+    tryHandlePointerMove(engine: Engine, canvas: HTMLCanvasElement, e: PointerEvent): boolean {
+        if ((e.buttons & 1) === 0) {
             return false;
+        }
+        const cell = this.pickCell(engine, canvas, e);
+        if (cell === null) {
+            return true;
+        }
+        if (cell.gx === this.lastPaintGx && cell.gz === this.lastPaintGz) {
+            return true;
+        }
+        this.lastPaintGx = cell.gx;
+        this.lastPaintGz = cell.gz;
+        this.queue.enqueue(cell.gx, cell.gz, "place");
+        return true;
+    }
+
+    private resetPaintStroke(): void {
+        this.lastPaintGx = null;
+        this.lastPaintGz = null;
+    }
+
+    private pickCell(
+        engine: Engine,
+        canvas: HTMLCanvasElement,
+        e: PointerEvent,
+    ): { gx: number; gz: number } | null {
+        if (e.altKey) {
+            return null;
         }
         const rc = engine.context.capabilities.getOrUndefined<ThreeRenderContext>(THREE_RENDERER_CAPABILITY);
         if (!rc) {
-            return true;
+            return null;
         }
         const camera = rc.getActiveCamera();
         if (!camera) {
-            return true;
+            return null;
         }
 
         const rect = canvas.getBoundingClientRect();
-        const ndcX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-        const ndcY = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        if (rect.width <= 0 || rect.height <= 0) {
+            return null;
+        }
+        _ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        _ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
         const raycaster = new THREE.Raycaster();
-        raycaster.setFromCamera(new THREE.Vector2(ndcX, ndcY), camera);
+        raycaster.setFromCamera(_ndc, camera);
 
         const hit = raycaster.ray.intersectPlane(_plane, _hit);
         if (hit === null) {
-            return true;
+            return null;
         }
 
-        const gx = Math.round(hit.x);
-        const gz = Math.round(hit.z);
-        this.queue.enqueue(gx, gz);
-        return true;
+        return { gx: Math.round(hit.x), gz: Math.round(hit.z) };
     }
 }

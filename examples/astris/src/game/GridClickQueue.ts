@@ -1,10 +1,12 @@
-export type GridCellClick = { gx: number; gz: number };
+export type GridCellActionMode = "toggle" | "place";
+
+export type GridCellClick = { gx: number; gz: number; mode: GridCellActionMode };
 
 export class GridClickQueue {
     private pending: GridCellClick[] = [];
 
-    enqueue(gx: number, gz: number): void {
-        this.pending.push({ gx, gz });
+    enqueue(gx: number, gz: number, mode: GridCellActionMode = "toggle"): void {
+        this.pending.push({ gx, gz, mode });
     }
 
     /** Returns and clears all pending clicks since last drain. */

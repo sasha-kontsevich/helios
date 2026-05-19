@@ -1,6 +1,7 @@
 import "./componentMapAugment";
 import { Engine } from "@merlinn/helios-core";
 import { createEditor } from "@merlinn/helios-editor";
+import { AstrisGameHudPlugin } from "./gameUi/AstrisGameHudPlugin";
 import { ASTRIS_GRID_CLICK_QUEUE_CAPABILITY } from "./game/gridInputCapabilities";
 import type { GridClickQueue } from "./game/GridClickQueue";
 import "@merlinn/helios-editor/style.css";
@@ -19,6 +20,7 @@ async function bootstrap() {
     const editor = createEditor({
         api: engine.api,
         root,
+        gameUiPlugins: [new AstrisGameHudPlugin()],
         playMode: {
             shouldExcludeEntity: (_, snap) => {
                 const name = snap.components.Name as { label?: string } | undefined;

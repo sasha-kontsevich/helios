@@ -2,9 +2,14 @@
  * Component map for one Game of Life cell (box on integer grid XZ, center Y=0.5).
  * Shared by pointer drain and step systems.
  */
-export function lifeCellComponentMap(gx: number, gz: number): Record<string, Record<string, unknown>> {
+export function lifeCellComponentMap(
+    gx: number,
+    gz: number,
+    parentEid: number,
+): Record<string, Record<string, unknown>> {
     return {
         Name: { label: "Cell" },
+        Parent: { target: parentEid },
         Position: { x: gx, y: 0.5, z: gz },
         Rotation: { x: 0, y: 0, z: 0 },
         ThreeObject: {},

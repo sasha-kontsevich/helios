@@ -10,6 +10,14 @@
       }
     },
     {
+      "id": "life-cells",
+      "components": {
+        "Name": { "label": "LifeCells" },
+        "ThreeObject": {},
+        "Parent": { "target": "scene-root" }
+      }
+    },
+    {
       "id": "demo-content",
       "components": {
         "Name": { "label": "Демо" },
