@@ -6,6 +6,7 @@ import { createDefaultInspectorRegistry } from "./inspector/registry/createDefau
 import type { ITransformToolController } from "./manipulators/ITransformToolController";
 import { createDefaultEditorPlugins } from "./inspector/createDefaultEditorPlugins";
 import { noopSelectionBus, type ISelectionBus } from "./selection/SelectionBus";
+import type { GameUiHost } from "./gameUi/GameUiHost";
 import type { EditorViewportInteractionController } from "./viewport/EditorViewportInteractionMode";
 import { PlayModeController, type PlayModeOptions } from "./play/PlayModeController";
 
@@ -24,6 +25,10 @@ export interface EditorOptions {
     viewportInteraction?: EditorViewportInteractionController;
     /** Play Mode hooks and snapshot exclusions (see {@link PlayModeController}). */
     playMode?: PlayModeOptions;
+    /** When set (e.g. by {@link createEditor}), reuses the same controller for game UI plugins. */
+    playModeController?: PlayModeController;
+    /** Host for game-viewport overlay plugins; wired by {@link InspectorEditorPlugin}. */
+    gameUiHost?: GameUiHost;
 }
 
 export class Editor {
@@ -42,7 +47,7 @@ export class Editor {
         const selection = options.selection ?? noopSelectionBus;
         const transformTools = options.transformTools;
         const inspectorRegistry = createDefaultInspectorRegistry(options.inspectorExtensions);
-        const playMode = new PlayModeController(this.api, options.playMode);
+        const playMode = options.playModeController ?? new PlayModeController(this.api, options.playMode);
         const context: EditorContext = {
             api: this.api,
             root,
@@ -51,6 +56,7 @@ export class Editor {
             playMode,
             ...(transformTools !== undefined ? { transformTools } : {}),
             ...(options.viewportInteraction !== undefined ? { viewportInteraction: options.viewportInteraction } : {}),
+            ...(options.gameUiHost !== undefined ? { gameUiHost: options.gameUiHost } : {}),
         };
 
         for (const plugin of plugins) {

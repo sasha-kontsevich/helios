@@ -175,6 +175,7 @@
               class="shell__viewportPane shell__viewportPane--game"
             >
               <canvas id="helios-game-view" class="shell__canvas shell__canvas--game"></canvas>
+              <div ref="gameUiMount" class="shell__gameUiRoot" />
             </div>
           </div>
         </div>
@@ -198,7 +199,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, shallowRef, watch } from "vue";
 import {
   EDITOR_SHELL_ACTIVE_VIEW_CAPABILITY,
   type ComponentMap,
@@ -225,6 +226,7 @@ import {
   writeEditorEntityClipboard,
 } from "./editorEntityClipboardBridge";
 import { entityDisplayLabel } from "../utils/entityDisplayLabel";
+import type { GameUiHost } from "../gameUi/GameUiHost";
 import type { EditorViewportInteractionController } from "../viewport/EditorViewportInteractionMode";
 
 const REFRESH_MS = 160;
@@ -239,7 +241,10 @@ const props = defineProps<{
   inspectorRegistry: EditorInspectorRegistry;
   viewportInteraction?: EditorViewportInteractionController | null;
   playMode: PlayModeController;
+  gameUiHost?: GameUiHost | null;
 }>();
+
+const gameUiMount = ref<HTMLElement | null>(null);
 
 const pauseUiTick = ref(0);
 /** Unity-like Play Mode: snapshot run / restore (see {@link PlayModeController}). */
@@ -571,6 +576,9 @@ onMounted(() => {
   if (props.viewportInteraction) {
     centerView.value = props.viewportInteraction.getMode();
   }
+  if (props.gameUiHost && gameUiMount.value) {
+    props.gameUiHost.attachMount(gameUiMount.value);
+  }
   syncShellActiveViewCapability();
   refreshEntityList();
   refreshSystemList();
@@ -595,6 +603,10 @@ onMounted(() => {
       refreshInspector();
     }
   }, REFRESH_MS);
+});
+
+onBeforeUnmount(() => {
+  props.gameUiHost?.detach();
 });
 
 onUnmounted(() => {
@@ -874,6 +886,17 @@ onUnmounted(() => {
   inset: 0;
   min-width: 0;
   min-height: 0;
+}
+.shell__gameUiRoot {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  overflow: hidden;
+}
+/* Game UI mounts via createApp (no shell scoped id) — :deep required */
+.shell__gameUiRoot :deep([data-game-ui-interactive]) {
+  pointer-events: auto;
 }
 .shell__canvas {
   display: block;

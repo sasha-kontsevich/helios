@@ -9,7 +9,10 @@ import {
 } from "@merlinn/helios-core";
 import { THREE_RENDERER_CAPABILITY, type ThreeRenderContext } from "@merlinn/helios-three-plugin";
 import { Editor, type EditorOptions } from "./Editor";
+import { GameUiHost } from "./gameUi/GameUiHost";
+import type { GameUiPlugin } from "./gameUi/GameUiPlugin";
 import { EditorTransformManipulator } from "./manipulators/EditorTransformManipulator";
+import { PlayModeController } from "./play/PlayModeController";
 import { SelectionBus } from "./selection/SelectionBus";
 import { CompositeViewportPointerGate } from "./viewport";
 import type {
@@ -18,12 +21,15 @@ import type {
 } from "./viewport/EditorViewportInteractionMode";
 import { EditorSceneView } from "./view/EditorSceneView";
 import { EditorSelectionOverlay } from "./view/EditorSelectionOverlay";
+
 export interface CreateEditorOptions extends EditorOptions {
     api: EngineAPI;
     /** If set, {@link EditorSceneView.attach} runs immediately (engine must already be inited). */
     engine?: Engine;
     /** When false, skip transform gizmo / viewport gate wiring (tests, headless). @default true */
     enableTransformManipulator?: boolean;
+    /** DOM overlays mounted above `#helios-game-view` (HUD, menus). */
+    gameUiPlugins?: GameUiPlugin[];
 }
 
 export interface EditorHandle {
@@ -39,7 +45,13 @@ export interface EditorHandle {
  * Mount the default editor shell (inspector UI). Requires peer `vue` at runtime.
  */
 export function createEditor(options: CreateEditorOptions): EditorHandle {
-    const { api, engine: initialEngine, enableTransformManipulator = true, ...rest } = options;
+    const {
+        api,
+        engine: initialEngine,
+        enableTransformManipulator = true,
+        gameUiPlugins = [],
+        ...rest
+    } = options;
     const selection = options.selection ?? new SelectionBus();
     const pointerGate = enableTransformManipulator ? new CompositeViewportPointerGate() : undefined;
     const sceneView = new EditorSceneView(selection, undefined, pointerGate);
@@ -47,6 +59,9 @@ export function createEditor(options: CreateEditorOptions): EditorHandle {
     const transformManipulator = enableTransformManipulator
         ? new EditorTransformManipulator(api, selection, pointerGate!, sceneView)
         : null;
+
+    const playMode = new PlayModeController(api, rest.playMode);
+    const gameUiHost = new GameUiHost(api, playMode, gameUiPlugins);
 
     let attachedEngine: Engine | null = null;
 
@@ -62,6 +77,23 @@ export function createEditor(options: CreateEditorOptions): EditorHandle {
     };
 
     let interactionMode: EditorViewportInteractionMode = "editor";
+
+    function shellActiveView(): EditorShellActiveView {
+        return interactionMode === "game" ? "game" : "editor";
+    }
+
+    function syncShellActiveViewCapability(): void {
+        if (!attachedEngine) {
+            return;
+        }
+        const st = attachedEngine.context.capabilities.getOrUndefined<EditorShellActiveViewState>(
+            EDITOR_SHELL_ACTIVE_VIEW_CAPABILITY,
+        );
+        if (st) {
+            st.activeView = shellActiveView();
+        }
+    }
+
     const viewportInteraction: EditorViewportInteractionController = {
         getMode: () => interactionMode,
         setMode: (mode: EditorViewportInteractionMode) => {
@@ -69,17 +101,17 @@ export function createEditor(options: CreateEditorOptions): EditorHandle {
             sceneView.setInteractionMode(mode);
             transformManipulator?.setGameViewportActive(mode === "game");
             applyGamePresentation(mode);
+            gameUiHost.notifyActiveView(shellActiveView());
+            syncShellActiveViewCapability();
         },
     };
-
-    function shellActiveView(): EditorShellActiveView {
-        return viewportInteraction.getMode() === "game" ? "game" : "editor";
-    }
 
     const editor = new Editor(api, {
         ...rest,
         selection,
         viewportInteraction,
+        playModeController: playMode,
+        gameUiHost,
         ...(transformManipulator ? { transformTools: transformManipulator } : {}),
     });
     const attachManipulators = (engine: Engine): void => {
@@ -101,6 +133,7 @@ export function createEditor(options: CreateEditorOptions): EditorHandle {
     }
     return {
         dispose: () => {
+            gameUiHost.dispose();
             transformManipulator?.detach();
             selectionOverlay.detach();
             sceneView.detach();

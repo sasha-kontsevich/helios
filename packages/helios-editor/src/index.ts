@@ -12,6 +12,9 @@ export {
 export type { ISelectionBus, SelectionEid, SelectionSubscriber } from "./selection/SelectionBus";
 export { SelectionBus, noopSelectionBus } from "./selection/SelectionBus";
 export type { EditorPlugin } from "./EditorPlugin";
+export type { GameUiPlugin } from "./gameUi/GameUiPlugin";
+export type { GameUiContext } from "./gameUi/GameUiContext";
+export { GameUiHost } from "./gameUi/GameUiHost";
 export { Editor, type EditorOptions } from "./Editor";
 export { createEditor, type CreateEditorOptions, type EditorHandle } from "./createEditor";
 export { PlayModeController, type PlayModeOptions } from "./play/PlayModeController";

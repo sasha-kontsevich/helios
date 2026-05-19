@@ -1,4 +1,5 @@
 import type { EngineAPI } from "@merlinn/helios-core";
+import type { GameUiHost } from "./gameUi/GameUiHost";
 import type { ITransformToolController } from "./manipulators/ITransformToolController";
 import type { EditorInspectorRegistry } from "./inspector/registry/EditorInspectorRegistry";
 import type { PlayModeController } from "./play/PlayModeController";
@@ -24,4 +25,6 @@ export interface EditorContext {
     readonly viewportInteraction?: EditorViewportInteractionController;
     /** Enter / Exit Play (snapshot restore). Always created by {@link Editor}. */
     readonly playMode: PlayModeController;
+    /** Present when {@link createEditor} was given `gameUiPlugins`. */
+    readonly gameUiHost?: GameUiHost;
 }

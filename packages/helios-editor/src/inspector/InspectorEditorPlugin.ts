@@ -18,6 +18,7 @@ export class InspectorEditorPlugin implements EditorPlugin {
             inspectorRegistry: context.inspectorRegistry,
             viewportInteraction: context.viewportInteraction ?? null,
             playMode: context.playMode,
+            gameUiHost: context.gameUiHost ?? null,
         });
         this.app.mount(context.root);
     }

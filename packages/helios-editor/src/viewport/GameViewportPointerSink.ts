@@ -11,4 +11,8 @@ export interface IGameViewportPointerSink {
      * @returns `true` if the pointer was handled (caller will preventDefault + stopImmediatePropagation).
      */
     tryHandlePointerDown(engine: Engine, canvas: HTMLCanvasElement, e: PointerEvent): boolean;
+    /**
+     * LMB drag in game view (buttons still down). Optional; omit if only click-to-act is needed.
+     */
+    tryHandlePointerMove?(engine: Engine, canvas: HTMLCanvasElement, e: PointerEvent): boolean;
 }

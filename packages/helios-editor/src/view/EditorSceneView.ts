@@ -66,6 +66,7 @@ export class EditorSceneView implements IEditorViewportNavigation {
 
     private boundCtxMenu!: (e: Event) => void;
     private boundPickPointerDown!: (e: PointerEvent) => void;
+    private boundPickPointerMove!: (e: PointerEvent) => void;
     private boundPointerDown!: (e: PointerEvent) => void;
     private boundPointerUp!: (e: PointerEvent) => void;
     private boundPointerMove!: (e: PointerEvent) => void;
@@ -137,6 +138,7 @@ export class EditorSceneView implements IEditorViewportNavigation {
 
         this.boundCtxMenu = (e: Event) => e.preventDefault();
         this.boundPickPointerDown = this.onPickPointerDownCapture.bind(this);
+        this.boundPickPointerMove = this.onPickPointerMoveCapture.bind(this);
         this.boundPointerDown = this.onPointerDown.bind(this);
         this.boundPointerUp = this.onPointerUp.bind(this);
         this.boundPointerMove = this.onPointerMove.bind(this);
@@ -147,6 +149,7 @@ export class EditorSceneView implements IEditorViewportNavigation {
         canvas.addEventListener("pointerdown", this.boundPickPointerDown, true);
         if (this.gameCanvas) {
             this.gameCanvas.addEventListener("pointerdown", this.boundPickPointerDown, true);
+            this.gameCanvas.addEventListener("pointermove", this.boundPickPointerMove, true);
         }
         canvas.addEventListener("contextmenu", this.boundCtxMenu);
         canvas.addEventListener("pointerdown", this.boundPointerDown);
@@ -273,6 +276,11 @@ export class EditorSceneView implements IEditorViewportNavigation {
             if (handled) {
                 e.preventDefault();
                 e.stopImmediatePropagation();
+                try {
+                    sinkCanvas.setPointerCapture(e.pointerId);
+                } catch {
+                    // ignore
+                }
             }
             return;
         }
@@ -289,6 +297,33 @@ export class EditorSceneView implements IEditorViewportNavigation {
         this.selection.set(eid);
         e.preventDefault();
         e.stopImmediatePropagation();
+    }
+
+    /** Game view: forward LMB drag to {@link IGameViewportPointerSink.tryHandlePointerMove}. */
+    private onPickPointerMoveCapture(e: PointerEvent): void {
+        if ((e.buttons & 1) === 0) {
+            return;
+        }
+        if (e.altKey || this.flyActive || !this.engine || !this.gameCanvas) {
+            return;
+        }
+        if (this.interactionMode !== "game") {
+            return;
+        }
+        if (e.currentTarget !== this.gameCanvas) {
+            return;
+        }
+        const sink = this.engine.context.capabilities.getOrUndefined<IGameViewportPointerSink>(
+            GAME_VIEWPORT_POINTER_SINK_CAPABILITY,
+        );
+        if (!sink?.tryHandlePointerMove) {
+            return;
+        }
+        const handled = sink.tryHandlePointerMove(this.engine, this.gameCanvas, e);
+        if (handled) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+        }
     }
 
     private onPointerDown(e: PointerEvent): void {
@@ -426,6 +461,7 @@ export class EditorSceneView implements IEditorViewportNavigation {
         }
         if (this.gameCanvas) {
             this.gameCanvas.removeEventListener("pointerdown", this.boundPickPointerDown, true);
+            this.gameCanvas.removeEventListener("pointermove", this.boundPickPointerMove, true);
             this.gameCanvas = null;
         }
         window.removeEventListener("keydown", this.boundKeyDown);
