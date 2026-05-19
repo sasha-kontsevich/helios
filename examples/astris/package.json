@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "pnpm --filter @merlinn/helios-editor run build && vite",
-    "build": "pnpm --filter @merlinn/helios-editor run build && vite build"
+    "dev": "pnpm -w run build:packages && pnpm --filter @merlinn/helios-editor run build && vite",
+    "build": "pnpm -w run build:packages && pnpm --filter @merlinn/helios-editor run build && vite build"
   },
   "dependencies": {
     "@merlinn/helios-core": "workspace:*",

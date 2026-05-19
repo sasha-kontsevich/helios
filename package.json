@@ -10,6 +10,7 @@
     "dev": "pnpm --filter astris dev",
     "start": "pnpm dev",
     "build": "pnpm -r run build",
+    "build:packages": "pnpm --filter @merlinn/helios-core run build && pnpm --filter @merlinn/helios-three-plugin run build && pnpm --filter @merlinn/helios-input-plugin run build",
     "demo:build": "pnpm --filter astris build",
     "typecheck": "pnpm -r run typecheck",
     "test": "pnpm -r run test || true"

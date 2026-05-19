@@ -20,7 +20,7 @@ pnpm install
 pnpm dev
 ```
 
-`pnpm dev` starts the Astris Vite app from the repository root. The Astris dev script builds the editor package first, then launches the local demo.
+`pnpm dev` starts the Astris Vite app from the repository root. The Astris dev script builds the workspace packages that expose `dist` entrypoints, builds the editor package, then launches the local demo.
 
 Production demo build:
 
