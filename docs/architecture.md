@@ -69,6 +69,13 @@
 - Политику жестов можно подменить через **`SceneNavigationPolicy`** ([`SceneNavigationPolicy.ts`](../packages/helios-editor/src/view/picking/SceneNavigationPolicy.ts)) — задел под Hand tool (Q) и т.п.
 - **Вкладка «Игра»:** отдельный canvas и режим ввода; `EDITOR_SHELL_ACTIVE_VIEW_CAPABILITY` переключает game/editor render pass. ЛКМ в игре — опциональный **`GAME_VIEWPORT_POINTER_SINK_CAPABILITY`**; DOM-ввод game canvas пишет **`helios-input-plugin`** (DOM → **`ViewportInput`** singleton / **`game.viewportInput`**), а игровая камера реализуется системой игры (в Astris — **`AstrisFlyCameraSystem`** → `Position`/`Rotation`). Редакторский fly/orbit остаётся в **`EditorSceneView`**. Детали и backlog — [editor-game-viewport-future.md](editor-game-viewport-future.md).
 
+### Game UI overlay (`GameUiPlugin`)
+
+- Отдельно от **`EditorPlugin`** (панели редактора): **`GameUiPlugin`** монтирует DOM/HUD над **`#helios-game-view`** в `.shell__gameUiRoot` ([`EditorShell.vue`](../packages/helios-editor/src/inspector/EditorShell.vue)).
+- **`createEditor({ gameUiPlugins: [...] })`** создаёт **`GameUiHost`**, который при mount shell вызывает `setup` каждого плагина с **`GameUiContext`**: `api`, `root`, `getActiveView` / `subscribeActiveView` (синхронно с вкладкой и `EDITOR_SHELL_ACTIVE_VIEW_CAPABILITY`), **`playMode`** (`PlayModeController`).
+- Контейнер оверлея: `pointer-events: none`; интерактивные виджеты помечают `data-game-ui-interactive` → `pointer-events: auto`.
+- Первый потребитель: Astris — [`AstrisGameHudPlugin`](../examples/astris/src/gameUi/AstrisGameHudPlugin.ts) (подсказки, счётчик `LifeCell`, бейдж паузы симуляции).
+
 ## Плагин ввода (`helios-input-plugin`)
 
 - **`ViewportInputPlugin`** (`requires` **`renderer.three`**): слушатели на **game canvas**, регистрирует ECS singleton **`ViewportInput`** и capability metadata **`game.viewportInput`** (`inputEntity`).
@@ -97,6 +104,7 @@
 | Сценовый вид, пикинг, выделение | `view/EditorSceneView.ts`, `view/picking/`, `view/EditorSelectionOverlay.ts` |
 | Выделение | `selection/SelectionBus.ts` |
 | Плагины редактора (ядро UI) | `inspector/InspectorEditorPlugin.ts`, `createDefaultEditorPlugins.ts` |
+| Game UI (HUD над game canvas) | `gameUi/GameUiHost.ts`, `gameUi/GameUiPlugin.ts` |
 | Буфер ↔ API | `inspector/editorEntityClipboardBridge.ts` |
 | Контекстные меню | `ui/contextMenu/` (`useContextMenu.ts`, `ContextMenu.vue`, `clampContextMenuToViewport.ts`) |
 | Пресеты примитивов | `presets/defaultEditorPrimitiveComponents.ts` |

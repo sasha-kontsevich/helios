@@ -5,6 +5,7 @@
 - **Два canvas:** `#helios-editor-view` (редактор) и `#helios-game-view` (игра) в shell; `ThreeRenderContext` держит два WebGL-рендерера и два прохода.
 - **Capability `editor.shell.activeView`:** shell выставляет `"editor"` | `"game"`; `RenderSystem` рендерит соответствующий viewport; в game-pass скрывается editor overlay.
 - **Вкладка «Игра»:** отдельный режим ввода (без орбиты/гизмо), опциональный `GAME_VIEWPORT_POINTER_SINK_CAPABILITY` для ЛКМ в game canvas.
+- **Game UI overlay:** `createEditor({ gameUiPlugins })` → `GameUiHost` + `.shell__gameUiRoot` над `#helios-game-view`; пример — `examples/astris/src/gameUi/AstrisGameHudPlugin.ts`.
 - **Play mode:** снимок сцены + `beginPlaySessionSystems` / `endPlaySessionSystems`; симуляция только после Enter Play (см. `docs/architecture.md`).
 
 Связанный код:
