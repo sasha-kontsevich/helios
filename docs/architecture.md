@@ -60,7 +60,7 @@
 ### Состояние выделения
 
 - **`SelectionBus`** — общая шина: список сущностей, инспектор, оверлей и **ray pick во вьюпорте** подписаны на одни и те же события выделения.
-- **Левая колонка:** вкладки **Entities** / **Systems**; список систем опрашивает **`EngineAPI.listSystemRuntimeSnapshots()`** (индикаторы enabled, started, runsInEditor, updateActive).
+- **Левая колонка:** вкладки **Entities** / **Systems**; список сущностей — **дерево иерархии** (как в Unity): `Parent.target` задаёт родителя, expand/collapse, drag-and-drop вызывает **`EngineAPI.setEntityParent`**. Список систем опрашивает **`EngineAPI.listSystemRuntimeSnapshots()`** (индикаторы enabled, started, runsInEditor, updateActive).
 
 ### Управление вьюпортом (Unity-like)
 
@@ -76,6 +76,13 @@
 - **Контракт:** `ViewportInput.keys` / `buttons` — bitmask, `lookDeltaX/Y` — frame deltas; игровые системы сами решают, как использовать ввод.
 - **`Rotation`** (core): ориентация как **кватернион** `{ x, y, z, w }`; **`UpdateThreeObjectSystem`** синхронизирует в `object.quaternion`. Старый JSON с тремя полями euler (XYZ) конвертируется при спавне. Инспектор показывает **Euler XYZ** и пишет обратно в quat.
 
+### Иерархия сущностей (`Parent`)
+
+- Компонент **`Parent`**: `target` — eid родителя; **`UpdateThreeObjectSystem`** вешает `THREE.Object3D` на родительский object (с **`isCyclic`**).
+- **Scene JSON:** у сущности можно указать `"id": "cube-1"` и `"Parent": { "target": "scene-root" }` (строка = scene id) или числовой eid. [`SceneManager`](packages/helios-core/src/engine/SceneManager.ts) спавнит в два прохода через [`spawnSceneEntityInstances`](packages/helios-core/src/engine/spawnEntitiesWithParent.ts).
+- **Play snapshot:** при capture сохраняется **`sourceEid`**; при **`applySceneSnapshot`** `Parent.target` переназначается на новые eid.
+- **API:** **`EngineAPI.setEntityParent(child, parent | null)`**, **`getEntityParentEid`**; утилиты дерева — [`entityHierarchy.ts`](packages/helios-core/src/utils/entityHierarchy.ts).
+
 
 ### Выделение объекта во вьюпорте
 
@@ -86,7 +93,7 @@
 
 | Область | Путь / файлы |
 |---------|----------------|
-| Оболочка и панели | `inspector/EditorShell.vue`, `EntityListPanel.vue`, `SystemListPanel.vue`, `InspectorPanel.vue` |
+| Оболочка и панели | `inspector/EditorShell.vue`, `EntityListPanel.vue`, `EntityHierarchyNode.vue`, `SystemListPanel.vue`, `InspectorPanel.vue` |
 | Сценовый вид, пикинг, выделение | `view/EditorSceneView.ts`, `view/picking/`, `view/EditorSelectionOverlay.ts` |
 | Выделение | `selection/SelectionBus.ts` |
 | Плагины редактора (ядро UI) | `inspector/InspectorEditorPlugin.ts`, `createDefaultEditorPlugins.ts` |

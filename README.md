@@ -44,6 +44,7 @@ When Astris opens, the main things to try are:
 - Press Play to run simulation systems, then Pause to stop simulation while rendering, editor systems, and camera input keep updating.
 - Open the Systems panel and watch `updateActive` / pause state change with Play and Pause.
 - Select an entity and edit `Rotation` in the Inspector: the UI shows Euler XYZ degrees, while ECS stores the raw quaternion.
+- Use the **Entities** hierarchy tree (expand/collapse, drag-and-drop to change `Parent`) — demo scene groups cube and lights under scene nodes; the floor grid lines parent under **Grid**.
 - Inspect the Game of Life scene and cube rotation as examples of simulation systems.
 
 ## Demo Smoke Checklist
@@ -57,6 +58,7 @@ Before showing the repository:
 - Play/Pause stops simulation systems while render and camera remain responsive.
 - Systems panel reflects active and paused system state.
 - Inspector Rotation edits are stable in Euler UI and stored as quaternion fields.
+- Entities panel shows a hierarchy; drag-and-drop reparent works and Play/Stop preserves parent links.
 - `pnpm run typecheck` and `pnpm demo:build` pass.
 
 ## Editor Package API
