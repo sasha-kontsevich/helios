@@ -12,6 +12,8 @@ export const EDITOR_SCENE_SNAPSHOT_VERSION = 1 as const;
 /** One spawned entity: component maps after runtime strip (same rules as editor clipboard). */
 export interface EditorSceneSnapshotEntityV1 {
     readonly components: Record<string, Record<string, unknown>>;
+    /** Original eid at capture time; used to remap Parent on {@link applySceneSnapshot}. */
+    readonly sourceEid?: number;
 }
 
 export interface EditorSceneSnapshotV1 {
@@ -75,7 +77,11 @@ export function parseEditorSceneSnapshotPayload(data: unknown): EditorSceneSnaps
             }
             normalized[name] = { ...fields };
         }
-        entities.push({ components: normalized });
+        const sourceEid = row.sourceEid;
+        entities.push({
+            components: normalized,
+            ...(typeof sourceEid === "number" ? { sourceEid } : {}),
+        });
     }
     return buildEditorSceneSnapshotV1(entities);
 }

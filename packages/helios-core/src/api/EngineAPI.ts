@@ -17,7 +17,13 @@ import {
 } from "../types";
 import type { SystemRuntimeSnapshot } from "../types/SystemRuntimeSnapshot";
 import { Context } from "../engine/Context";
+import {
+    applyParentLink,
+    spawnSnapshotEntitiesWithParentRemap,
+} from "../engine/spawnEntitiesWithParent";
 import { mergeComponentMapOntoEntity, spawnEntityFromComponentMap } from "../engine/spawnEntityFromComponents";
+import { Parent } from "../components/parent";
+import { isCyclic } from "../utils/hierarchy";
 
 /** Matches `THREE_RENDERER_CAPABILITY` from `@merlinn/helios-three-plugin` when the Three plugin is registered. */
 const RENDERER_THREE_CAPABILITY = "renderer.three";
@@ -134,7 +140,7 @@ export class EngineAPI {
                 continue;
             }
             const payload = this.buildEditorEntityClipboardPayload(snap.eid);
-            entities.push({ components: payload.components });
+            entities.push({ sourceEid: snap.eid, components: payload.components });
         }
         return buildEditorSceneSnapshotV1(entities);
     }
@@ -160,9 +166,57 @@ export class EngineAPI {
                 ? parseEditorSceneSnapshotJson(snapshot)
                 : parseEditorSceneSnapshotPayload(snapshot as unknown);
         this.clearWorld();
-        for (const inst of data.entities) {
-            spawnEntityFromComponentMap(this.context, inst.components);
+        spawnSnapshotEntitiesWithParentRemap(
+            this.context,
+            data.entities.map((inst) => ({
+                components: inst.components,
+                sourceEid: inst.sourceEid,
+            })),
+        );
+    }
+
+    getEntityParentEid(eid: number): number | null {
+        const world = this.context.ecsWorld as never;
+        if (!entityExists(world, eid)) {
+            return null;
         }
+        if (!this.hasComponent(eid, "Parent" as keyof ComponentMap)) {
+            return null;
+        }
+        const target = Parent.target[eid];
+        return target > 0 ? target : null;
+    }
+
+    setEntityParent(childEid: number, parentEid: number | null): void {
+        const world = this.context.ecsWorld as never;
+        if (!entityExists(world, childEid)) {
+            console.warn(`[EngineAPI] setEntityParent: child ${childEid} does not exist`);
+            return;
+        }
+
+        if (parentEid === null) {
+            if (this.hasComponent(childEid, "Parent" as keyof ComponentMap)) {
+                this.removeComponent(childEid, "Parent" as keyof ComponentMap);
+            }
+            return;
+        }
+
+        if (!entityExists(world, parentEid)) {
+            console.warn(`[EngineAPI] setEntityParent: parent ${parentEid} does not exist`);
+            return;
+        }
+        if (childEid === parentEid) {
+            console.warn("[EngineAPI] setEntityParent: cannot parent entity to itself");
+            return;
+        }
+        if (isCyclic(world, childEid, parentEid)) {
+            console.warn(
+                `[EngineAPI] setEntityParent: cyclic hierarchy child=${childEid} parent=${parentEid}`,
+            );
+            return;
+        }
+
+        applyParentLink(this.context, childEid, parentEid);
     }
 
     serializeSceneSnapshot(snapshot: EditorSceneSnapshotV1): string {

@@ -1,7 +1,7 @@
 // SceneManager.ts
 import { Context } from './index';
 import type { PrefabData, SceneData } from '../types';
-import { spawnEntityFromComponentMap } from './spawnEntityFromComponents';
+import { spawnSceneEntityInstances } from './spawnEntitiesWithParent';
 
 export class SceneManager {
     private scenes = new Map<string, SceneData>();
@@ -46,8 +46,8 @@ export class SceneManager {
             void scene.enableSystems;
         }
 
-        for (const inst of scene.entities ?? []) {
-            spawnEntityFromComponentMap(this.ctx, inst.components);
+        if (scene.entities?.length) {
+            spawnSceneEntityInstances(this.ctx, scene.entities);
         }
 
         for (const { prefabGuid, overrides } of scene.prefabs ?? []) {

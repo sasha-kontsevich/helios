@@ -14,4 +14,5 @@ export * from './SceneManager';
 export * from './BuilderManger';
 export * from './Component';
 export * from './spawnEntityFromComponents';
+export * from './spawnEntitiesWithParent';
 export * from './registerDefaultAssetLoaders';

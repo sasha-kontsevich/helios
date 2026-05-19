@@ -1,4 +1,4 @@
-import { Parent } from '../components'; // путь подправь под свой
+import { Parent } from "../components/parent";
 import { IWorld } from 'bitecs';
 
 /**

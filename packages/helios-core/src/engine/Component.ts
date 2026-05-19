@@ -36,6 +36,9 @@ export function defineComponent<T extends Record<string, any>>(schema: T): Compo
 
     for (const key in schema) {
         const type = schema[key];
+        if (type == null) {
+            throw new Error(`[Helios] defineComponent: field "${key}" has undefined type`);
+        }
         numericSchema[key] = PrimitiveTypes.has(type) ? type : Types.ui32;
     }
 
