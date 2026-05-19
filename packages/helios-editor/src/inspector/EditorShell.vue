@@ -27,12 +27,14 @@
         v-show="leftPanelTab === 'entities'"
         :entities="entities"
         :selected-eid="selectedEid"
+        :engine-api="engineApi"
         @select="onSelect"
         @create="onCreateEntity"
         @create-primitive="onCreatePrimitiveEntity"
         @delete="onDeleteEntity"
         @copy="onCopyEntity"
         @paste="onPasteEntity"
+        @reparented="refreshEntityList"
       />
       <SystemListPanel
         v-show="leftPanelTab === 'systems'"
