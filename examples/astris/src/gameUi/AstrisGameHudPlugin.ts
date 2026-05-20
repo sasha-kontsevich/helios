@@ -1,5 +1,6 @@
 import type { GameUiContext, GameUiPlugin } from "@merlinn/helios-editor";
 import { createApp, type App } from "vue";
+import "./astrisGameUi.css";
 import AstrisGameHud from "./AstrisGameHud.vue";
 
 export class AstrisGameHudPlugin implements GameUiPlugin {
