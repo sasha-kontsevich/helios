@@ -6,14 +6,13 @@
       "id": "scene-root",
       "components": {
         "Name": { "label": "Сцена" },
-        "ThreeObject": {}
+        "Position": { "x": 0, "y": 0, "z": 0 }
       }
     },
     {
       "id": "life-cells",
       "components": {
         "Name": { "label": "LifeCells" },
-        "ThreeObject": {},
         "Parent": { "target": "scene-root" }
       }
     },
@@ -21,7 +20,6 @@
       "id": "life-cells-preview",
       "components": {
         "Name": { "label": "LifeCellsPreview" },
-        "ThreeObject": {},
         "Parent": { "target": "scene-root" }
       }
     },
@@ -29,7 +27,6 @@
       "id": "demo-content",
       "components": {
         "Name": { "label": "Демо" },
-        "ThreeObject": {},
         "Parent": { "target": "scene-root" }
       }
     },
@@ -40,9 +37,8 @@
         "Rotating": { "speed": 1 },
         "Position": { "x": 1, "y": 1, "z": 1 },
         "Rotation": { "x": 0, "y": 0, "z": 0 },
-        "ThreeMesh": {},
-        "ThreeObject": {},
-        "ThreeGeometryRef": {
+        "Mesh": {},
+        "Geometry": {
           "descriptor": {
             "type": "box",
             "width": 1,
@@ -50,7 +46,7 @@
             "depth": 1
           }
         },
-        "ThreeMaterialRef": {
+        "Material": {
           "descriptor": {
             "type": "meshStandard",
             "color": 16777215,
@@ -66,7 +62,6 @@
       "id": "lighting",
       "components": {
         "Name": { "label": "Освещение" },
-        "ThreeObject": {},
         "Parent": { "target": "scene-root" }
       }
     },
@@ -74,8 +69,7 @@
       "id": "light-ambient",
       "components": {
         "Name": { "label": "Окружающий свет" },
-        "ThreeAmbientLight": { "intensity": 0.25 },
-        "ThreeObject": {},
+        "AmbientLight": { "intensity": 0.25 },
         "Parent": { "target": "lighting" }
       }
     },
@@ -83,8 +77,7 @@
       "id": "light-directional",
       "components": {
         "Name": { "label": "Солнце" },
-        "ThreeDirectionalLight": { "intensity": 1.2 },
-        "ThreeObject": {},
+        "DirectionalLight": { "intensity": 1.2 },
         "Position": { "x": 3, "y": 5, "z": 2 },
         "Parent": { "target": "lighting" }
       }
@@ -93,13 +86,11 @@
       "id": "camera-1",
       "components": {
         "Name": { "label": "Главная камера" },
-        "ThreeCamera": {
+        "Camera": {
           "fov": 75,
-          "aspect": 1.7777777778,
           "near": 0.1,
           "far": 1000
         },
-        "ThreeObject": {},
         "AstrisFlyCamera": {},
         "Position": { "x": 3.3, "y": 3.0, "z": 3.4 },
         "Rotation": {

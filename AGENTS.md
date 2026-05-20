@@ -9,8 +9,8 @@ This file guides AI assistants and tooling working in the **helios** monorepo.
 
 | Area | Path | Role |
 |------|------|------|
-| ECS core | `packages/helios-core` | Engine, `EngineAPI`, components, spawn/merge entity/component maps, clipboard types |
-| Three.js plugin | `packages/helios-three-plugin` | `ThreePlugin`, `ThreeRenderContext`, mesh/camera/light systems, geometry/material descriptors |
+| ECS core | `packages/helios-core` | Engine, `EngineAPI`, components, **`rendering/`** (descriptors, `Geometry`/`Material`/`Mesh`/`Camera`/lights), spawn maps, clipboard types |
+| Three.js plugin | `packages/helios-three-plugin` | `ThreePlugin`, `ThreeRenderContext`, `EnsureThreeRenderable`, compile descriptors → `ThreeMesh` / `ThreeObject` |
 | Input plugin | `packages/helios-input-plugin` | `ViewportInputPlugin`, ECS `ViewportInput` singleton, `game.viewportInput` metadata |
 | Editor UI | `packages/helios-editor` | Vue shell, inspector, scene view, selection bus, context menus |
 | Example game | `examples/astris` | Vite app wiring engine + editor + input plugin |
@@ -40,6 +40,7 @@ After changing **`helios-core` public surface** (`EngineAPI`, exports), run **`p
 - **Game viewport input/camera:** `ViewportInputPlugin` after `ThreePlugin`; game code reads ECS `ViewportInput`. In Astris, `AstrisFlyCameraSystem` runs before `UpdateThreeObjectSystem`; tag camera with `AstrisFlyCamera` in scene JSON.
 - **Game UI (HUD):** `GameUiPlugin` + `createEditor({ gameUiPlugins })` — overlays on game canvas, not `EditorPlugin`. Astris: `examples/astris/src/gameUi/AstrisGameHudPlugin.ts`.
 - **Rotation:** ECS stores quaternion (`Rotation.x/y/z/w`); inspector shows Euler XYZ. Legacy scene JSON with 3 euler fields migrates at spawn.
+- **Scene JSON:** core render components only (`Mesh`, `Geometry`, `Material`, `Camera`, lights) — no `ThreeObject` / `ThreeMesh` in spawn maps; see **`docs/scene-serialization.md`**.
 
 ## Conventions
 

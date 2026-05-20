@@ -13,7 +13,8 @@
 | Изменили | Обновить |
 |----------|----------|
 | Публичный API **`helios-core`** (`EngineAPI`, экспорты, формат буфера, спавн/merge) | `docs/architecture.md` (раздел «Ядро»), при необходимости `AGENTS.md` |
-| **`helios-three-plugin`**: capability, `ThreeRenderContext`, `worldRoot` / `editorRoot`, системы рендера, **теги пикинга** (`heliosEntityEid`) | `docs/architecture.md` (раздел «Плагин Three.js») |
+| **`helios-core`**: `rendering/`, компоненты `Geometry`/`Material`/`Mesh`/`Camera`/lights, формат сцен | `docs/scene-serialization.md`, `docs/architecture.md` |
+| **`helios-three-plugin`**: capability, `ThreeRenderContext`, `EnsureThreeRenderable`, системы рендера, **теги пикинга** (`heliosEntityEid`) | `docs/architecture.md` (раздел «Плагин Three.js»), при смене JSON — `docs/scene-serialization.md` |
 | **`helios-editor`**: `createEditor`, жизненный цикл, панели, буфер, контекстные меню, выделение, **пикинг/жесты вьюпорта** | `docs/architecture.md` (раздел «Редактор»), при смене peers — `README.md` и `docs/overview.md` |
 | **`examples/astris`**: скрипты, способ подключения редактора | `README.md`, при необходимости `docs/architecture.md` (астрис) |
 | Корневые **`package.json`** скрипты, список workspace, команды CI | `README.md`, `AGENTS.md` |

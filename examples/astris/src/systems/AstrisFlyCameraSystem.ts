@@ -12,7 +12,7 @@ import {
     ViewportInputButton,
     ViewportInputKey,
 } from "@merlinn/helios-input-plugin";
-import { ThreeCamera } from "@merlinn/helios-three-plugin";
+import { Camera } from "@merlinn/helios-core";
 import { defineQuery } from "bitecs";
 import { AstrisFlyCamera } from "../components";
 
@@ -40,7 +40,7 @@ function forwardFromQuat(q: Quat): { x: number; y: number; z: number } {
 export class AstrisFlyCameraSystem extends System {
     static override readonly runsInEditor = true;
 
-    private readonly query = defineQuery([AstrisFlyCamera, Position, Rotation, ThreeCamera]);
+    private readonly query = defineQuery([AstrisFlyCamera, Position, Rotation, Camera]);
 
     update(dt: number): void {
         const inputEid = getViewportInputEntity(this.context);

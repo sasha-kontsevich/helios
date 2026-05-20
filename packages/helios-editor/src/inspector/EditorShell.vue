@@ -152,7 +152,7 @@
       <div
         v-show="centerView === 'editor'"
         class="shell__sceneHud"
-        title="Свободная камера: orbit и полёт (ПКМ). Сущность с ThreeCamera: вид для предпросмотра, поза из ECS."
+        title="Свободная камера: orbit и полёт (ПКМ). Сущность с Camera: вид для предпросмотра, поза из ECS."
       >
         <label class="shell__cameraHudLabel">
           Камера
@@ -261,7 +261,7 @@ const transformGizmoVisible = ref(true);
 const editorRenderCameraEid = ref<number | null>(null);
 
 const cameraEntities = computed(() =>
-  entities.value.filter((e) => Object.prototype.hasOwnProperty.call(e.components, "ThreeCamera")),
+  entities.value.filter((e) => Object.prototype.hasOwnProperty.call(e.components, "Camera")),
 );
 
 const inspectorSnapshot = ref<EntitySnapshot | null>(null);
@@ -382,7 +382,7 @@ function syncEditorViewportCameraFromWorld(): void {
   const apiEid = props.engineApi.getEditorRenderCameraEid();
   if (apiEid !== null) {
     const still = entities.value.some(
-      (e) => e.eid === apiEid && Object.prototype.hasOwnProperty.call(e.components, "ThreeCamera"),
+      (e) => e.eid === apiEid && Object.prototype.hasOwnProperty.call(e.components, "Camera"),
     );
     if (!still) {
       props.engineApi.setEditorRenderCameraEid(null);

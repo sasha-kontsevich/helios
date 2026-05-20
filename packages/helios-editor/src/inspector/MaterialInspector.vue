@@ -155,11 +155,11 @@ import {
   defaultMaterialDescriptor,
   parseMaterialDescriptor,
   type MaterialDescriptor,
-} from "@merlinn/helios-three-plugin";
+} from "@merlinn/helios-core";
 import { attachNumericScrub } from "./useNumericLabelScrub";
 
 const props = defineProps<{
-  componentName: "ThreeMaterialRef";
+  componentName: "Material";
   fields: Record<string, unknown>;
   /** Unused; kept so the panel can pass the same prop bag to all inspector extensions. */
   selectedEid?: number | null;

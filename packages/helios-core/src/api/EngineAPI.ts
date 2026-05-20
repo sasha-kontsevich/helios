@@ -338,7 +338,7 @@ export class EngineAPI {
     }
 
     /**
-     * Editor viewport: render through an ECS entity with `ThreeCamera`, or `null` for the default free camera.
+     * Editor viewport: render through an ECS entity with `Camera`, or `null` for the default free camera.
      * No-op if the Three renderer capability is not registered.
      */
     setEditorRenderCameraEid(eid: number | null): void {

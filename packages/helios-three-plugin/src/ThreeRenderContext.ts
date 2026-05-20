@@ -3,7 +3,8 @@ import { entityExists, hasComponent } from "bitecs";
 import type { IWorld } from "bitecs";
 import * as THREE from "three";
 import { AxesHelper, Color, GridHelper } from "three";
-import { ThreeCamera, ThreeObject } from "./components";
+import { Camera } from "@merlinn/helios-core";
+import { ThreeObject } from "./components";
 
 /** Capability key registered by {@link ThreePlugin}. */
 export const THREE_RENDERER_CAPABILITY = "renderer.three";
@@ -47,7 +48,7 @@ export class ThreeRenderContext {
     private gridHelper?: THREE.GridHelper;
     private axesHelper?: THREE.AxesHelper;
     /**
-     * Editor viewport: render through this ECS `ThreeCamera` entity, or `null` for the free
+     * Editor viewport: render through this ECS `Camera` entity, or `null` for the free
      * {@link getEditorViewCamera}. Entity pose is driven by ECS (orbit/fly are disabled for ECS cameras).
      */
     private editorRenderCameraEid: number | null = null;
@@ -224,7 +225,7 @@ export class ThreeRenderContext {
         if (!entityExists(world as any, eid)) {
             return undefined;
         }
-        if (!hasComponent(world, ThreeCamera as any, eid) || !hasComponent(world, ThreeObject as any, eid)) {
+        if (!hasComponent(world, Camera as any, eid) || !hasComponent(world, ThreeObject as any, eid)) {
             return undefined;
         }
         const obj = ThreeObject.get(eid).object;

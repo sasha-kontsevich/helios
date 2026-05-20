@@ -1,27 +1,20 @@
-import { addComponent, defineQuery, hasComponent } from 'bitecs';
-import { System } from '@merlinn/helios-core';
-import * as THREE from 'three';
+import { addComponent, defineQuery, hasComponent } from "bitecs";
+import { Geometry, Material, Mesh, System } from "@merlinn/helios-core";
+import { parseGeometryDescriptor, parseMaterialDescriptor } from "@merlinn/helios-core";
+import * as THREE from "three";
 import {
     createGeometryFromDescriptor,
     createMaterialFromDescriptor,
-    parseGeometryDescriptor,
-    parseMaterialDescriptor,
-} from '../builders/descriptors';
-import {
-    ThreeGeometryRef,
-    ThreeMaterialRef,
-    ThreeMesh,
-    ThreeObject,
-    ThreeResourcesBuilt,
-} from '../components';
+} from "../builders/descriptors";
+import { MeshResourcesResolved, ThreeMesh, ThreeObject } from "../components";
 
 function resolveRefField(
-    ctx: any,
-    refComponent: any,
+    ctx: { resources: { getOrNot(id: number): unknown } },
+    refComponent: typeof Geometry | typeof Material,
     eid: number,
-    field: 'guid' | 'descriptor',
+    field: "guid" | "descriptor",
 ): unknown {
-    if (typeof refComponent?.get === 'function') {
+    if (typeof refComponent?.get === "function") {
         try {
             return refComponent.get(eid)?.[field];
         } catch {
@@ -34,76 +27,77 @@ function resolveRefField(
 
 /**
  * Per-frame resolver for editor-created entities.
- * Turns `ThreeGeometryRef`/`ThreeMaterialRef` into runtime resources on `ThreeMesh`.
+ * Turns core {@link Geometry} / {@link Material} into runtime resources on {@link ThreeMesh}.
  */
 export class ThreeResourceBuildSystem extends System {
     static override readonly runsInEditor = true;
 
-    private readonly query = defineQuery([ThreeMesh, ThreeObject]);
+    private readonly query = defineQuery([Mesh, Geometry, Material, ThreeObject]);
 
     update(): void {
         const world = this.world;
 
         for (const eid of this.query(world)) {
-            const needsGeometry = hasComponent(world, ThreeGeometryRef, eid);
-            const needsMaterial = hasComponent(world, ThreeMaterialRef, eid);
+            const needsGeometry = hasComponent(world, Geometry, eid);
+            const needsMaterial = hasComponent(world, Material, eid);
             if (!needsGeometry && !needsMaterial) continue;
 
-            if (!hasComponent(world, ThreeResourcesBuilt, eid)) {
-                addComponent(world, ThreeResourcesBuilt, eid);
+            if (!hasComponent(world, ThreeMesh, eid)) {
+                continue;
             }
 
-            const geoGuidId = needsGeometry ? ((ThreeGeometryRef as any).guid?.[eid] ?? 0) : 0;
-            const geoDescId = needsGeometry ? ((ThreeGeometryRef as any).descriptor?.[eid] ?? 0) : 0;
-            const matGuidId = needsMaterial ? ((ThreeMaterialRef as any).guid?.[eid] ?? 0) : 0;
-            const matDescId = needsMaterial ? ((ThreeMaterialRef as any).descriptor?.[eid] ?? 0) : 0;
+            if (!hasComponent(world, MeshResourcesResolved, eid)) {
+                addComponent(world, MeshResourcesResolved, eid);
+            }
+
+            const geoGuidId = needsGeometry ? (Geometry.guid[eid] ?? 0) : 0;
+            const geoDescId = needsGeometry ? (Geometry.descriptor[eid] ?? 0) : 0;
+            const matGuidId = needsMaterial ? (Material.guid[eid] ?? 0) : 0;
+            const matDescId = needsMaterial ? (Material.descriptor[eid] ?? 0) : 0;
 
             const changed =
                 (needsGeometry &&
-                    (ThreeResourcesBuilt.geoGuidId[eid] !== geoGuidId ||
-                        ThreeResourcesBuilt.geoDescId[eid] !== geoDescId)) ||
+                    (MeshResourcesResolved.geoGuidId[eid] !== geoGuidId ||
+                        MeshResourcesResolved.geoDescId[eid] !== geoDescId)) ||
                 (needsMaterial &&
-                    (ThreeResourcesBuilt.matGuidId[eid] !== matGuidId ||
-                        ThreeResourcesBuilt.matDescId[eid] !== matDescId));
+                    (MeshResourcesResolved.matGuidId[eid] !== matGuidId ||
+                        MeshResourcesResolved.matDescId[eid] !== matDescId));
 
             if (changed) {
-                ThreeResourcesBuilt.built[eid] = 0;
-                ThreeResourcesBuilt.geoGuidId[eid] = geoGuidId;
-                ThreeResourcesBuilt.geoDescId[eid] = geoDescId;
-                ThreeResourcesBuilt.matGuidId[eid] = matGuidId;
-                ThreeResourcesBuilt.matDescId[eid] = matDescId;
+                MeshResourcesResolved.built[eid] = 0;
+                MeshResourcesResolved.geoGuidId[eid] = geoGuidId;
+                MeshResourcesResolved.geoDescId[eid] = geoDescId;
+                MeshResourcesResolved.matGuidId[eid] = matGuidId;
+                MeshResourcesResolved.matDescId[eid] = matDescId;
 
-                // Clear runtime mesh/object so it can be recreated with new resources.
-                (ThreeMesh as any).geometry[eid] = 0;
-                (ThreeMesh as any).material[eid] = 0;
+                ThreeMesh.geometry[eid] = 0;
+                ThreeMesh.material[eid] = 0;
 
                 const obj = ThreeObject.get(eid).object;
                 if (obj) {
                     obj.parent?.remove(obj);
                     if (obj instanceof THREE.Mesh) {
                         obj.geometry.dispose?.();
-                        // material can be array, but our builder uses single material
-                        (obj.material as any)?.dispose?.();
+                        (obj.material as THREE.Material)?.dispose?.();
                     }
-                    (ThreeObject as any).object[eid] = 0;
+                    ThreeObject.object[eid] = 0;
                 }
             }
 
-            if (ThreeResourcesBuilt.built[eid] === 1) {
+            if (MeshResourcesResolved.built[eid] === 1) {
                 continue;
             }
 
-            // Resolve geometry
-            if (needsGeometry && ((ThreeMesh as any).geometry?.[eid] ?? 0) === 0) {
-                const guid = resolveRefField(this.context, ThreeGeometryRef as any, eid, 'guid');
-                const descRaw = resolveRefField(this.context, ThreeGeometryRef as any, eid, 'descriptor');
+            if (needsGeometry && (ThreeMesh.geometry[eid] ?? 0) === 0) {
+                const guid = resolveRefField(this.context, Geometry, eid, "guid");
+                const descRaw = resolveRefField(this.context, Geometry, eid, "descriptor");
 
-                if (guid && typeof guid === 'string' && guid.length > 0) {
+                if (guid && typeof guid === "string" && guid.length > 0) {
                     if (this.context.assetManager.hasAsset(guid)) {
                         const rid = this.context.assetManager.getResourceId(guid);
                         const loaded = this.context.resources.get<unknown>(rid);
                         if (loaded instanceof THREE.BufferGeometry) {
-                            (ThreeMesh as any).geometry[eid] = this.context.resources.set(loaded);
+                            ThreeMesh.geometry[eid] = this.context.resources.set(loaded);
                         }
                     }
                 } else {
@@ -111,7 +105,7 @@ export class ThreeResourceBuildSystem extends System {
                     if (parsed) {
                         const geo = createGeometryFromDescriptor(parsed);
                         if (geo) {
-                            (ThreeMesh as any).geometry[eid] = this.context.resources.set(geo);
+                            ThreeMesh.geometry[eid] = this.context.resources.set(geo);
                         } else {
                             console.warn(`[ThreeResourceBuildSystem] Invalid geometry descriptor eid=${eid}`, descRaw);
                         }
@@ -121,17 +115,16 @@ export class ThreeResourceBuildSystem extends System {
                 }
             }
 
-            // Resolve material
-            if (needsMaterial && ((ThreeMesh as any).material?.[eid] ?? 0) === 0) {
-                const guid = resolveRefField(this.context, ThreeMaterialRef as any, eid, 'guid');
-                const descRaw = resolveRefField(this.context, ThreeMaterialRef as any, eid, 'descriptor');
+            if (needsMaterial && (ThreeMesh.material[eid] ?? 0) === 0) {
+                const guid = resolveRefField(this.context, Material, eid, "guid");
+                const descRaw = resolveRefField(this.context, Material, eid, "descriptor");
 
-                if (guid && typeof guid === 'string' && guid.length > 0) {
+                if (guid && typeof guid === "string" && guid.length > 0) {
                     if (this.context.assetManager.hasAsset(guid)) {
                         const rid = this.context.assetManager.getResourceId(guid);
                         const loaded = this.context.resources.get<unknown>(rid);
                         if (loaded instanceof THREE.Material) {
-                            (ThreeMesh as any).material[eid] = this.context.resources.set(loaded);
+                            ThreeMesh.material[eid] = this.context.resources.set(loaded);
                         }
                     }
                 } else {
@@ -139,7 +132,7 @@ export class ThreeResourceBuildSystem extends System {
                     if (parsed) {
                         const mat = createMaterialFromDescriptor(parsed);
                         if (mat) {
-                            (ThreeMesh as any).material[eid] = this.context.resources.set(mat);
+                            ThreeMesh.material[eid] = this.context.resources.set(mat);
                         } else {
                             console.warn(`[ThreeResourceBuildSystem] Invalid material descriptor eid=${eid}`, descRaw);
                         }
@@ -149,10 +142,10 @@ export class ThreeResourceBuildSystem extends System {
                 }
             }
 
-            const geoOk = !needsGeometry || (ThreeMesh as any).geometry[eid] > 0;
-            const matOk = !needsMaterial || (ThreeMesh as any).material[eid] > 0;
+            const geoOk = !needsGeometry || ThreeMesh.geometry[eid] > 0;
+            const matOk = !needsMaterial || ThreeMesh.material[eid] > 0;
             if (geoOk && matOk) {
-                ThreeResourcesBuilt.built[eid] = 1;
+                MeshResourcesResolved.built[eid] = 1;
             }
         }
     }

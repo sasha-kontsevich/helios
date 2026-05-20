@@ -25,18 +25,10 @@ export function stripRuntimeFieldsForEntityClipboard(
 ): Record<string, Record<string, unknown>> {
     const out: Record<string, Record<string, unknown>> = {};
     for (const [name, fields] of Object.entries(components)) {
-        if (name === "ThreeResourcesBuilt") {
+        if (name === "MeshResourcesResolved" || name === "ThreeMesh" || name === "ThreeObject") {
             continue;
         }
-        const clone: Record<string, unknown> = { ...fields };
-        if (name === "ThreeMesh") {
-            delete clone.geometry;
-            delete clone.material;
-        }
-        if (name === "ThreeObject") {
-            delete clone.object;
-        }
-        out[name] = clone;
+        out[name] = { ...fields };
     }
     return out;
 }

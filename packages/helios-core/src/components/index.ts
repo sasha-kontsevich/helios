@@ -2,6 +2,22 @@ import { Types } from "bitecs";
 import { defineComponent } from "../engine/Component";
 
 export { Parent } from "./parent";
+import type {
+    AmbientLight as AmbientLightComponent,
+    Camera as CameraComponent,
+    DirectionalLight as DirectionalLightComponent,
+    Geometry as GeometryComponent,
+    Material as MaterialComponent,
+    Mesh as MeshComponent,
+} from "./rendering";
+export {
+    AmbientLight,
+    Camera,
+    DirectionalLight,
+    Geometry,
+    Material,
+    Mesh,
+} from "./rendering";
 
 export const Position = defineComponent({ x: Types.f32, y: Types.f32, z: Types.f32 });
 
@@ -21,5 +37,11 @@ declare module "../types/ComponentMap" {
         Scale: typeof Scale;
         Parent: typeof Parent;
         Name: typeof Name;
+        Geometry: typeof GeometryComponent;
+        Material: typeof MaterialComponent;
+        Mesh: typeof MeshComponent;
+        Camera: typeof CameraComponent;
+        AmbientLight: typeof AmbientLightComponent;
+        DirectionalLight: typeof DirectionalLightComponent;
     }
 }

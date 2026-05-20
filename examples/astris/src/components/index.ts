@@ -19,14 +19,17 @@ export const AstrisFlyCamera = defineComponent({
 
 // Re-export engine/plugin components from package root to avoid deep-importing source files
 // (prevents duplicate module instances in Vite dev, which breaks resource identity).
-export { Position, Rotation, Scale, Parent, Name } from "@merlinn/helios-core";
 export {
-    ThreeObject,
-    ThreeMesh,
-    ThreeCamera,
-    ThreeAmbientLight,
-    ThreeDirectionalLight,
-    ThreeGeometryRef,
-    ThreeMaterialRef,
-    ThreeResourcesBuilt,
-} from "@merlinn/helios-three-plugin";
+    Position,
+    Rotation,
+    Scale,
+    Parent,
+    Name,
+    Geometry,
+    Material,
+    Mesh,
+    Camera,
+    AmbientLight,
+    DirectionalLight,
+} from "@merlinn/helios-core";
+export { ThreeObject, ThreeMesh, MeshResourcesResolved } from "@merlinn/helios-three-plugin";

@@ -1,3 +1,5 @@
+import { meshEntityComponents, type GeometryDescriptor } from "@merlinn/helios-core";
+
 const GRID_MAT = {
     type: "meshStandard" as const,
     color: 0x4a5568,
@@ -10,26 +12,22 @@ const GRID_MAT = {
 export function gridRootComponents(): Record<string, Record<string, unknown>> {
     return {
         Name: { label: "Grid" },
-        ThreeObject: {},
     };
 }
 
 function gridLineBase(
-    half: number,
     position: { x: number; y: number; z: number },
     geometry: Record<string, unknown>,
     parentEid: number,
 ): Record<string, Record<string, unknown>> {
-    return {
-        Name: { label: "GridLine" },
-        Position: position,
-        Rotation: { x: 0, y: 0, z: 0 },
-        ThreeObject: {},
-        ThreeMesh: {},
-        ThreeGeometryRef: { descriptor: geometry },
-        ThreeMaterialRef: { descriptor: GRID_MAT },
-        Parent: { target: parentEid },
-    };
+    return meshEntityComponents({
+        geometry: geometry as GeometryDescriptor,
+        material: GRID_MAT,
+        name: { label: "GridLine" },
+        parent: { target: parentEid },
+        position,
+        rotation: { x: 0, y: 0, z: 0 },
+    });
 }
 
 /** Thin box along X at fixed Z (Game of Life board lines on XZ). */
@@ -39,12 +37,7 @@ export function gridLineAlongX(
     parentEid: number,
 ): Record<string, Record<string, unknown>> {
     const len = 2 * half + 1;
-    return gridLineBase(
-        half,
-        { x: 0, y: 0.01, z },
-        { type: "box", width: len, height: 0.02, depth: 0.06 },
-        parentEid,
-    );
+    return gridLineBase({ x: 0, y: 0.01, z }, { type: "box", width: len, height: 0.02, depth: 0.06 }, parentEid);
 }
 
 /** Thin box along Z at fixed X. */
@@ -54,10 +47,5 @@ export function gridLineAlongZ(
     parentEid: number,
 ): Record<string, Record<string, unknown>> {
     const len = 2 * half + 1;
-    return gridLineBase(
-        half,
-        { x, y: 0.01, z: 0 },
-        { type: "box", width: 0.06, height: 0.02, depth: len },
-        parentEid,
-    );
+    return gridLineBase({ x, y: 0.01, z: 0 }, { type: "box", width: 0.06, height: 0.02, depth: len }, parentEid);
 }

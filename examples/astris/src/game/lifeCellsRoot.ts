@@ -8,7 +8,6 @@ export const LIFE_CELLS_ROOT_LABEL = "LifeCells";
 export function lifeCellsRootComponents(): Record<string, Record<string, unknown>> {
     return {
         Name: { label: LIFE_CELLS_ROOT_LABEL },
-        ThreeObject: {},
     };
 }
 

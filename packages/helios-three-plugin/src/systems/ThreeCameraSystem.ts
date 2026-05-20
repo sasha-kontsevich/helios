@@ -1,14 +1,15 @@
 import { defineQuery, enterQuery, exitQuery } from 'bitecs';
 import { System } from "@merlinn/helios-core";
 import * as THREE from "three";
-import { ThreeCamera, ThreeObject } from "../components";
+import { Camera } from "@merlinn/helios-core";
+import { ThreeObject } from "../components";
 import { getThreeRenderContext } from "../ThreeRenderContext";
 import { clearEntityPickingTag, tagObject3DForEntityPicking } from "../picking/tagThreeObjectForPicking";
 
 export class UpdateThreeCameraSystem extends System {
     static override readonly runsInEditor = true;
 
-    private readonly cameraQuery = defineQuery([ThreeCamera, ThreeObject]);
+    private readonly cameraQuery = defineQuery([Camera, ThreeObject]);
     private readonly cameraEnter = enterQuery(this.cameraQuery);
     private readonly cameraExit = exitQuery(this.cameraQuery);
 
@@ -20,13 +21,14 @@ export class UpdateThreeCameraSystem extends System {
             clearEntityPickingTag(objectComp.object);
             objectComp.object.removeFromParent();
         }
-        const cameraData = ThreeCamera.get(eid);
-        const camera = new THREE.PerspectiveCamera(
-            cameraData.fov,
-            cameraData.aspect,
-            cameraData.near,
-            cameraData.far
-        );
+        const cameraData = Camera.get(eid);
+        const renderContext = getThreeRenderContext(this.context);
+        const canvas = renderContext.getCanvas();
+        const aspect =
+            canvas && canvas.clientWidth && canvas.clientHeight
+                ? canvas.clientWidth / canvas.clientHeight
+                : 1;
+        const camera = new THREE.PerspectiveCamera(cameraData.fov, aspect, cameraData.near, cameraData.far);
         objectComp.object = camera;
         tagObject3DForEntityPicking(camera, eid);
     }
@@ -46,13 +48,12 @@ export class UpdateThreeCameraSystem extends System {
                 return;
             }
             const canvas = renderContext.getCanvas();
-            if (canvas && canvas.width && canvas.height) {
-                ThreeCamera.aspect[eid] = canvas.clientWidth / canvas.clientHeight;
+            if (canvas && canvas.clientWidth && canvas.clientHeight) {
+                camera.aspect = canvas.clientWidth / canvas.clientHeight;
             }
-            camera.aspect = ThreeCamera.aspect[eid];
-            camera.fov = ThreeCamera.fov[eid];
-            camera.near = ThreeCamera.near[eid];
-            camera.far = ThreeCamera.far[eid];
+            camera.fov = Camera.fov[eid];
+            camera.near = Camera.near[eid];
+            camera.far = Camera.far[eid];
             camera.updateProjectionMatrix();
             /** Game tab render uses {@link ThreeRenderContext#getActiveCamera}; editor tab ignores it. */
             renderContext.setActiveCamera(camera);

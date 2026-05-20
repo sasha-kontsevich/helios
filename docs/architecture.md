@@ -45,9 +45,11 @@
 
 - **Capability:** строковый ключ **`renderer.three`**; доступ к контексту типа **`ThreeRenderContext`** после инициализации движка с плагином.
 - **Два корня сцены:** игровой контент под **`worldRoot`**; объекты только для редактора (например оверлей выделения) — под **`editorRoot`**, чтобы отделить от загрузки/сериализации игровой сцены.
-- **Камера ECS:** движок **не** создаёт камеру по умолчанию. Сущность с **`ThreeCamera`** должна появиться из загружаемой сцены, префаба или спавна через API; **`UpdateThreeCameraSystem`** только синхронизирует уже существующие компоненты с `THREE.PerspectiveCamera`.
-- **Свет ECS:** маркеры **`ThreeAmbientLight`** и **`ThreeDirectionalLight`** (вместе с **`ThreeObject`** и при необходимости **`Position`**). Источники не создаются автоматически — только из данных сцены или спавна. У **`ThreeDirectionalLight`** поле **`targetEntity`**: sentinel **`THREE_DIRECTIONAL_LIGHT_NO_TARGET_ENTITY`** (или опускание поля/`0` в JSON) — тогда `light.target` вешается на корень мира; иначе заданный **`targetEntity`** получает `THREE.Object3D` цели направленного света.
-- **Системы (обзор):** синхронизация мешей и объектов Three с ECS, камера, свет, сцена, отрисовка; дескрипторы геометрии/материалов и билдеры ресурсов — см. исходники в `systems/` и `builders/`.
+- **Рендер в core (сериализуемо):** **`Geometry`**, **`Material`**, тег **`Mesh`**, **`Camera`** (`fov`, `near`, `far` без `aspect`), **`AmbientLight`**, **`DirectionalLight`**. Дескрипторы и парсеры — **`packages/helios-core/src/rendering/`**; хелпер **`meshEntityComponents()`** для спавна мешей. Подробности JSON — [scene-serialization.md](scene-serialization.md).
+- **Рантайм Three (не в JSON):** **`ThreeObject`**, **`ThreeMesh`** (resource ids), **`MeshResourcesResolved`**. **`EnsureThreeRenderableSystem`** добавляет runtime-компоненты для сущностей с core-маркерами и трансформами.
+- **Камера ECS:** движок **не** создаёт камеру по умолчанию. Сущность с **`Camera`** из сцены/префаба/spawn; **`UpdateThreeCameraSystem`** синхронизирует `THREE.PerspectiveCamera` (aspect из canvas).
+- **Свет ECS:** **`AmbientLight`** / **`DirectionalLight`** в данных сцены; **`targetEntity`**: sentinel **`DIRECTIONAL_LIGHT_NO_TARGET_ENTITY`** (или `0` в JSON) — `light.target` на корень мира; иначе цель на сущность **`targetEntity`**.
+- **Системы (порядок):** **`EnsureThreeRenderable`** → **`ThreeResourceBuild`** / билдеры → **`UpdateThreeMesh`** / камера / свет / **`UpdateThreeObject`** → сцена / render.
 - **Редактор:** вспомогательные функции вроде **`tryGetEntityThreeObject`** связывают выделенную сущность с объектом в сцене для подсветки и манипуляций; для **ray pick** на мешах/светах/камерах на корневой `Object3D` пишется **`userData.heliosEntityEid`** ([`tagThreeObjectForPicking`](../packages/helios-three-plugin/src/picking/tagThreeObjectForPicking.ts)).
 
 ## Редактор (`helios-editor`)

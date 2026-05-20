@@ -1,48 +1,17 @@
-import { addComponent, defineQuery, hasComponent } from 'bitecs';
-import type { Context } from '@merlinn/helios-core';
-import * as THREE from 'three';
-import {
-    ThreeGeometryRef,
-    ThreeMaterialRef,
-    ThreeMesh,
-    ThreeObject,
-    ThreeResourcesBuilt,
-} from '../components';
-import {
-    createGeometryFromDescriptor,
-    createMaterialFromDescriptor,
-    parseGeometryDescriptor,
-    parseMaterialDescriptor,
-} from './descriptors';
-
-export type {
-    GeometryDescriptor,
-    GeometryDescriptorBox,
-    GeometryDescriptorCone,
-    GeometryDescriptorCylinder,
-    GeometryDescriptorPlane,
-    GeometryDescriptorSphere,
-    GeometryDescriptorTorus,
-    MaterialDescriptor,
-    MaterialDescriptorMeshBasic,
-    MaterialDescriptorMeshLambert,
-    MaterialDescriptorMeshStandard,
-} from './descriptors';
-
-export {
-    DEFAULT_GEOMETRY,
-    DEFAULT_MATERIAL,
-    defaultGeometryDescriptor,
-    defaultMaterialDescriptor,
-} from './descriptors';
+import { addComponent, defineQuery, hasComponent } from "bitecs";
+import { Geometry, Material, Mesh, type Context } from "@merlinn/helios-core";
+import { parseGeometryDescriptor, parseMaterialDescriptor } from "@merlinn/helios-core";
+import * as THREE from "three";
+import { MeshResourcesResolved, ThreeMesh, ThreeObject } from "../components";
+import { createGeometryFromDescriptor, createMaterialFromDescriptor } from "./descriptors";
 
 function resolveRefField(
     ctx: Context,
-    refComponent: any,
+    refComponent: typeof Geometry | typeof Material,
     eid: number,
-    field: 'guid' | 'descriptor',
+    field: "guid" | "descriptor",
 ): unknown {
-    if (typeof refComponent?.get === 'function') {
+    if (typeof refComponent?.get === "function") {
         try {
             return refComponent.get(eid)?.[field];
         } catch {
@@ -54,40 +23,33 @@ function resolveRefField(
 }
 
 /**
- * Resolves {@link ThreeGeometryRef} / {@link ThreeMaterialRef} into live THREE objects on {@link ThreeMesh}.
- * Runs once per entity (guarded by {@link ThreeResourcesBuilt}).
+ * Resolves core {@link Geometry} / {@link Material} into live THREE objects on {@link ThreeMesh}.
+ * Runs once per entity (guarded by {@link MeshResourcesResolved}).
  */
 export function createThreeMeshResourceBuilder(): {
     id: string;
     build(ctx: Context): Promise<void>;
 } {
-    const query = defineQuery([ThreeMesh, ThreeObject]);
+    const query = defineQuery([Mesh, Geometry, Material, ThreeObject]);
 
     return {
-        id: 'helios.three.meshResources',
+        id: "helios.three.meshResources",
         async build(ctx: Context): Promise<void> {
             const world = ctx.ecsWorld;
-            let builtCount = 0;
-            let checked = 0;
             for (const eid of query(world)) {
-                checked++;
-                if (hasComponent(world, ThreeResourcesBuilt, eid) && ThreeResourcesBuilt.built[eid] === 1) {
+                if (hasComponent(world, MeshResourcesResolved, eid) && MeshResourcesResolved.built[eid] === 1) {
                     continue;
                 }
 
-                const needsGeometry = hasComponent(world, ThreeGeometryRef, eid);
-                const needsMaterial = hasComponent(world, ThreeMaterialRef, eid);
-                if (!needsGeometry && !needsMaterial) {
+                if (!hasComponent(world, ThreeMesh, eid)) {
                     continue;
                 }
 
-                const mesh = ThreeMesh.get(eid);
+                if (hasComponent(world, Geometry, eid)) {
+                    const guid = resolveRefField(ctx, Geometry, eid, "guid");
+                    const descRaw = resolveRefField(ctx, Geometry, eid, "descriptor");
 
-                if (needsGeometry) {
-                    const guid = resolveRefField(ctx, ThreeGeometryRef as any, eid, 'guid');
-                    const descRaw = resolveRefField(ctx, ThreeGeometryRef as any, eid, 'descriptor');
-
-                    if (guid && typeof guid === 'string' && guid.length > 0) {
+                    if (guid && typeof guid === "string" && guid.length > 0) {
                         await ctx.assetManager.loadAsset(guid);
                         const rid = ctx.assetManager.getResourceId(guid);
                         const loaded = ctx.resources.get<unknown>(rid);
@@ -96,14 +58,14 @@ export function createThreeMeshResourceBuilder(): {
                                 `[ThreeMeshResourceBuilder] Asset "${guid}" is not a THREE.BufferGeometry; skipping geometry for eid=${eid}`,
                             );
                         } else {
-                            (ThreeMesh as any).geometry[eid] = ctx.resources.set(loaded);
+                            ThreeMesh.geometry[eid] = ctx.resources.set(loaded);
                         }
                     } else {
                         const parsed = parseGeometryDescriptor(descRaw);
                         if (parsed) {
                             const geo = createGeometryFromDescriptor(parsed);
                             if (geo) {
-                                (ThreeMesh as any).geometry[eid] = ctx.resources.set(geo);
+                                ThreeMesh.geometry[eid] = ctx.resources.set(geo);
                             } else {
                                 console.warn(
                                     `[ThreeMeshResourceBuilder] Failed to create geometry for eid=${eid}`,
@@ -119,11 +81,11 @@ export function createThreeMeshResourceBuilder(): {
                     }
                 }
 
-                if (needsMaterial) {
-                    const guid = resolveRefField(ctx, ThreeMaterialRef as any, eid, 'guid');
-                    const descRaw = resolveRefField(ctx, ThreeMaterialRef as any, eid, 'descriptor');
+                if (hasComponent(world, Material, eid)) {
+                    const guid = resolveRefField(ctx, Material, eid, "guid");
+                    const descRaw = resolveRefField(ctx, Material, eid, "descriptor");
 
-                    if (guid && typeof guid === 'string' && guid.length > 0) {
+                    if (guid && typeof guid === "string" && guid.length > 0) {
                         await ctx.assetManager.loadAsset(guid);
                         const rid = ctx.assetManager.getResourceId(guid);
                         const loaded = ctx.resources.get<unknown>(rid);
@@ -132,14 +94,14 @@ export function createThreeMeshResourceBuilder(): {
                                 `[ThreeMeshResourceBuilder] Asset "${guid}" is not a THREE.Material; skipping material for eid=${eid}`,
                             );
                         } else {
-                            (ThreeMesh as any).material[eid] = ctx.resources.set(loaded);
+                            ThreeMesh.material[eid] = ctx.resources.set(loaded);
                         }
                     } else {
                         const parsed = parseMaterialDescriptor(descRaw);
                         if (parsed) {
                             const mat = createMaterialFromDescriptor(parsed);
                             if (mat) {
-                                (ThreeMesh as any).material[eid] = ctx.resources.set(mat);
+                                ThreeMesh.material[eid] = ctx.resources.set(mat);
                             } else {
                                 console.warn(
                                     `[ThreeMeshResourceBuilder] Failed to create material for eid=${eid}`,
@@ -155,17 +117,15 @@ export function createThreeMeshResourceBuilder(): {
                     }
                 }
 
-                const geoOk = !needsGeometry || (ThreeMesh as any).geometry[eid] > 0;
-                const matOk = !needsMaterial || (ThreeMesh as any).material[eid] > 0;
+                const geoOk = !hasComponent(world, Geometry, eid) || ThreeMesh.geometry[eid] > 0;
+                const matOk = !hasComponent(world, Material, eid) || ThreeMesh.material[eid] > 0;
                 if (geoOk && matOk) {
-                    if (!hasComponent(world, ThreeResourcesBuilt, eid)) {
-                        addComponent(world, ThreeResourcesBuilt, eid);
+                    if (!hasComponent(world, MeshResourcesResolved, eid)) {
+                        addComponent(world, MeshResourcesResolved, eid);
                     }
-                    ThreeResourcesBuilt.built[eid] = 1;
-                    builtCount++;
+                    MeshResourcesResolved.built[eid] = 1;
                 }
             }
-
         },
     };
 }

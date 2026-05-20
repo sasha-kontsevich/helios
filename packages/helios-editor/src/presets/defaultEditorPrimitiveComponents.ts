@@ -1,9 +1,13 @@
-import { quatFromEulerXYZ } from "@merlinn/helios-core";
+import {
+    meshEntityComponents,
+    quatFromEulerXYZ,
+    type GeometryDescriptor,
+    type MaterialDescriptor,
+} from "@merlinn/helios-core";
 
 /**
- * Default mesh primitives for the editor (ThreeGeometryRef descriptors match
- * {@link packages/helios-three-plugin/src/builders/descriptors.ts} defaults).
- * Same material as legacy cube preset; plane is rotated -90° around X so it lies on XZ.
+ * Default mesh primitives for the editor (descriptors from {@link @merlinn/helios-core} rendering defaults).
+ * Plane is rotated -90° around X so it lies on XZ.
  */
 
 export const EDITOR_PRIMITIVE_KINDS = ["box", "sphere", "plane", "cylinder", "cone", "torus"] as const;
@@ -61,17 +65,11 @@ function rotationFor(kind: EditorPrimitiveKind): { x: number; y: number; z: numb
 }
 
 export function defaultEditorPrimitiveComponents(kind: EditorPrimitiveKind): Record<string, Record<string, unknown>> {
-  return {
-    Name: { label: EDITOR_PRIMITIVE_NAME_LABELS[kind] },
-    Position: positionFor(kind),
-    Rotation: rotationFor(kind),
-    ThreeObject: {},
-    ThreeMesh: {},
-    ThreeGeometryRef: {
-      descriptor: geometryDescriptor(kind),
-    },
-    ThreeMaterialRef: {
-      descriptor: { ...DEFAULT_MATERIAL },
-    },
-  };
+  return meshEntityComponents({
+    geometry: geometryDescriptor(kind) as unknown as GeometryDescriptor,
+    material: { ...DEFAULT_MATERIAL } as MaterialDescriptor,
+    name: { label: EDITOR_PRIMITIVE_NAME_LABELS[kind] },
+    position: positionFor(kind),
+    rotation: rotationFor(kind),
+  });
 }

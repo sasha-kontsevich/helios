@@ -3,7 +3,7 @@
  * unless the user enables "runtime internals" in the panel header.
  */
 export const INTERNAL_INSPECTOR_COMPONENT_NAMES = new Set([
-    "ThreeResourcesBuilt",
+    "MeshResourcesResolved",
     "ThreeMesh",
     "ThreeObject",
 ]);

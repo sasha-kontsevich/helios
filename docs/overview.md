@@ -6,11 +6,11 @@
 
 ### `@merlinn/helios-core`
 
-Ядро: `Engine`, мир **bitecs**, **`EngineAPI`**, спавн и слияние сущностей из карт компонентов, типы буфера редактора **`EditorEntityClipboardV1`**.
+Ядро: `Engine`, мир **bitecs**, **`EngineAPI`**, сериализуемые компоненты рендера (**`Geometry`**, **`Material`**, **`Mesh`**, **`Camera`**, свет), модуль **`rendering/`** (дескрипторы, **`meshEntityComponents`**), спавн и слияние сущностей, **`EditorEntityClipboardV1`**.
 
 ### `@merlinn/helios-three-plugin`
 
-Интеграция **Three.js**: capability **`renderer.three`**, **`ThreeRenderContext`**, **`worldRoot`** и **`editorRoot`**, системы мешей/камеры/света и ресурсные билдеры.
+Интеграция **Three.js**: capability **`renderer.three`**, **`ThreeRenderContext`**, **`EnsureThreeRenderable`**, компиляция core-дескрипторов в **`ThreeMesh`** / **`ThreeObject`**, системы камеры/света/сцены.
 
 ### `@merlinn/helios-input-plugin`
 

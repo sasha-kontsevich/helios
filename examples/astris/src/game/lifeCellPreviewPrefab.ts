@@ -1,3 +1,4 @@
+import { meshEntityComponents } from "@merlinn/helios-core";
 import type { GolHoverPreviewKind } from "./astrisCapabilities";
 
 const PREVIEW_MATERIALS: Record<
@@ -20,25 +21,21 @@ export function lifeCellPreviewComponentMap(
     kind: GolHoverPreviewKind,
 ): Record<string, Record<string, unknown>> {
     const mat = PREVIEW_MATERIALS[kind];
-    return {
-        Name: { label: "PreviewCell" },
-        Parent: { target: parentEid },
-        Position: { x: gx, y: 0.5, z: gz },
-        Rotation: { x: 0, y: 0, z: 0 },
-        ThreeObject: {},
-        ThreeMesh: {},
-        ThreeGeometryRef: {
-            descriptor: { type: "box", width: 0.95, height: 0.95, depth: 0.95 },
+    return meshEntityComponents({
+        geometry: { type: "box", width: 0.95, height: 0.95, depth: 0.95 },
+        material: {
+            type: "meshStandard",
+            color: mat.color,
+            roughness: mat.roughness,
+            metalness: mat.metalness,
+            wireframe: false,
         },
-        ThreeMaterialRef: {
-            descriptor: {
-                type: "meshStandard",
-                color: mat.color,
-                roughness: mat.roughness,
-                metalness: mat.metalness,
-                wireframe: false,
-            },
+        name: { label: "PreviewCell" },
+        parent: { target: parentEid },
+        position: { x: gx, y: 0.5, z: gz },
+        rotation: { x: 0, y: 0, z: 0 },
+        extra: {
+            LifeCellPreview: { gx, gz },
         },
-        LifeCellPreview: { gx, gz },
-    };
+    });
 }
