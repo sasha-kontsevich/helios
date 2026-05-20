@@ -271,6 +271,7 @@ const availableComponents = ref<string[]>([]);
 let pollTimer: ReturnType<typeof setInterval> | undefined;
 let selectionUnsub: (() => void) | undefined;
 let transformToolUnsub: (() => void) | undefined;
+let activeViewUnsub: (() => void) | undefined;
 
 function syncTransformToolbar(): void {
   const t = props.transformTools;
@@ -333,7 +334,11 @@ function onGamePauseClick(): void {
 }
 
 async function onPlayToggle(): Promise<void> {
+  const wasPlaying = props.playMode.isPlaying;
   await props.playMode.togglePlay();
+  if (!wasPlaying && props.playMode.isPlaying) {
+    setCenterView("game");
+  }
   playSessionActive.value = props.playMode.isPlaying;
   await nextTick();
   refreshEntityList();
@@ -576,8 +581,14 @@ onMounted(() => {
   if (props.viewportInteraction) {
     centerView.value = props.viewportInteraction.getMode();
   }
-  if (props.gameUiHost && gameUiMount.value) {
-    props.gameUiHost.attachMount(gameUiMount.value);
+  if (props.gameUiHost) {
+    activeViewUnsub = props.gameUiHost.subscribeActiveView((view) => {
+      centerView.value = view;
+      syncShellActiveViewCapability();
+    });
+    if (gameUiMount.value) {
+      props.gameUiHost.attachMount(gameUiMount.value);
+    }
   }
   syncShellActiveViewCapability();
   refreshEntityList();
@@ -614,6 +625,8 @@ onUnmounted(() => {
   selectionUnsub = undefined;
   transformToolUnsub?.();
   transformToolUnsub = undefined;
+  activeViewUnsub?.();
+  activeViewUnsub = undefined;
   window.removeEventListener("keydown", onGlobalKeydown);
   if (pollTimer !== undefined) {
     clearInterval(pollTimer);

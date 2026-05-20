@@ -60,10 +60,9 @@ export function createEditor(options: CreateEditorOptions): EditorHandle {
         ? new EditorTransformManipulator(api, selection, pointerGate!, sceneView)
         : null;
 
-    const playMode = new PlayModeController(api, rest.playMode);
-    const gameUiHost = new GameUiHost(api, playMode, gameUiPlugins);
-
+    const playModeUserOptions = rest.playMode;
     let attachedEngine: Engine | null = null;
+    let gameUiHost: GameUiHost;
 
     const applyGamePresentation = (mode: EditorViewportInteractionMode): void => {
         const isGame = mode === "game";
@@ -105,6 +104,15 @@ export function createEditor(options: CreateEditorOptions): EditorHandle {
             syncShellActiveViewCapability();
         },
     };
+
+    const playMode = new PlayModeController(api, {
+        ...playModeUserOptions,
+        onEnterPlay: () => {
+            viewportInteraction.setMode("game");
+            playModeUserOptions?.onEnterPlay?.();
+        },
+    });
+    gameUiHost = new GameUiHost(api, playMode, gameUiPlugins);
 
     const editor = new Editor(api, {
         ...rest,
