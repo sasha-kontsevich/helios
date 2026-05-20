@@ -18,6 +18,14 @@
       }
     },
     {
+      "id": "life-cells-preview",
+      "components": {
+        "Name": { "label": "LifeCellsPreview" },
+        "ThreeObject": {},
+        "Parent": { "target": "scene-root" }
+      }
+    },
+    {
       "id": "demo-content",
       "components": {
         "Name": { "label": "Демо" },

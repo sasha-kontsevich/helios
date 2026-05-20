@@ -7,7 +7,7 @@ export const ASTRIS_GOL_TOOL_CAPABILITY = "astris.golTool";
 /** Live generation counter and cell count (updated by {@link GameOfLifeStepSystem}). */
 export const ASTRIS_GOL_STATS_CAPABILITY = "astris.golStats";
 
-/** Hover preview cells for {@link GolHoverPreviewSystem}. */
+/** Hover intent for {@link GolHoverSyncSystem} (preview entities live in ECS). */
 export const ASTRIS_GOL_HOVER_CAPABILITY = "astris.golHover";
 
 /** Pattern armed for next LMB placement (HUD preset buttons). */
@@ -30,7 +30,6 @@ export interface GolHoverState {
     active: boolean;
     originGx: number;
     originGz: number;
-    cells: ReadonlyArray<readonly [number, number]>;
     kind: GolHoverPreviewKind;
 }
 
@@ -66,7 +65,7 @@ export function createDefaultGolStatsState(): GolStatsState {
 }
 
 export function createDefaultGolHoverState(): GolHoverState {
-    return { active: false, originGx: 0, originGz: 0, cells: [], kind: "place" };
+    return { active: false, originGx: 0, originGz: 0, kind: "place" };
 }
 
 export function createDefaultGolArmedPresetState(): GolArmedPresetState {

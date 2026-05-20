@@ -5,6 +5,9 @@ export const Rotating = defineComponent({speed: Types.f32})
 
 export const LifeCell = defineComponent({ gx: Types.i32, gz: Types.i32 });
 
+/** Ghost cell for hover preview — not simulated (no {@link LifeCell}). */
+export const LifeCellPreview = defineComponent({ gx: Types.i32, gz: Types.i32 });
+
 export const AstrisFlyCamera = defineComponent({
     yaw: Types.f32,
     pitch: Types.f32,

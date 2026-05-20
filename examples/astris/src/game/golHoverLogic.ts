@@ -10,21 +10,27 @@ import {
 } from "./astrisCapabilities";
 import { livingCellKeys, mapPresetCellsToWorld } from "./golPresets";
 
-function clearHover(hover: GolHoverState): void {
-    hover.active = false;
-    hover.cells = [];
+export const HOVER_PREVIEW_MAX_CELLS = 128;
+
+export interface HoverCellsResult {
+    active: boolean;
+    originGx: number;
+    originGz: number;
+    kind: GolHoverPreviewKind;
+    cells: Array<readonly [number, number]>;
 }
 
-export function updateGolHoverFromCell(
+function clearHover(hover: GolHoverState): void {
+    hover.active = false;
+    hover.kind = "place";
+}
+
+/** Desired preview cells from pointer origin (used by {@link GolHoverSyncSystem}). */
+export function computeHoverCells(
     engine: Engine,
     originGx: number,
     originGz: number,
-): void {
-    const hover = engine.context.capabilities.getOrUndefined<GolHoverState>(ASTRIS_GOL_HOVER_CAPABILITY);
-    if (!hover) {
-        return;
-    }
-
+): HoverCellsResult {
     const api = engine.api;
     const alive = livingCellKeys(api);
     const key = `${originGx},${originGz}`;
@@ -40,12 +46,13 @@ export function updateGolHoverFromCell(
                 cells.push([gx, gz]);
             }
         }
-        hover.active = cells.length > 0;
-        hover.originGx = originGx;
-        hover.originGz = originGz;
-        hover.cells = cells;
-        hover.kind = "preset";
-        return;
+        return {
+            active: cells.length > 0,
+            originGx,
+            originGz,
+            kind: "preset",
+            cells: cells.slice(0, HOVER_PREVIEW_MAX_CELLS),
+        };
     }
 
     const tool = engine.context.capabilities.getOrUndefined<GolToolState>(ASTRIS_GOL_TOOL_CAPABILITY);
@@ -53,31 +60,51 @@ export function updateGolHoverFromCell(
 
     if (mode === "erase") {
         if (!occupied) {
-            clearHover(hover);
-            return;
+            return { active: false, originGx, originGz, kind: "erase", cells: [] };
         }
-        hover.active = true;
-        hover.originGx = originGx;
-        hover.originGz = originGz;
-        hover.cells = [[originGx, originGz]];
-        hover.kind = "erase";
-        return;
+        return {
+            active: true,
+            originGx,
+            originGz,
+            kind: "erase",
+            cells: [[originGx, originGz]],
+        };
     }
 
     if (occupied) {
-        hover.active = true;
-        hover.originGx = originGx;
-        hover.originGz = originGz;
-        hover.cells = [[originGx, originGz]];
-        hover.kind = "toggleRemove";
+        return {
+            active: true,
+            originGx,
+            originGz,
+            kind: "toggleRemove",
+            cells: [[originGx, originGz]],
+        };
+    }
+
+    return {
+        active: true,
+        originGx,
+        originGz,
+        kind: "place",
+        cells: [[originGx, originGz]],
+    };
+}
+
+export function updateGolHoverFromCell(
+    engine: Engine,
+    originGx: number,
+    originGz: number,
+): void {
+    const hover = engine.context.capabilities.getOrUndefined<GolHoverState>(ASTRIS_GOL_HOVER_CAPABILITY);
+    if (!hover) {
         return;
     }
 
-    hover.active = true;
-    hover.originGx = originGx;
-    hover.originGz = originGz;
-    hover.cells = [[originGx, originGz]];
-    hover.kind = "place";
+    const result = computeHoverCells(engine, originGx, originGz);
+    hover.active = result.active;
+    hover.originGx = result.originGx;
+    hover.originGz = result.originGz;
+    hover.kind = result.kind;
 }
 
 export function clearGolHover(engine: Engine): void {

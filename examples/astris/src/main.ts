@@ -8,6 +8,7 @@ import {
     type GolStatsState,
 } from "./game/astrisCapabilities";
 import type { GridClickQueue } from "./game/GridClickQueue";
+import { clearGolHover } from "./game/golHoverLogic";
 import "@merlinn/helios-editor/style.css";
 import { config } from "./config";
 
@@ -29,10 +30,13 @@ async function bootstrap() {
             shouldExcludeEntity: (_, snap) => {
                 const name = snap.components.Name as { label?: string } | undefined;
                 const label = name?.label;
-                // Exclude the whole grid group: lines reference Grid root eid in Parent.
-                return label === "Grid" || label === "GridLine";
+                if (label === "Grid" || label === "GridLine") {
+                    return true;
+                }
+                return Object.prototype.hasOwnProperty.call(snap.components, "LifeCellPreview");
             },
             onEnterPlay: () => {
+                clearGolHover(engine);
                 engine.api.getCapability<GridClickQueue>(ASTRIS_GRID_CLICK_QUEUE_CAPABILITY)?.clear();
                 const stats = engine.api.getCapability<GolStatsState>(ASTRIS_GOL_STATS_CAPABILITY);
                 if (stats) {
@@ -40,6 +44,7 @@ async function bootstrap() {
                 }
             },
             onExitPlay: () => {
+                clearGolHover(engine);
                 engine.api.getCapability<GridClickQueue>(ASTRIS_GRID_CLICK_QUEUE_CAPABILITY)?.clear();
             },
         },
