@@ -74,7 +74,8 @@
 - Отдельно от **`EditorPlugin`** (панели редактора): **`GameUiPlugin`** монтирует DOM/HUD над **`#helios-game-view`** в `.shell__gameUiRoot` ([`EditorShell.vue`](../packages/helios-editor/src/inspector/EditorShell.vue)).
 - **`createEditor({ gameUiPlugins: [...] })`** создаёт **`GameUiHost`**, который при mount shell вызывает `setup` каждого плагина с **`GameUiContext`**: `api`, `root`, `getActiveView` / `subscribeActiveView` (синхронно с вкладкой и `EDITOR_SHELL_ACTIVE_VIEW_CAPABILITY`), **`playMode`** (`PlayModeController`).
 - Контейнер оверлея: `pointer-events: none`; интерактивные виджеты помечают `data-game-ui-interactive` → `pointer-events: auto`.
-- Первый потребитель: Astris — [`AstrisGameHudPlugin`](../examples/astris/src/gameUi/AstrisGameHudPlugin.ts) (подсказки, счётчик `LifeCell`, бейдж паузы симуляции).
+- Первый потребитель: Astris **game cockpit** — [`AstrisGameHudPlugin`](../examples/astris/src/gameUi/AstrisGameHudPlugin.ts): верхняя панель статуса (gen/cells), dock (Play/Stop, Pause, Paint/Erase, Clear, пресеты), collapsible подсказки; стили в `astrisGameUi.css`.
+- Capabilities Astris: `astris.golTool` (paint/erase), `astris.golStats` (поколение + alive), `astris.gridClickQueue`; pointer sink поддерживает LMB drag (`tryHandlePointerMove`).
 
 ## Плагин ввода (`helios-input-plugin`)
 
@@ -117,7 +118,8 @@
 ## Пример `astris`
 
 - Скрипт **`dev`** собирает **`@merlinn/helios-editor`** и запускает Vite — приложение импортирует **собранный** редактор из `dist/`.
-- Служит эталоном подключения: зависимости workspace, инициализация движка, регистрация плагинов, монтирование `createEditor`.
+- Служит эталоном подключения: зависимости workspace, инициализация движка, регистрация плагинов, монтирование `createEditor({ gameUiPlugins: [new AstrisGameHudPlugin()] })`.
+- **Game of Life:** `GameOfLifeViewportPlugin` регистрирует очередь кликов, `astris.golTool` / `astris.golStats` / `astris.golHover` / `astris.golArmedPreset`; `AstrisGridPointerSink` — клик toggle, drag paint/erase, armed preset по ЛКМ в ячейке под курсором; hover без кнопок через опциональный `IGameViewportPointerSink.tryHandlePointerHover` / `tryHandlePointerLeave` (слушатели на game canvas в `EditorSceneView`). Превью клеток — `GolHoverPreviewSystem` (полупрозрачные `THREE.Mesh` на `worldRoot`, без ECS). Пресеты — `golPresets.ts` (`GOL_BASIC_PRESET_IDS` слева, `GOL_ADVANCED_PRESET_IDS` справа: пушки, пульсар, метузелы); HUD **вооружает** паттерн (`astris.golArmedPreset`), установка по клику; SVG-превью и тултипы — `GolPatternPreviewSvg`, `AstrisBrushTooltip`, `golPresetTooltips.ts`. `GameOfLifeStepSystem`, группа `LifeCells` в сцене; cockpit — `examples/astris/src/gameUi/`.
 
 ## Поток данных (схема)
 
