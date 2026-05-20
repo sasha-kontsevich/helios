@@ -1,30 +1,48 @@
 import type { Engine } from "@merlinn/helios-core";
-import { THREE_RENDERER_CAPABILITY, type ThreeRenderContext } from "@merlinn/helios-three-plugin";
 import type { IGameViewportPointerSink } from "@merlinn/helios-editor";
-import * as THREE from "three";
+import {
+    ASTRIS_GOL_ARMED_PRESET_CAPABILITY,
+    type GolArmedPresetState,
+    type GolToolMode,
+    type GolToolState,
+    ASTRIS_GOL_TOOL_CAPABILITY,
+} from "./astrisCapabilities";
 import type { GridClickQueue } from "./GridClickQueue";
-
-const _plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
-const _hit = new THREE.Vector3();
-const _ndc = new THREE.Vector2();
+import { applyGolPreset } from "./golPresets";
+import { clearGolHover, updateGolHoverFromCell } from "./golHoverLogic";
+import { pickGridCell } from "./gridPlanePick";
 
 /**
- * LMB → ray onto Y=0 plane → snapped grid cell → {@link GridClickQueue}.
- * Click toggles; drag with held LMB places cells (add only).
+ * LMB → grid plane. Paint: toggle + drag place. Erase: remove. Armed preset: place on click.
  */
 export class AstrisGridPointerSink implements IGameViewportPointerSink {
-    private lastPaintGx: number | null = null;
-    private lastPaintGz: number | null = null;
+    private lastStrokeGx: number | null = null;
+    private lastStrokeGz: number | null = null;
 
     constructor(private readonly queue: GridClickQueue) {}
 
     tryHandlePointerDown(engine: Engine, canvas: HTMLCanvasElement, e: PointerEvent): boolean {
-        this.resetPaintStroke();
-        const cell = this.pickCell(engine, canvas, e);
+        this.resetStroke();
+        const cell = pickGridCell(engine, canvas, e);
         if (cell === null) {
             return true;
         }
-        this.queue.enqueue(cell.gx, cell.gz, "toggle");
+
+        const armed = engine.context.capabilities.getOrUndefined<GolArmedPresetState>(
+            ASTRIS_GOL_ARMED_PRESET_CAPABILITY,
+        );
+        if (armed?.presetId) {
+            applyGolPreset(engine.api, armed.presetId, cell.gx, cell.gz);
+            updateGolHoverFromCell(engine, cell.gx, cell.gz);
+            return true;
+        }
+
+        const tool = this.getToolMode(engine);
+        if (tool === "erase") {
+            this.queue.enqueue(cell.gx, cell.gz, "erase");
+        } else {
+            this.queue.enqueue(cell.gx, cell.gz, "toggle");
+        }
         return true;
     }
 
@@ -32,56 +50,47 @@ export class AstrisGridPointerSink implements IGameViewportPointerSink {
         if ((e.buttons & 1) === 0) {
             return false;
         }
-        const cell = this.pickCell(engine, canvas, e);
+        const cell = pickGridCell(engine, canvas, e);
         if (cell === null) {
             return true;
         }
-        if (cell.gx === this.lastPaintGx && cell.gz === this.lastPaintGz) {
+        if (cell.gx === this.lastStrokeGx && cell.gz === this.lastStrokeGz) {
             return true;
         }
-        this.lastPaintGx = cell.gx;
-        this.lastPaintGz = cell.gz;
-        this.queue.enqueue(cell.gx, cell.gz, "place");
+        this.lastStrokeGx = cell.gx;
+        this.lastStrokeGz = cell.gz;
+
+        const armed = engine.context.capabilities.getOrUndefined<GolArmedPresetState>(
+            ASTRIS_GOL_ARMED_PRESET_CAPABILITY,
+        );
+        if (armed?.presetId) {
+            return true;
+        }
+
+        const tool = this.getToolMode(engine);
+        this.queue.enqueue(cell.gx, cell.gz, tool === "erase" ? "erase" : "place");
         return true;
     }
 
-    private resetPaintStroke(): void {
-        this.lastPaintGx = null;
-        this.lastPaintGz = null;
+    tryHandlePointerHover(engine: Engine, canvas: HTMLCanvasElement, e: PointerEvent): void {
+        const cell = pickGridCell(engine, canvas, e);
+        if (cell === null) {
+            clearGolHover(engine);
+            return;
+        }
+        updateGolHoverFromCell(engine, cell.gx, cell.gz);
     }
 
-    private pickCell(
-        engine: Engine,
-        canvas: HTMLCanvasElement,
-        e: PointerEvent,
-    ): { gx: number; gz: number } | null {
-        if (e.altKey) {
-            return null;
-        }
-        const rc = engine.context.capabilities.getOrUndefined<ThreeRenderContext>(THREE_RENDERER_CAPABILITY);
-        if (!rc) {
-            return null;
-        }
-        const camera = rc.getActiveCamera();
-        if (!camera) {
-            return null;
-        }
+    tryHandlePointerLeave(_engine: Engine, _canvas: HTMLCanvasElement): void {
+        clearGolHover(_engine);
+    }
 
-        const rect = canvas.getBoundingClientRect();
-        if (rect.width <= 0 || rect.height <= 0) {
-            return null;
-        }
-        _ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-        _ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    private getToolMode(engine: Engine): GolToolMode {
+        return engine.context.capabilities.getOrUndefined<GolToolState>(ASTRIS_GOL_TOOL_CAPABILITY)?.mode ?? "paint";
+    }
 
-        const raycaster = new THREE.Raycaster();
-        raycaster.setFromCamera(_ndc, camera);
-
-        const hit = raycaster.ray.intersectPlane(_plane, _hit);
-        if (hit === null) {
-            return null;
-        }
-
-        return { gx: Math.round(hit.x), gz: Math.round(hit.z) };
+    private resetStroke(): void {
+        this.lastStrokeGx = null;
+        this.lastStrokeGz = null;
     }
 }

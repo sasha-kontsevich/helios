@@ -1,4 +1,4 @@
-export type GridCellActionMode = "toggle" | "place";
+export type GridCellActionMode = "toggle" | "place" | "erase";
 
 export type GridCellClick = { gx: number; gz: number; mode: GridCellActionMode };
 
@@ -9,7 +9,6 @@ export class GridClickQueue {
         this.pending.push({ gx, gz, mode });
     }
 
-    /** Returns and clears all pending clicks since last drain. */
     drain(): GridCellClick[] {
         const out = this.pending;
         this.pending = [];

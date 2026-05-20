@@ -2,7 +2,11 @@ import "./componentMapAugment";
 import { Engine } from "@merlinn/helios-core";
 import { createEditor } from "@merlinn/helios-editor";
 import { AstrisGameHudPlugin } from "./gameUi/AstrisGameHudPlugin";
-import { ASTRIS_GRID_CLICK_QUEUE_CAPABILITY } from "./game/gridInputCapabilities";
+import {
+    ASTRIS_GOL_STATS_CAPABILITY,
+    ASTRIS_GRID_CLICK_QUEUE_CAPABILITY,
+    type GolStatsState,
+} from "./game/astrisCapabilities";
 import type { GridClickQueue } from "./game/GridClickQueue";
 import "@merlinn/helios-editor/style.css";
 import { config } from "./config";
@@ -30,6 +34,10 @@ async function bootstrap() {
             },
             onEnterPlay: () => {
                 engine.api.getCapability<GridClickQueue>(ASTRIS_GRID_CLICK_QUEUE_CAPABILITY)?.clear();
+                const stats = engine.api.getCapability<GolStatsState>(ASTRIS_GOL_STATS_CAPABILITY);
+                if (stats) {
+                    stats.generation = 0;
+                }
             },
             onExitPlay: () => {
                 engine.api.getCapability<GridClickQueue>(ASTRIS_GRID_CLICK_QUEUE_CAPABILITY)?.clear();

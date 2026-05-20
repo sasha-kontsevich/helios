@@ -9,6 +9,7 @@ import {RotatingCubeSystem} from "./RotatingCubeSystem";
 import {GameGridVisualSystem} from "./GameGridVisualSystem";
 import { LifeCellsHierarchySystem } from "./LifeCellsHierarchySystem";
 import {GameOfLifePointerDrainSystem} from "./GameOfLifePointerDrainSystem";
+import { GolHoverPreviewSystem } from "./GolHoverPreviewSystem";
 import {GameOfLifeStepSystem} from "./GameOfLifeStepSystem";
 import { AstrisFlyCameraSystem } from "./AstrisFlyCameraSystem";
 
@@ -20,6 +21,7 @@ export const Systems: SystemConstructor[] = [
     LifeCellsHierarchySystem,
     GameOfLifePointerDrainSystem,
     GameOfLifeStepSystem,
+    GolHoverPreviewSystem,
     ThreeResourceBuildSystem,
     UpdateThreeMeshSystem,
     AstrisFlyCameraSystem,

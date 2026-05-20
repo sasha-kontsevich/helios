@@ -2,7 +2,11 @@ import { defineQuery } from "bitecs";
 import { Name, System } from "@merlinn/helios-core";
 import { LifeCell } from "../components";
 import type { GridClickQueue } from "../game/GridClickQueue";
-import { ASTRIS_GRID_CLICK_QUEUE_CAPABILITY } from "../game/gridInputCapabilities";
+import {
+    ASTRIS_GOL_STATS_CAPABILITY,
+    ASTRIS_GRID_CLICK_QUEUE_CAPABILITY,
+    type GolStatsState,
+} from "../game/astrisCapabilities";
 import { lifeCellComponentMap } from "../game/lifeCellPrefab";
 import { ensureLifeCellsRootEid } from "../game/lifeCellsRoot";
 
@@ -38,6 +42,12 @@ export class GameOfLifePointerDrainSystem extends System {
                     break;
                 }
             }
+            if (mode === "erase") {
+                if (existing !== null) {
+                    api.deleteEntity(existing);
+                }
+                continue;
+            }
             if (mode === "place") {
                 if (existing === null) {
                     api.createEntityFromComponents(lifeCellComponentMap(gx, gz, cellsRootEid));
@@ -50,6 +60,15 @@ export class GameOfLifePointerDrainSystem extends System {
             }
 
             api.createEntityFromComponents(lifeCellComponentMap(gx, gz, cellsRootEid));
+        }
+
+        const stats = this.context.capabilities.getOrUndefined<GolStatsState>(ASTRIS_GOL_STATS_CAPABILITY);
+        if (stats) {
+            let count = 0;
+            for (const _eid of this.cellQuery(world)) {
+                count++;
+            }
+            stats.aliveCount = count;
         }
     }
 }

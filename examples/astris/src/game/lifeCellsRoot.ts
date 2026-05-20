@@ -45,3 +45,36 @@ export function ensureLifeCellsRootEid(
     }
     return rootEid;
 }
+
+function entityLabel(snap: { components: Record<string, Record<string, unknown>> }): string | undefined {
+    const name = snap.components.Name as { label?: string } | undefined;
+    return name?.label;
+}
+
+export function findLifeCellsRootEidFromApi(api: EngineAPI): number | null {
+    for (const snap of api.getAllEntities()) {
+        if (entityLabel(snap) === LIFE_CELLS_ROOT_LABEL) {
+            return snap.eid;
+        }
+    }
+    return null;
+}
+
+export function ensureLifeCellsRootEidFromApi(api: EngineAPI): number {
+    const existing = findLifeCellsRootEidFromApi(api);
+    if (existing !== null) {
+        return existing;
+    }
+    const rootEid = api.createEntityFromComponents(lifeCellsRootComponents());
+    let sceneRootEid: number | null = null;
+    for (const snap of api.getAllEntities()) {
+        if (entityLabel(snap) === "Сцена") {
+            sceneRootEid = snap.eid;
+            break;
+        }
+    }
+    if (sceneRootEid !== null) {
+        api.setEntityParent(rootEid, sceneRootEid);
+    }
+    return rootEid;
+}

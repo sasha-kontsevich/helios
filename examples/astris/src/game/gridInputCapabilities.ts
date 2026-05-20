@@ -1,2 +1,2 @@
-/** Queue consumed by {@link GameOfLifePointerDrainSystem} (mutable, drained each frame). */
-export const ASTRIS_GRID_CLICK_QUEUE_CAPABILITY = "astris.gridClickQueue";
+/** @deprecated Import from `./astrisCapabilities` instead. */
+export { ASTRIS_GRID_CLICK_QUEUE_CAPABILITY } from "./astrisCapabilities";
