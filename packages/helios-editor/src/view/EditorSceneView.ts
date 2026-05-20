@@ -67,6 +67,8 @@ export class EditorSceneView implements IEditorViewportNavigation {
     private boundCtxMenu!: (e: Event) => void;
     private boundPickPointerDown!: (e: PointerEvent) => void;
     private boundPickPointerMove!: (e: PointerEvent) => void;
+    private boundPickPointerHover!: (e: PointerEvent) => void;
+    private boundPickPointerLeave!: (e: PointerEvent) => void;
     private boundPointerDown!: (e: PointerEvent) => void;
     private boundPointerUp!: (e: PointerEvent) => void;
     private boundPointerMove!: (e: PointerEvent) => void;
@@ -139,6 +141,8 @@ export class EditorSceneView implements IEditorViewportNavigation {
         this.boundCtxMenu = (e: Event) => e.preventDefault();
         this.boundPickPointerDown = this.onPickPointerDownCapture.bind(this);
         this.boundPickPointerMove = this.onPickPointerMoveCapture.bind(this);
+        this.boundPickPointerHover = this.onPickPointerHover.bind(this);
+        this.boundPickPointerLeave = this.onPickPointerLeave.bind(this);
         this.boundPointerDown = this.onPointerDown.bind(this);
         this.boundPointerUp = this.onPointerUp.bind(this);
         this.boundPointerMove = this.onPointerMove.bind(this);
@@ -150,6 +154,8 @@ export class EditorSceneView implements IEditorViewportNavigation {
         if (this.gameCanvas) {
             this.gameCanvas.addEventListener("pointerdown", this.boundPickPointerDown, true);
             this.gameCanvas.addEventListener("pointermove", this.boundPickPointerMove, true);
+            this.gameCanvas.addEventListener("pointermove", this.boundPickPointerHover);
+            this.gameCanvas.addEventListener("pointerleave", this.boundPickPointerLeave);
         }
         canvas.addEventListener("contextmenu", this.boundCtxMenu);
         canvas.addEventListener("pointerdown", this.boundPointerDown);
@@ -297,6 +303,33 @@ export class EditorSceneView implements IEditorViewportNavigation {
         this.selection.set(eid);
         e.preventDefault();
         e.stopImmediatePropagation();
+    }
+
+    /** Game view: hover preview (no preventDefault — keeps RMB look working). */
+    private onPickPointerHover(e: PointerEvent): void {
+        if ((e.buttons & 1) !== 0) {
+            return;
+        }
+        if (!this.engine || !this.gameCanvas || this.interactionMode !== "game") {
+            return;
+        }
+        if (e.currentTarget !== this.gameCanvas) {
+            return;
+        }
+        const sink = this.engine.context.capabilities.getOrUndefined<IGameViewportPointerSink>(
+            GAME_VIEWPORT_POINTER_SINK_CAPABILITY,
+        );
+        sink?.tryHandlePointerHover?.(this.engine, this.gameCanvas, e);
+    }
+
+    private onPickPointerLeave(e: PointerEvent): void {
+        if (!this.engine || !this.gameCanvas || this.interactionMode !== "game") {
+            return;
+        }
+        const sink = this.engine.context.capabilities.getOrUndefined<IGameViewportPointerSink>(
+            GAME_VIEWPORT_POINTER_SINK_CAPABILITY,
+        );
+        sink?.tryHandlePointerLeave?.(this.engine, this.gameCanvas);
     }
 
     /** Game view: forward LMB drag to {@link IGameViewportPointerSink.tryHandlePointerMove}. */
@@ -462,6 +495,8 @@ export class EditorSceneView implements IEditorViewportNavigation {
         if (this.gameCanvas) {
             this.gameCanvas.removeEventListener("pointerdown", this.boundPickPointerDown, true);
             this.gameCanvas.removeEventListener("pointermove", this.boundPickPointerMove, true);
+            this.gameCanvas.removeEventListener("pointermove", this.boundPickPointerHover);
+            this.gameCanvas.removeEventListener("pointerleave", this.boundPickPointerLeave);
             this.gameCanvas = null;
         }
         window.removeEventListener("keydown", this.boundKeyDown);

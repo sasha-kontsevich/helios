@@ -15,4 +15,8 @@ export interface IGameViewportPointerSink {
      * LMB drag in game view (buttons still down). Optional; omit if only click-to-act is needed.
      */
     tryHandlePointerMove?(engine: Engine, canvas: HTMLCanvasElement, e: PointerEvent): boolean;
+    /** Pointer over game canvas without buttons (hover preview). */
+    tryHandlePointerHover?(engine: Engine, canvas: HTMLCanvasElement, e: PointerEvent): void;
+    /** Pointer left game canvas — clear hover preview. */
+    tryHandlePointerLeave?(engine: Engine, canvas: HTMLCanvasElement): void;
 }

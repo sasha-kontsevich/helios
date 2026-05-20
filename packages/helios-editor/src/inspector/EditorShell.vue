@@ -894,6 +894,10 @@ onUnmounted(() => {
   pointer-events: none;
   overflow: hidden;
 }
+.shell__gameUiRoot > * {
+  position: absolute;
+  inset: 0;
+}
 /* Game UI mounts via createApp (no shell scoped id) — :deep required */
 .shell__gameUiRoot :deep([data-game-ui-interactive]) {
   pointer-events: auto;
