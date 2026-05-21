@@ -1,0 +1,6 @@
+{
+  "guid": "guid://textures/nebulae",
+  "type": "texture",
+  "loader": "loadHdr",
+  "dependencies": []
+}

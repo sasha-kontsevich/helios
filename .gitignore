@@ -41,6 +41,7 @@ coverage/
 
 # Large source art in repo root (exported PNGs live under examples/astris/public/assets)
 /*.psd
+/*.hdr
 
 # Editor specific
 .editorconfig

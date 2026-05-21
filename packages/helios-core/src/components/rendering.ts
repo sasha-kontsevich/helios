@@ -37,3 +37,9 @@ export const DirectionalLight = defineComponent({
     intensity: Types.f32,
     targetEntity: Types.ui32,
 });
+
+/**
+ * Scene background: equirectangular texture GUID (`loadTexture` or `loadHdr`).
+ * Resolved by three-plugin {@link UpdateSkyboxSystem} → `THREE.Scene.background`.
+ */
+export const Skybox = defineComponent({ texture: STRING_FIELD });

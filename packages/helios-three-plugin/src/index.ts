@@ -4,6 +4,7 @@ export * from './ThreeRenderContext'
 export * from './components'
 
 export * from './systems/RenderSystem'
+export * from './systems/UpdateSkyboxSystem'
 export * from './systems/UpdateThreeObjectSystem'
 export * from './systems/ThreeSceneSystem'
 export * from './systems/EnsureThreeRenderableSystem'

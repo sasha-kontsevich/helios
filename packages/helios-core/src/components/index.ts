@@ -9,6 +9,7 @@ import type {
     Geometry as GeometryComponent,
     Material as MaterialComponent,
     Mesh as MeshComponent,
+    Skybox as SkyboxComponent,
 } from "./rendering";
 export {
     AmbientLight,
@@ -17,6 +18,7 @@ export {
     Geometry,
     Material,
     Mesh,
+    Skybox,
 } from "./rendering";
 export { ModelInstance } from "./model";
 import type { ModelInstance as ModelInstanceComponent } from "./model";
@@ -45,6 +47,7 @@ declare module "../types/ComponentMap" {
         Camera: typeof CameraComponent;
         AmbientLight: typeof AmbientLightComponent;
         DirectionalLight: typeof DirectionalLightComponent;
+        Skybox: typeof SkyboxComponent;
         ModelInstance: typeof ModelInstanceComponent;
     }
 }

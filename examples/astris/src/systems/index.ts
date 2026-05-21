@@ -8,6 +8,7 @@ import {
     UpdateThreeCameraSystem,
     UpdateThreeLightSystem,
     UpdateThreeMeshSystem,
+    UpdateSkyboxSystem,
 } from "@merlinn/helios-three-plugin";
 import {RotatingCubeSystem} from "./RotatingCubeSystem";
 import {GameGridVisualSystem} from "./GameGridVisualSystem";
@@ -34,5 +35,6 @@ export const Systems: SystemConstructor[] = [
     AstrisFlyCameraSystem,
     UpdateThreeObjectSystem,
     ThreeSceneSystem,
+    UpdateSkyboxSystem,
     RenderSystem,
 ];

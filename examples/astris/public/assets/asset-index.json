@@ -13,6 +13,7 @@
   "models/test/test.manifest.json",
   "scenes/main.json",
   "textures/checker.png",
+  "textures/nebulae.hdr",
   "textures/ship2_ao.png",
   "textures/ship2_normal.png"
 ]

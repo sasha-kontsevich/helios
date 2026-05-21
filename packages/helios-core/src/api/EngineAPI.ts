@@ -359,7 +359,7 @@ export class EngineAPI {
     listTextureAssetGuids(): string[] {
         return this.context.assetDatabase
             .getAllRecords()
-            .filter((r) => r.loader === "loadTexture")
+            .filter((r) => r.loader === "loadTexture" || r.loader === "loadHdr")
             .map((r) => r.guid);
     }
 

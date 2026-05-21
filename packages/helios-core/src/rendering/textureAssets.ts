@@ -36,10 +36,14 @@ export function collectTextureGuidsFromMaterialDescriptor(desc: MaterialDescript
     return out;
 }
 
-/** Walk scene entity component maps for `Material.descriptor` texture GUIDs. */
+/** Walk scene entity component maps for `Material.descriptor` and `Skybox.texture` GUIDs. */
 export function collectTextureGuidsFromSceneEntities(entities: SceneEntityInstance[]): string[] {
     const set = new Set<string>();
     for (const inst of entities) {
+        const sky = inst.components?.Skybox as { texture?: unknown } | undefined;
+        if (typeof sky?.texture === "string" && sky.texture.length > 0) {
+            set.add(sky.texture);
+        }
         const mat = inst.components?.Material as { descriptor?: unknown } | undefined;
         if (!mat?.descriptor) continue;
         const parsed = parseMaterialDescriptor(mat.descriptor);

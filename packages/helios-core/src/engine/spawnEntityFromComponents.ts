@@ -17,8 +17,10 @@ export function applyComponentFields(
 
     for (const [field, rawValue] of Object.entries(fields)) {
         if (
-            (componentName === "Geometry" || componentName === "Material") &&
-            field === "guid" &&
+            (componentName === "Geometry" ||
+                componentName === "Material" ||
+                componentName === "Skybox") &&
+            (field === "guid" || field === "texture") &&
             typeof rawValue === "string"
         ) {
             if (typeof comp.get !== "function") {

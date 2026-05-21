@@ -2,6 +2,7 @@ import type { Context } from "@merlinn/helios-core";
 import * as THREE from "three";
 import { TextureLoader } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { cloneMeshGeometryWithNodeTransform, hideGltfScene } from "./gltfMeshGeometry";
 
@@ -29,6 +30,14 @@ export function registerThreeAssetLoaders(context: Context): void {
         async load(record) {
             const tex = await new TextureLoader().loadAsync(record.path);
             tex.colorSpace = THREE.SRGBColorSpace;
+            return tex;
+        },
+    });
+
+    context.assetManager.registerLoader("loadHdr", {
+        async load(record) {
+            const tex = await new RGBELoader().loadAsync(record.path);
+            tex.mapping = THREE.EquirectangularReflectionMapping;
             return tex;
         },
     });

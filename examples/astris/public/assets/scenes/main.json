@@ -10,6 +10,14 @@
       }
     },
     {
+      "id": "environment",
+      "components": {
+        "Name": { "label": "Environment" },
+        "Parent": { "target": "scene-root" },
+        "Skybox": { "texture": "guid://textures/nebulae" }
+      }
+    },
+    {
       "id": "life-cells",
       "components": {
         "Name": { "label": "LifeCells" },

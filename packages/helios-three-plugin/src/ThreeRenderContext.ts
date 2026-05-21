@@ -52,6 +52,8 @@ export class ThreeRenderContext {
      * {@link getEditorViewCamera}. Entity pose is driven by ECS (orbit/fly are disabled for ECS cameras).
      */
     private editorRenderCameraEid: number | null = null;
+    /** Owned clone for {@link setSceneBackgroundTexture}; disposed on reset / dispose. */
+    private sceneBackgroundTexture?: THREE.Texture;
 
     /** Invoked immediately before the editor viewport draws (after ECS systems). */
     private readonly beforeRenderHooks: Array<() => void> = [];
@@ -261,6 +263,35 @@ export class ThreeRenderContext {
         return this.activeCamera;
     }
 
+    /** Equirectangular panorama as `scene.background` (editor + game pass). */
+    setSceneBackgroundTexture(texture: THREE.Texture, options?: { hdr?: boolean }): void {
+        this.disposeSceneBackgroundTexture();
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        if (!options?.hdr) {
+            texture.colorSpace = THREE.SRGBColorSpace;
+        }
+        texture.needsUpdate = true;
+        this.sceneBackgroundTexture = texture;
+        if (this.scene) {
+            this.scene.background = texture;
+        }
+    }
+
+    /** Restore solid {@link ThreePluginOptions.backgroundColor}. */
+    resetSceneBackground(): void {
+        this.disposeSceneBackgroundTexture();
+        if (this.scene) {
+            this.scene.background = new Color(this.options.backgroundColor ?? 0x333333);
+        }
+    }
+
+    private disposeSceneBackgroundTexture(): void {
+        if (this.sceneBackgroundTexture) {
+            this.sceneBackgroundTexture.dispose();
+            this.sceneBackgroundTexture = undefined;
+        }
+    }
+
     registerBeforeRender(callback: () => void): () => void {
         this.beforeRenderHooks.push(callback);
         return () => {
@@ -329,6 +360,7 @@ export class ThreeRenderContext {
     }
 
     dispose(): void {
+        this.disposeSceneBackgroundTexture();
         this.editorRenderCameraEid = null;
         this.beforeRenderHooks.length = 0;
         this.editorRoot.clear();
