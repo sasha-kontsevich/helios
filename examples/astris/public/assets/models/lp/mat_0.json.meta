@@ -1,0 +1,10 @@
+{
+  "guid": "guid://models/lp/mat/0",
+  "type": "material",
+  "loader": "loadGltfMaterial",
+  "dependencies": [
+    "guid://models/lp/glb"
+  ],
+  "gltfMeshIndex": 0,
+  "gltfPrimitiveIndex": 0
+}

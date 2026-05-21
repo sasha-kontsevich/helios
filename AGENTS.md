@@ -15,7 +15,7 @@ This file guides AI assistants and tooling working in the **helios** monorepo.
 | Editor UI | `packages/helios-editor` | Vue shell, inspector, scene view, selection bus, context menus |
 | Example game | `examples/astris` | Vite app wiring engine + editor + input plugin |
 
-Optional packages: `helios-physics-plugin`, `helios-cli` — touch only if the task involves them.
+Optional packages: `helios-physics-plugin`, **`helios-cli`** (`helios import-model` for OBJ/FBX/GLB → bundle) — touch only if the task involves them.
 
 ## Commands
 
@@ -41,6 +41,7 @@ After changing **`helios-core` public surface** (`EngineAPI`, exports), run **`p
 - **Game UI (HUD):** `GameUiPlugin` + `createEditor({ gameUiPlugins })` — overlays on game canvas, not `EditorPlugin`. Astris: `examples/astris/src/gameUi/AstrisGameHudPlugin.ts`.
 - **Rotation:** ECS stores quaternion (`Rotation.x/y/z/w`); inspector shows Euler XYZ. Legacy scene JSON with 3 euler fields migrates at spawn.
 - **Scene JSON:** core render components only (`Mesh`, `Geometry`, `Material`, `Camera`, lights) — no `ThreeObject` / `ThreeMesh` in spawn maps; see **`docs/scene-serialization.md`**.
+- **3D models:** import → `public/assets/models/<name>/` (`*.glb` + `*.manifest.json`); scene marker **`ModelInstance`** expands via **`EngineAPI.expandAllModelInstances`** / **`SceneManager.loadScene`**. CLI: `pnpm --filter @merlinn/helios-cli run build` then `node packages/helios-cli/dist/import-model.js … --out assets/models/<name> --project examples/astris`. Details: **`docs/model-import.md`**.
 
 ## Conventions
 

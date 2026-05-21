@@ -1,0 +1,8 @@
+{
+  "guid": "guid://models/lp",
+  "type": "model",
+  "loader": "loadModel",
+  "dependencies": [
+    "guid://models/lp/glb"
+  ]
+}

@@ -9,6 +9,7 @@ import { noopSelectionBus, type ISelectionBus } from "./selection/SelectionBus";
 import type { GameUiHost } from "./gameUi/GameUiHost";
 import type { EditorViewportInteractionController } from "./viewport/EditorViewportInteractionMode";
 import { PlayModeController, type PlayModeOptions } from "./play/PlayModeController";
+import type { EditorModelImportHost } from "./modelImport/types";
 
 export interface EditorOptions {
     /** Defaults to `document.getElementById('editor-root')`. */
@@ -29,6 +30,8 @@ export interface EditorOptions {
     playModeController?: PlayModeController;
     /** Host for game-viewport overlay plugins; wired by {@link InspectorEditorPlugin}. */
     gameUiHost?: GameUiHost;
+    /** Optional hooks for 3D model import (save bundle, spawn notification). */
+    modelImport?: EditorModelImportHost;
 }
 
 export class Editor {
@@ -57,6 +60,7 @@ export class Editor {
             ...(transformTools !== undefined ? { transformTools } : {}),
             ...(options.viewportInteraction !== undefined ? { viewportInteraction: options.viewportInteraction } : {}),
             ...(options.gameUiHost !== undefined ? { gameUiHost: options.gameUiHost } : {}),
+            ...(options.modelImport !== undefined ? { modelImport: options.modelImport } : {}),
         };
 
         for (const plugin of plugins) {

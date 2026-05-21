@@ -21,6 +21,17 @@ export class AssetManager {
     }
 
     /**
+     * Register indexed meta and optional preloaded resource (skips loader on first resolve).
+     */
+    preloadAsset(record: AssetRecord, resource?: unknown): void {
+        this.assetDatabase.registerRecord(record);
+        if (resource !== undefined) {
+            const id = this.resources.set(resource);
+            this.cache.set(record.guid, id);
+        }
+    }
+
+    /**
      * Основной метод: загружает ассет по guid, кладёт в ResourceManager,
      * возвращает numeric resourceId.
      */
@@ -44,7 +55,7 @@ export class AssetManager {
         if (!loader) throw new Error(`No loader registered for type "${meta.loader}"`);
 
         // 4) фактически грузим «сырой» объект
-        const obj = await loader.load(meta.path);
+        const obj = await loader.load(meta);
 
         // 5) кладём в ResourceManager — получаем numeric ID
         const id = this.resources.set(obj);

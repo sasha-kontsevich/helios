@@ -1,5 +1,11 @@
+import type { GeometryDescriptor } from "@merlinn/helios-core";
 import * as THREE from "three";
-import type { GeometryDescriptor, MaterialDescriptor } from "@merlinn/helios-core";
+
+export {
+    buildMaterialFromDescriptor,
+    createMaterialFromDescriptor,
+    createTextureResolver,
+} from "./materialFromDescriptor";
 
 export function createGeometryFromDescriptor(desc: GeometryDescriptor): THREE.BufferGeometry | null {
     try {
@@ -21,37 +27,6 @@ export function createGeometryFromDescriptor(desc: GeometryDescriptor): THREE.Bu
                 return new THREE.ConeGeometry(desc.radius, desc.height, desc.radialSegments);
             case "torus":
                 return new THREE.TorusGeometry(desc.radius, desc.tube, desc.radialSegments, desc.tubularSegments);
-            default:
-                return null;
-        }
-    } catch {
-        return null;
-    }
-}
-
-export function createMaterialFromDescriptor(desc: MaterialDescriptor): THREE.Material | null {
-    try {
-        switch (desc.type) {
-            case "meshBasic":
-                return new THREE.MeshBasicMaterial({
-                    color: desc.color,
-                    wireframe: desc.wireframe ?? false,
-                });
-            case "meshLambert": {
-                const opts: THREE.MeshLambertMaterialParameters = {
-                    color: desc.color,
-                    wireframe: desc.wireframe ?? false,
-                };
-                if (desc.emissive !== undefined) opts.emissive = desc.emissive;
-                return new THREE.MeshLambertMaterial(opts);
-            }
-            case "meshStandard":
-                return new THREE.MeshStandardMaterial({
-                    color: desc.color,
-                    roughness: desc.roughness,
-                    metalness: desc.metalness,
-                    wireframe: desc.wireframe ?? false,
-                });
             default:
                 return null;
         }

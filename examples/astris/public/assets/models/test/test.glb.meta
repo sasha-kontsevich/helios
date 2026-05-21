@@ -1,0 +1,6 @@
+{
+  "guid": "guid://models/test/glb",
+  "type": "gltf",
+  "loader": "loadGltfBinary",
+  "dependencies": []
+}

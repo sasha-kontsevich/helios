@@ -204,6 +204,8 @@ export interface MaterialDescriptorMeshBasic {
     type: "meshBasic";
     color: number;
     wireframe?: boolean;
+    /** Albedo / diffuse map (`guid://…` texture asset). */
+    map?: string;
 }
 
 export interface MaterialDescriptorMeshLambert {
@@ -211,6 +213,8 @@ export interface MaterialDescriptorMeshLambert {
     color: number;
     wireframe?: boolean;
     emissive?: number;
+    map?: string;
+    emissiveMap?: string;
 }
 
 export interface MaterialDescriptorMeshStandard {
@@ -219,6 +223,12 @@ export interface MaterialDescriptorMeshStandard {
     roughness: number;
     metalness: number;
     wireframe?: boolean;
+    map?: string;
+    normalMap?: string;
+    roughnessMap?: string;
+    metalnessMap?: string;
+    aoMap?: string;
+    emissiveMap?: string;
 }
 
 export type MaterialDescriptor =
@@ -266,6 +276,25 @@ function clampUnit(n: unknown, fallback: number): number {
     return Math.min(1, Math.max(0, n));
 }
 
+function parseOptionalTextureGuid(v: unknown): string | undefined {
+    if (typeof v !== "string") return undefined;
+    const s = v.trim();
+    return s.length > 0 ? s : undefined;
+}
+
+function copyTextureSlots<T extends MaterialDescriptor>(
+    target: T,
+    source: Record<string, unknown>,
+    slots: readonly string[],
+): void {
+    for (const slot of slots) {
+        const guid = parseOptionalTextureGuid(source[slot]);
+        if (guid) {
+            (target as unknown as Record<string, unknown>)[slot] = guid;
+        }
+    }
+}
+
 /** Parse and normalize a material descriptor from JSON/editor; returns null if invalid. */
 export function parseMaterialDescriptor(v: unknown): MaterialDescriptor | null {
     if (typeof v !== "object" || v === null) return null;
@@ -276,11 +305,13 @@ export function parseMaterialDescriptor(v: unknown): MaterialDescriptor | null {
         case "meshBasic": {
             const o = v as MaterialDescriptorMeshBasic;
             if (typeof o.color !== "number" || !Number.isFinite(o.color)) return null;
-            return {
+            const base: MaterialDescriptorMeshBasic = {
                 type: "meshBasic",
                 color: clampColor(o.color, DEFAULT_MATERIAL_BASIC.color),
                 wireframe: Boolean(o.wireframe),
             };
+            copyTextureSlots(base, o as unknown as Record<string, unknown>, ["map"]);
+            return base;
         }
         case "meshLambert": {
             const o = v as MaterialDescriptorMeshLambert;
@@ -293,18 +324,28 @@ export function parseMaterialDescriptor(v: unknown): MaterialDescriptor | null {
             if (o.emissive !== undefined) {
                 base.emissive = clampColor(o.emissive, DEFAULT_MATERIAL_LAMBERT.emissive ?? 0);
             }
+            copyTextureSlots(base, o as unknown as Record<string, unknown>, ["map", "emissiveMap"]);
             return base;
         }
         case "meshStandard": {
             const o = v as MaterialDescriptorMeshStandard;
             if (typeof o.color !== "number" || !Number.isFinite(o.color)) return null;
-            return {
+            const base: MaterialDescriptorMeshStandard = {
                 type: "meshStandard",
                 color: clampColor(o.color, DEFAULT_MATERIAL_STANDARD.color),
                 roughness: clampUnit(o.roughness, DEFAULT_MATERIAL_STANDARD.roughness),
                 metalness: clampUnit(o.metalness, DEFAULT_MATERIAL_STANDARD.metalness),
                 wireframe: Boolean(o.wireframe),
             };
+            copyTextureSlots(base, o as unknown as Record<string, unknown>, [
+                "map",
+                "normalMap",
+                "roughnessMap",
+                "metalnessMap",
+                "aoMap",
+                "emissiveMap",
+            ]);
+            return base;
         }
         default:
             return null;

@@ -28,6 +28,22 @@
         JSON только объекта дескриптора; проверка при blur (неверный JSON не применяется).
       </p>
     </template>
+    <template v-else-if="guidOnly">
+      <div class="ref-inspector__rawGrid">
+        <label class="ref-inspector__rawLabel" for="mat-guid-readonly">guid</label>
+        <input
+          id="mat-guid-readonly"
+          class="inspector__input ref-inspector__guid"
+          type="text"
+          :value="assetGuid"
+          readonly
+          spellcheck="false"
+        />
+      </div>
+      <p class="ref-inspector__hint">
+        Материал из импортированной модели (GLTF sub-asset). Редактирование — вкладка Raw.
+      </p>
+    </template>
     <template v-else>
       <div class="inspector__descriptor">
         <select
@@ -60,6 +76,12 @@
             </div>
             <label class="inspector__mini">wire</label>
             <input class="inspector__checkbox" type="checkbox" :checked="Boolean(desc.wireframe)" @change="onBool('wireframe', $event)" />
+            <TextureGuidFields
+              :slots="textureSlots"
+              :values="desc"
+              @patch="onTextureGuids"
+              @editing-changed="emit('editingChanged', $event)"
+            />
           </template>
 
           <template v-else-if="descriptorType === 'meshLambert'">
@@ -97,6 +119,12 @@
             </div>
             <label class="inspector__mini">wire</label>
             <input class="inspector__checkbox" type="checkbox" :checked="Boolean(desc.wireframe)" @change="onBool('wireframe', $event)" />
+            <TextureGuidFields
+              :slots="textureSlots"
+              :values="desc"
+              @patch="onTextureGuids"
+              @editing-changed="emit('editingChanged', $event)"
+            />
           </template>
 
           <template v-else-if="descriptorType === 'meshStandard'">
@@ -138,6 +166,12 @@
             />
             <label class="inspector__mini">wire</label>
             <input class="inspector__checkbox" type="checkbox" :checked="Boolean(desc.wireframe)" @change="onBool('wireframe', $event)" />
+            <TextureGuidFields
+              :slots="textureSlots"
+              :values="desc"
+              @patch="onTextureGuids"
+              @editing-changed="emit('editingChanged', $event)"
+            />
           </template>
           <template v-else>
             <div class="inspector__readonly">Unsupported descriptor</div>
@@ -153,9 +187,12 @@ import { computed, ref, watch } from "vue";
 import {
   DEFAULT_MATERIAL,
   defaultMaterialDescriptor,
+  materialTextureSlotsForType,
   parseMaterialDescriptor,
   type MaterialDescriptor,
+  type MaterialTextureSlot,
 } from "@merlinn/helios-core";
+import TextureGuidFields from "./TextureGuidFields.vue";
 import { attachNumericScrub } from "./useNumericLabelScrub";
 
 const props = defineProps<{
@@ -187,12 +224,40 @@ const descriptorType = computed(() => {
   return typeof t === "string" ? t : "";
 });
 
+const assetGuid = computed(() => {
+  const g = props.fields["guid"];
+  return typeof g === "string" ? g : "";
+});
+
+const guidOnly = computed(() => assetGuid.value.length > 0 && !descriptorType.value);
+
+const textureSlots = computed((): MaterialTextureSlot[] => {
+  const t = descriptorType.value;
+  if (t === "meshBasic" || t === "meshLambert" || t === "meshStandard") {
+    return materialTextureSlotsForType(t);
+  }
+  return [];
+});
+
 function scheduleApply(patch: Record<string, unknown>) {
   emit("applyPatch", { componentName: props.componentName, patch });
 }
 
 function onDescriptorChange(next: Record<string, unknown>) {
   scheduleApply({ descriptor: next });
+}
+
+function onTextureGuids(patch: Partial<Record<MaterialTextureSlot, string>>): void {
+  const next = { ...desc.value };
+  for (const [slot, guid] of Object.entries(patch)) {
+    const g = typeof guid === "string" ? guid.trim() : "";
+    if (g.length > 0) {
+      next[slot] = g;
+    } else {
+      delete next[slot];
+    }
+  }
+  onDescriptorChange(next);
 }
 
 function onTypeChange(type: string): void {

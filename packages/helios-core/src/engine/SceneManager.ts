@@ -1,7 +1,9 @@
 // SceneManager.ts
 import { Context } from './index';
 import type { PrefabData, SceneData } from '../types';
+import { collectTextureGuidsFromSceneEntities } from '../rendering/textureAssets';
 import { spawnSceneEntityInstances } from './spawnEntitiesWithParent';
+import { expandAllModelInstances } from './spawnModelInstance';
 
 export class SceneManager {
     private scenes = new Map<string, SceneData>();
@@ -47,8 +49,20 @@ export class SceneManager {
         }
 
         if (scene.entities?.length) {
+            const textureGuids = collectTextureGuidsFromSceneEntities(scene.entities);
+            if (textureGuids.length > 0) {
+                await Promise.all(
+                    textureGuids.map((guid) =>
+                        this.ctx.assetManager.loadAsset(guid).catch((err) => {
+                            console.warn(`[SceneManager] Failed to preload texture "${guid}"`, err);
+                        }),
+                    ),
+                );
+            }
             spawnSceneEntityInstances(this.ctx, scene.entities);
         }
+
+        await expandAllModelInstances(this.ctx);
 
         for (const { prefabGuid, overrides } of scene.prefabs ?? []) {
             const prefabResourceId = await this.ctx.assetManager.loadAsset(prefabGuid);

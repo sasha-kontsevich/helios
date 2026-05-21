@@ -2,9 +2,11 @@ import { defineQuery } from "bitecs";
 import { Name, System } from "@merlinn/helios-core";
 import { LifeCell } from "../components";
 import {
+    ASTRIS_GOL_CELL_INDEX_CAPABILITY,
     ASTRIS_GOL_STATS_CAPABILITY,
     type GolStatsState,
 } from "../game/astrisCapabilities";
+import type { GolAliveCellIndex } from "../game/golCellIndex";
 import { lifeCellComponentMap } from "../game/lifeCellPrefab";
 import { ensureLifeCellsRootEid } from "../game/lifeCellsRoot";
 
@@ -97,7 +99,12 @@ export class GameOfLifeStepSystem extends System {
                 toRemove.push(eid);
             }
         }
+        const cellIndex = this.context.capabilities.getOrUndefined<GolAliveCellIndex>(
+            ASTRIS_GOL_CELL_INDEX_CAPABILITY,
+        );
+
         for (const eid of toRemove) {
+            cellIndex?.remove(LifeCell.gx[eid], LifeCell.gz[eid]);
             api.deleteEntity(eid);
         }
 
@@ -111,11 +118,12 @@ export class GameOfLifeStepSystem extends System {
         const cellsRootEid = ensureLifeCellsRootEid(api, world, this.nameQuery);
         for (const { gx, gz } of toAdd) {
             api.createEntityFromComponents(lifeCellComponentMap(gx, gz, cellsRootEid));
+            cellIndex?.add(gx, gz);
         }
 
         if (stats) {
             stats.generation += 1;
-            stats.aliveCount = nextAlive.size;
+            stats.aliveCount = cellIndex?.size ?? nextAlive.size;
         }
     }
 }

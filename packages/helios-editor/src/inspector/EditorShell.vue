@@ -22,6 +22,16 @@
         >
           Systems
         </button>
+        <button
+          type="button"
+          class="shell__leftTab"
+          role="tab"
+          :aria-selected="leftPanelTab === 'assets'"
+          :class="{ 'shell__leftTab--active': leftPanelTab === 'assets' }"
+          @click="leftPanelTab = 'assets'"
+        >
+          Assets
+        </button>
       </div>
       <EntityListPanel
         v-show="leftPanelTab === 'entities'"
@@ -40,6 +50,15 @@
         v-show="leftPanelTab === 'systems'"
         :systems="systemSnapshots"
         @toggle-enabled="onToggleSystemEnabled"
+      />
+      <AssetsPanel
+        v-show="leftPanelTab === 'assets'"
+        :tab-active="leftPanelTab === 'assets'"
+        ref="assetsPanelRef"
+        :engine-api="engineApi"
+        :can-apply-texture="selectedEid !== null"
+        @spawn-model="onSpawnModelAsset"
+        @apply-texture-map="onApplyTextureMap"
       />
     </aside>
     <main class="shell__center">
@@ -101,7 +120,11 @@
           <div class="shell__tabStripFiller" aria-hidden="true" />
         </div>
 
-        <div class="shell__viewportColumn">
+        <div
+          class="shell__viewportColumn"
+          @dragover.prevent="onViewportDragOver"
+          @drop.prevent="onViewportDrop"
+        >
       <div
         v-if="transformTools && centerView === 'editor'"
         class="shell__transformToolbar"
@@ -186,9 +209,11 @@
         :selected-eid="selectedEid"
         :snapshot="inspectorSnapshot"
         :available-components="availableComponents"
+        :engine-api="engineApi"
         :inspector-registry="inspectorRegistry"
         @apply-patch="onApplyPatch"
         @editing-changed="onEditingChanged"
+        @entities-changed="refreshEntityList"
         @add-component="onAddComponent"
         @remove-component="onRemoveComponent"
         @copy-component="onCopyComponent"
@@ -214,7 +239,21 @@ import type { ISelectionBus } from "../selection/SelectionBus";
 import type { EditorInspectorRegistry } from "./registry/EditorInspectorRegistry";
 import EntityListPanel from "./EntityListPanel.vue";
 import SystemListPanel from "./SystemListPanel.vue";
+import AssetsPanel from "./AssetsPanel.vue";
+import {
+  defaultMaterialDescriptor,
+  parseMaterialDescriptor,
+  type MaterialDescriptor,
+} from "@merlinn/helios-core";
 import InspectorPanel from "./InspectorPanel.vue";
+import { parseDroppedModelFile } from "../modelImport/parseDroppedModelFile";
+import {
+  isDroppedImageFile,
+  registerDroppedTexture,
+  textureGuidFromFileName,
+} from "../modelImport/textureImport";
+import { preloadModelBundleForPreview } from "../modelImport/preloadModelBundle";
+import type { EditorModelImportHost } from "../modelImport/types";
 import TransformToolIcon from "./TransformToolIcon.vue";
 import {
   defaultEditorPrimitiveComponents,
@@ -242,6 +281,7 @@ const props = defineProps<{
   viewportInteraction?: EditorViewportInteractionController | null;
   playMode: PlayModeController;
   gameUiHost?: GameUiHost | null;
+  modelImport?: EditorModelImportHost | null;
 }>();
 
 const gameUiMount = ref<HTMLElement | null>(null);
@@ -250,7 +290,8 @@ const pauseUiTick = ref(0);
 /** Unity-like Play Mode: snapshot run / restore (see {@link PlayModeController}). */
 const playSessionActive = ref(false);
 const centerView = ref<"editor" | "game">("editor");
-const leftPanelTab = ref<"entities" | "systems">("entities");
+const leftPanelTab = ref<"entities" | "systems" | "assets">("entities");
+const assetsPanelRef = ref<InstanceType<typeof AssetsPanel> | null>(null);
 
 const entities = shallowRef<EntitySnapshot[]>([]);
 const systemSnapshots = shallowRef<SystemRuntimeSnapshot[]>([]);
@@ -272,6 +313,23 @@ let pollTimer: ReturnType<typeof setInterval> | undefined;
 let selectionUnsub: (() => void) | undefined;
 let transformToolUnsub: (() => void) | undefined;
 let activeViewUnsub: (() => void) | undefined;
+
+/** After model drop, focus the first mesh child (root is an empty wrapper). */
+function pickFirstMeshUnderRoot(api: EngineAPI, rootEid: number): number {
+  for (const eid of api.getAllEntityIds()) {
+    if (eid === rootEid || !api.hasComponent(eid, "Mesh" as keyof ComponentMap)) {
+      continue;
+    }
+    let parent = api.getEntityParentEid(eid);
+    while (parent != null) {
+      if (parent === rootEid) {
+        return eid;
+      }
+      parent = api.getEntityParentEid(parent);
+    }
+  }
+  return rootEid;
+}
 
 function syncTransformToolbar(): void {
   const t = props.transformTools;
@@ -429,6 +487,119 @@ function onCreatePrimitiveEntity(kind: EditorPrimitiveKind): void {
   selectedEid.value = eid;
   props.selection.set(eid);
   refreshInspector();
+}
+
+async function onSpawnModelAsset(guid: string): Promise<void> {
+  try {
+    const parent = selectedEid.value;
+    const rootEid = await props.engineApi.spawnModelInstance(guid, {
+      parentEid: parent ?? undefined,
+      name: guid.split("/").pop() ?? "Model",
+    });
+    refreshEntityList();
+    selectedEid.value = rootEid;
+    props.selection.set(rootEid);
+    refreshInspector();
+  } catch (err) {
+    console.error("[HeliosEditor] spawnModelInstance failed:", err);
+    assetsPanelRef.value?.showToast?.("Не удалось загрузить модель");
+  }
+}
+
+function onViewportDragOver(ev: DragEvent): void {
+  if (ev.dataTransfer?.types.includes("Files")) {
+    ev.dataTransfer.dropEffect = "copy";
+  }
+}
+
+async function onViewportDrop(ev: DragEvent): Promise<void> {
+  const file = ev.dataTransfer?.files?.[0];
+  if (!file) return;
+
+  if (isDroppedImageFile(file)) {
+    await onViewportTextureDrop(file);
+    return;
+  }
+
+  const parsed = await parseDroppedModelFile(file);
+  if (!parsed.ok) {
+    assetsPanelRef.value?.showToast?.(parsed.message);
+    return;
+  }
+  try {
+    preloadModelBundleForPreview(
+      props.engineApi,
+      parsed.gltf,
+      parsed.bundle,
+      file.name,
+    );
+    const rootEid = await props.engineApi.spawnModelManifest(parsed.bundle.manifest, {
+      parentEid: selectedEid.value ?? undefined,
+      name: parsed.modelName,
+    });
+    const focusEid = pickFirstMeshUnderRoot(props.engineApi, rootEid);
+    props.modelImport?.onModelSpawned?.(rootEid, parsed.bundle.manifest);
+    if (props.modelImport?.saveModelBundle) {
+      await props.modelImport.saveModelBundle(parsed.bundle, {
+        glb: parsed.glbBlob,
+        manifestJson: JSON.stringify(parsed.bundle.manifest, null, 2),
+        modelName: parsed.modelName,
+      });
+      assetsPanelRef.value?.refresh?.();
+    }
+    refreshEntityList();
+    selectedEid.value = focusEid;
+    props.selection.set(focusEid);
+    refreshInspector();
+  } catch (err) {
+    console.error("[HeliosEditor] model drop failed:", err);
+    assetsPanelRef.value?.showToast?.("Ошибка предпросмотра модели");
+  }
+}
+
+async function onViewportTextureDrop(file: File): Promise<void> {
+  const guid = textureGuidFromFileName(file.name);
+  try {
+    if (props.modelImport?.saveTexture) {
+      await props.modelImport.saveTexture(file, guid);
+    }
+    await registerDroppedTexture(props.engineApi, file.name, guid);
+    assetsPanelRef.value?.refresh?.();
+    assetsPanelRef.value?.showToast?.(`Текстура ${guid} зарегистрирована`);
+  } catch (err) {
+    console.error("[HeliosEditor] texture drop failed:", err);
+    assetsPanelRef.value?.showToast?.("Не удалось сохранить текстуру");
+  }
+}
+
+function onApplyTextureMap(textureGuid: string): void {
+  const id = selectedEid.value;
+  if (id === null) {
+    assetsPanelRef.value?.showToast?.("Выберите сущность с Material");
+    return;
+  }
+  if (!props.engineApi.hasComponent(id, "Material" as never)) {
+    assetsPanelRef.value?.showToast?.("У сущности нет Material");
+    return;
+  }
+  const snap = props.engineApi.getEntitySnapshot(id);
+  const raw = snap?.components.Material as { descriptor?: unknown; guid?: unknown } | undefined;
+  const parsed = raw?.descriptor ? parseMaterialDescriptor(raw.descriptor) : null;
+  let descriptor: MaterialDescriptor;
+  if (parsed) {
+    descriptor = { ...parsed, map: textureGuid } as MaterialDescriptor;
+  } else {
+    descriptor = {
+      ...defaultMaterialDescriptor("meshStandard"),
+      map: textureGuid,
+    };
+  }
+  props.engineApi.applyComponentPatch(id, "Material" as never, {
+    guid: "",
+    descriptor: descriptor as unknown as Record<string, unknown>,
+  });
+  refreshInspector();
+  assetsPanelRef.value?.showToast?.("map обновлён — пересборка материала на следующем кадре");
 }
 
 function onDeleteEntity(eid: number): void {

@@ -1,5 +1,6 @@
-import { defineQuery, hasComponent } from 'bitecs';
+import { defineQuery, hasComponent } from "bitecs";
 import { Parent, Position, Rotation, Scale, System, isCyclic } from "@merlinn/helios-core";
+import * as THREE from "three";
 import { ThreeObject } from "../components";
 import { getThreeRenderContext } from "../ThreeRenderContext";
 
@@ -39,7 +40,15 @@ export class UpdateThreeObjectSystem extends System {
             // --- Обновляем иерархию ---
             if (hasComponent(world, Parent, eid)) {
                 const parentEid = Parent.target[eid];
-                const parentObject = ThreeObject.get(parentEid).object;
+                let parentObject = ThreeObject.get(parentEid).object as THREE.Object3D | undefined;
+                if (!parentObject && parentEid > 0) {
+                    const group = new THREE.Group();
+                    ThreeObject.get(parentEid).object = group;
+                    if (!group.parent) {
+                        root.add(group);
+                    }
+                    parentObject = group;
+                }
 
                 if (
                     parentObject &&

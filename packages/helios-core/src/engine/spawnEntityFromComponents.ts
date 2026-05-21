@@ -8,6 +8,7 @@ import { normalizeRotationSpawnFields } from '../utils/rotation';
  */
 export function applyComponentFields(
     ctx: Context,
+    componentName: string,
     schema: Record<string, unknown>,
     eid: number,
     fields: Record<string, unknown>,
@@ -15,6 +16,17 @@ export function applyComponentFields(
     const comp = schema as Record<string, unknown> & { get?: (eid: number) => Record<string, unknown> };
 
     for (const [field, rawValue] of Object.entries(fields)) {
+        if (
+            (componentName === "Geometry" || componentName === "Material") &&
+            field === "guid" &&
+            typeof rawValue === "string"
+        ) {
+            if (typeof comp.get !== "function") {
+                throw new Error(`[Helios] ${componentName}.guid requires defineComponent proxy storage`);
+            }
+            comp.get(eid)[field] = rawValue;
+            continue;
+        }
         if (typeof rawValue === 'string') {
             if (ctx.assetManager.hasAsset(rawValue)) {
                 (comp as any)[field][eid] = ctx.assetManager.getResourceId(rawValue);
@@ -58,7 +70,7 @@ export function applyComponentsToEntity(
         addComponent(ctx.ecsWorld, schema, eid);
         const payload =
             compName === "Rotation" ? normalizeRotationSpawnFields(fields) : fields;
-        applyComponentFields(ctx, schema as unknown as Record<string, unknown>, eid, payload);
+        applyComponentFields(ctx, compName, schema as unknown as Record<string, unknown>, eid, payload);
     }
 }
 
@@ -94,6 +106,6 @@ export function mergeComponentMapOntoEntity(
         addComponent(world, schema, eid);
         const payload =
             compName === "Rotation" ? normalizeRotationSpawnFields(fields) : fields;
-        applyComponentFields(ctx, schema as unknown as Record<string, unknown>, eid, payload);
+        applyComponentFields(ctx, compName, schema as unknown as Record<string, unknown>, eid, payload);
     }
 }

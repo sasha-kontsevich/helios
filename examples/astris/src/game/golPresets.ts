@@ -218,6 +218,7 @@ export function mapPresetCellsToWorld(
     return PRESETS[presetId].map(([dx, dz]) => [originGx + dx + ox, originGz + dz + oz] as const);
 }
 
+/** @deprecated Prefer {@link getLivingCellKeys} from `./golCellIndex`. */
 export function livingCellKeys(api: EngineAPI): Set<string> {
     const keys = new Set<string>();
     for (const snap of api.getAllEntities()) {
@@ -237,9 +238,10 @@ export function applyGolPreset(
     presetId: GolPresetId,
     originGx: number,
     originGz: number,
+    aliveKeys?: Set<string>,
 ): number {
     const worldCells = mapPresetCellsToWorld(presetId, originGx, originGz);
-    const alive = livingCellKeys(api);
+    const alive = aliveKeys ?? livingCellKeys(api);
     const toPlace: Array<readonly [number, number]> = [];
     for (const [gx, gz] of worldCells) {
         if (!alive.has(cellKey(gx, gz))) {

@@ -1,0 +1,10 @@
+{
+  "guid": "guid://models/crate/geo/0",
+  "type": "geometry",
+  "loader": "loadGltfMesh",
+  "dependencies": [
+    "guid://models/crate/glb"
+  ],
+  "gltfMeshIndex": 0,
+  "gltfPrimitiveIndex": 0
+}

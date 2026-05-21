@@ -1,6 +1,7 @@
 import "./componentMapAugment";
 import { Engine } from "@merlinn/helios-core";
-import { createEditor } from "@merlinn/helios-editor";
+import { createEditor, textureGuidFromFileName } from "@merlinn/helios-editor";
+import { saveTextureToAssets } from "./editorTextureSave";
 import { AstrisGameHudPlugin } from "./gameUi/AstrisGameHudPlugin";
 import {
     ASTRIS_GOL_STATS_CAPABILITY,
@@ -25,6 +26,9 @@ async function bootstrap() {
     const editor = createEditor({
         api: engine.api,
         root,
+        modelImport: {
+            saveTexture: async (file, guid) => saveTextureToAssets(file, guid ?? textureGuidFromFileName(file.name)),
+        },
         gameUiPlugins: [new AstrisGameHudPlugin()],
         playMode: {
             shouldExcludeEntity: (_, snap) => {

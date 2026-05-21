@@ -36,6 +36,7 @@
           :show-uniform-lock="sec.name === 'Scale'"
           @apply-patch="onApplyPatch"
           @editing-changed="onEditingChanged"
+          @expand-model="onExpandModel"
         />
         <GenericComponentFields
           v-else
@@ -60,7 +61,7 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref } from "vue";
-import type { EntitySnapshot } from "@merlinn/helios-core";
+import type { EngineAPI, EntitySnapshot } from "@merlinn/helios-core";
 import ContextMenu from "../ui/contextMenu/ContextMenu.vue";
 import type { ContextMenuEntry, ContextMenuItem } from "../ui/contextMenu/contextMenuTypes";
 import { useContextMenu } from "../ui/contextMenu/useContextMenu";
@@ -82,6 +83,7 @@ const props = defineProps<{
     selectedEid: number | null;
     snapshot: EntitySnapshot | null;
     availableComponents?: string[];
+    engineApi?: EngineAPI;
     /** When omitted, uses a process-wide default registry (built-in inspectors only). */
     inspectorRegistry?: EditorInspectorRegistry;
 }>();
@@ -93,6 +95,7 @@ const emit = defineEmits<{
   removeComponent: [componentName: string];
   copyComponent: [componentName: string];
   pasteComponents: [];
+  entitiesChanged: [];
 }>();
 
 const showRuntimeInternals = ref(false);
@@ -123,6 +126,13 @@ function toggleRaw(compName: string): void {
 
 function onApplyPatch(payload: { componentName: string; patch: Record<string, unknown> }): void {
   emit("applyPatch", payload);
+}
+
+async function onExpandModel(): Promise<void> {
+  const eid = props.selectedEid;
+  if (eid === null || !props.engineApi) return;
+  await props.engineApi.expandModelInstanceAt(eid);
+  emit("entitiesChanged");
 }
 
 function onEditingChanged(isEditing: boolean): void {

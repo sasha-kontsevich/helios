@@ -1,6 +1,7 @@
 import { markRaw } from "vue";
 import GeometryInspector from "../GeometryInspector.vue";
 import MaterialInspector from "../MaterialInspector.vue";
+import ModelInstanceInspector from "../ModelInstanceInspector.vue";
 import RotationInspector from "../RotationInspector.vue";
 import Vec3ComponentInspector from "../Vec3ComponentInspector.vue";
 import { EditorInspectorRegistry } from "./EditorInspectorRegistry";
@@ -11,6 +12,7 @@ function builtInExtensions(): ComponentInspectorExtension[] {
     const Rot = markRaw(RotationInspector);
     const Geo = markRaw(GeometryInspector);
     const Mat = markRaw(MaterialInspector);
+    const ModelInst = markRaw(ModelInstanceInspector);
     return [
         {
             id: "builtin-inspector-position",
@@ -46,6 +48,13 @@ function builtInExtensions(): ComponentInspectorExtension[] {
             priority: 0,
             supportsRaw: true,
             view: Mat,
+        },
+        {
+            id: "builtin-inspector-model-instance",
+            componentNames: ["ModelInstance"],
+            priority: 0,
+            supportsRaw: false,
+            view: ModelInst,
         },
     ];
 }

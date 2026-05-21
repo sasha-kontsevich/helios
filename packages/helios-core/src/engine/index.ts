@@ -16,3 +16,4 @@ export * from './Component';
 export * from './spawnEntityFromComponents';
 export * from './spawnEntitiesWithParent';
 export * from './registerDefaultAssetLoaders';
+export * from './spawnModelInstance';

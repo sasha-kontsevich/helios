@@ -1,8 +1,6 @@
-// IAssetLoader.ts
-export interface IAssetLoader<T = any> {
-    /**
-     * Загружает ассет по path (URL или относительному пути),
-     * возвращает готовый объект (например, HTMLImageElement, THREE.Mesh и т.п.)
-     */
-    load(path: string): Promise<T>;
+import type { AssetRecord } from "./AssetRecord";
+
+export interface IAssetLoader<T = unknown> {
+    /** Loads an asset using its indexed record (path, GLTF indices, dependencies). */
+    load(record: AssetRecord): Promise<T>;
 }

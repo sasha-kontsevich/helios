@@ -1,0 +1,56 @@
+{
+  "guid": "guid://models/lp",
+  "name": "lp",
+  "glbGuid": "guid://models/lp/glb",
+  "entities": [
+    {
+      "id": "root",
+      "components": {
+        "Name": {
+          "label": "lp"
+        }
+      }
+    },
+    {
+      "id": "mesh_0",
+      "components": {
+        "Name": {
+          "label": "lowpoly002"
+        },
+        "Parent": {
+          "target": "root"
+        },
+        "Position": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "Rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 1
+        },
+        "Scale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        },
+        "Mesh": {},
+        "Geometry": {
+          "guid": "guid://models/lp/geo/0"
+        },
+        "Material": {
+          "descriptor": {
+            "type": "meshStandard",
+            "color": 16777215,
+            "roughness": 0.65,
+            "metalness": 0.25,
+            "normalMap": "guid://textures/ship2_normal",
+            "aoMap": "guid://textures/ship2_ao"
+          }
+        }
+      }
+    }
+  ]
+}

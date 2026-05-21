@@ -18,6 +18,8 @@ export {
     Material,
     Mesh,
 } from "./rendering";
+export { ModelInstance } from "./model";
+import type { ModelInstance as ModelInstanceComponent } from "./model";
 
 export const Position = defineComponent({ x: Types.f32, y: Types.f32, z: Types.f32 });
 
@@ -43,5 +45,6 @@ declare module "../types/ComponentMap" {
         Camera: typeof CameraComponent;
         AmbientLight: typeof AmbientLightComponent;
         DirectionalLight: typeof DirectionalLightComponent;
+        ModelInstance: typeof ModelInstanceComponent;
     }
 }

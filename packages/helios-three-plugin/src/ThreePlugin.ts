@@ -1,4 +1,5 @@
 import { Context, Plugin, SUPPORTED_HELIOS_PLUGIN_API } from "@merlinn/helios-core";
+import { registerThreeAssetLoaders } from "./assets/registerThreeAssetLoaders";
 import {
     THREE_RENDERER_CAPABILITY,
     ThreePluginOptions,
@@ -21,6 +22,7 @@ export class ThreePlugin extends Plugin {
 
     public setup(context: Context): void {
         super.setup(context);
+        registerThreeAssetLoaders(context);
         this.renderContext = new ThreeRenderContext(this.options);
         this.renderContext.init();
         context.capabilities.register(THREE_RENDERER_CAPABILITY, this.renderContext);

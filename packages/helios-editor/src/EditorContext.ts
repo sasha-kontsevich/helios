@@ -5,6 +5,7 @@ import type { EditorInspectorRegistry } from "./inspector/registry/EditorInspect
 import type { PlayModeController } from "./play/PlayModeController";
 import type { ISelectionBus } from "./selection/SelectionBus";
 import type { EditorViewportInteractionController } from "./viewport/EditorViewportInteractionMode";
+import type { EditorModelImportHost } from "./modelImport/types";
 
 /**
  * Immutable context passed to {@link EditorPlugin.setup}.
@@ -27,4 +28,5 @@ export interface EditorContext {
     readonly playMode: PlayModeController;
     /** Present when {@link createEditor} was given `gameUiPlugins`. */
     readonly gameUiHost?: GameUiHost;
+    readonly modelImport?: EditorModelImportHost;
 }

@@ -8,6 +8,7 @@ import {
     ASTRIS_GOL_TOOL_CAPABILITY,
 } from "./astrisCapabilities";
 import type { GridClickQueue } from "./GridClickQueue";
+import { getLivingCellKeys } from "./golCellIndex";
 import { applyGolPreset } from "./golPresets";
 import { clearGolHover, updateGolHoverFromCell } from "./golHoverLogic";
 import { pickGridCell } from "./gridPlanePick";
@@ -32,7 +33,7 @@ export class AstrisGridPointerSink implements IGameViewportPointerSink {
             ASTRIS_GOL_ARMED_PRESET_CAPABILITY,
         );
         if (armed?.presetId) {
-            applyGolPreset(engine.api, armed.presetId, cell.gx, cell.gz);
+            applyGolPreset(engine.api, armed.presetId, cell.gx, cell.gz, getLivingCellKeys(engine));
             updateGolHoverFromCell(engine, cell.gx, cell.gz);
             return true;
         }

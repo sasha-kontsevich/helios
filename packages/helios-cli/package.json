@@ -1,18 +1,25 @@
 {
   "name": "@merlinn/helios-cli",
   "version": "1.0.0",
+  "type": "module",
   "bin": {
-    "create-game": "./dist/create-game.js"
+    "create-game": "./dist/create-game.js",
+    "helios": "./dist/import-model.js"
   },
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch"
   },
   "dependencies": {
-    "inquirer": "^8.0.0"
+    "@merlinn/helios-three-plugin": "workspace:*",
+    "inquirer": "^8.0.0",
+    "obj2gltf": "^3.2.0",
+    "three": "^0.176.0"
   },
   "devDependencies": {
-    "typescript": "^4.5.0"
+    "@types/node": "^22.15.17",
+    "@types/three": "^0.176.0",
+    "typescript": "^5.6.0"
   },
   "publishConfig": {
     "access": "public"

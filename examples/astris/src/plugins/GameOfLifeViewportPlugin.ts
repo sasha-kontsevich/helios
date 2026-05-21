@@ -4,6 +4,7 @@ import { AstrisGridPointerSink } from "../game/AstrisGridPointerSink";
 import { GridClickQueue } from "../game/GridClickQueue";
 import {
     ASTRIS_GOL_ARMED_PRESET_CAPABILITY,
+    ASTRIS_GOL_CELL_INDEX_CAPABILITY,
     ASTRIS_GOL_HOVER_CAPABILITY,
     ASTRIS_GOL_STATS_CAPABILITY,
     ASTRIS_GOL_TOOL_CAPABILITY,
@@ -13,6 +14,7 @@ import {
     createDefaultGolStatsState,
     createDefaultGolToolState,
 } from "../game/astrisCapabilities";
+import { GolAliveCellIndex } from "../game/golCellIndex";
 
 /**
  * Registers grid input queue, tool/stats/hover state, and pointer sink for game viewport mode.
@@ -26,6 +28,7 @@ export class GameOfLifeViewportPlugin extends Plugin {
     private readonly stats = createDefaultGolStatsState();
     private readonly hover = createDefaultGolHoverState();
     private readonly armedPreset = createDefaultGolArmedPresetState();
+    private readonly cellIndex = new GolAliveCellIndex();
     private readonly sink = new AstrisGridPointerSink(this.queue);
 
     constructor() {
@@ -39,6 +42,7 @@ export class GameOfLifeViewportPlugin extends Plugin {
         context.capabilities.register(ASTRIS_GOL_TOOL_CAPABILITY, this.tool);
         context.capabilities.register(ASTRIS_GOL_STATS_CAPABILITY, this.stats);
         context.capabilities.register(ASTRIS_GOL_HOVER_CAPABILITY, this.hover);
+        context.capabilities.register(ASTRIS_GOL_CELL_INDEX_CAPABILITY, this.cellIndex);
         context.capabilities.register(ASTRIS_GOL_ARMED_PRESET_CAPABILITY, this.armedPreset);
     }
 
@@ -49,6 +53,7 @@ export class GameOfLifeViewportPlugin extends Plugin {
         ctx.capabilities.delete(ASTRIS_GOL_TOOL_CAPABILITY);
         ctx.capabilities.delete(ASTRIS_GOL_STATS_CAPABILITY);
         ctx.capabilities.delete(ASTRIS_GOL_HOVER_CAPABILITY);
+        ctx.capabilities.delete(ASTRIS_GOL_CELL_INDEX_CAPABILITY);
         ctx.capabilities.delete(ASTRIS_GOL_ARMED_PRESET_CAPABILITY);
         super.dispose();
     }

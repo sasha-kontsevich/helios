@@ -5,6 +5,19 @@ function isIndexedComponentStorage(v: unknown): v is ArrayLike<number> {
     return Array.isArray(v) || (typeof ArrayBuffer !== "undefined" && ArrayBuffer.isView(v as ArrayBufferView));
 }
 
+function isLiveThreeResource(v: unknown): boolean {
+    if (typeof v !== "object" || v === null) {
+        return false;
+    }
+    const o = v as { isBufferGeometry?: boolean; isMaterial?: boolean; type?: string };
+    return (
+        o.isBufferGeometry === true ||
+        o.isMaterial === true ||
+        o.type === "BufferGeometry" ||
+        (typeof o.type === "string" && /Material$/.test(o.type))
+    );
+}
+
 export function extractComponentData(component: any, eid: number): Record<string, any> {
     const data: Record<string, any> = {};
     const hasProxyGet = typeof component?.get === "function";
@@ -17,11 +30,18 @@ export function extractComponentData(component: any, eid: number): Record<string
             if (hasProxyGet) {
                 try {
                     const resolved = component.get(eid)?.[key];
-                    if (resolved !== undefined && resolved !== null && typeof resolved === "object") {
+                    if (typeof resolved === "string") {
                         data[key] = resolved;
                         continue;
                     }
-                    if (typeof resolved === "string") {
+                    if (isLiveThreeResource(resolved)) {
+                        continue;
+                    }
+                    if (typeof resolved === "number" && Number.isFinite(resolved)) {
+                        data[key] = resolved;
+                        continue;
+                    }
+                    if (resolved !== undefined && resolved !== null && typeof resolved === "object") {
                         data[key] = resolved;
                         continue;
                     }

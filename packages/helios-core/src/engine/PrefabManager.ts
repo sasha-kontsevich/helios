@@ -50,6 +50,7 @@ export class PrefabManager {
             addComponent(this.ctx.ecsWorld, schema, eid);
             applyComponentFields(
                 this.ctx,
+                compName,
                 schema as unknown as Record<string, unknown>,
                 eid,
                 mergedFields as Record<string, unknown>,

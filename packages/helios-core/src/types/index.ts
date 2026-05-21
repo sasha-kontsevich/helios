@@ -5,6 +5,7 @@ export * from './AssetMeta';
 export * from './AssetRecord';
 export * from './IAssetLoader';
 export * from './SceneData';
+export * from './ModelManifest';
 export * from './PrefabInstance';
 export * from './ComponentOverrides';
 export * from './SystemConstructor'

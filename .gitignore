@@ -39,5 +39,8 @@ Thumbs.db
 # Coverage
 coverage/
 
+# Large source art in repo root (exported PNGs live under examples/astris/public/assets)
+/*.psd
+
 # Editor specific
 .editorconfig

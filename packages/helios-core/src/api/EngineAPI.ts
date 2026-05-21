@@ -22,6 +22,15 @@ import {
     spawnSnapshotEntitiesWithParentRemap,
 } from "../engine/spawnEntitiesWithParent";
 import { mergeComponentMapOntoEntity, spawnEntityFromComponentMap } from "../engine/spawnEntityFromComponents";
+import {
+    expandAllModelInstances,
+    expandModelInstanceMarker,
+    spawnModelInstance,
+    spawnModelManifest,
+    type SpawnModelInstanceOptions,
+} from "../engine/spawnModelInstance";
+import type { AssetRecord } from "../types/AssetRecord";
+import type { ModelManifest } from "../types/ModelManifest";
 import { Parent } from "../components/parent";
 import { isCyclic } from "../utils/hierarchy";
 
@@ -173,6 +182,7 @@ export class EngineAPI {
                 sourceEid: inst.sourceEid,
             })),
         );
+        void expandAllModelInstances(this.context);
     }
 
     getEntityParentEid(eid: number): number | null {
@@ -335,6 +345,58 @@ export class EngineAPI {
      */
     createEntityFromComponents(components: Record<string, Record<string, unknown>>): number {
         return spawnEntityFromComponentMap(this.context, components);
+    }
+
+    /** GUIDs of indexed assets with loader `loadModel`. */
+    listModelAssetGuids(): string[] {
+        return this.context.assetDatabase
+            .getAllRecords()
+            .filter((r) => r.loader === "loadModel")
+            .map((r) => r.guid);
+    }
+
+    /** GUIDs of indexed assets with loader `loadTexture`. */
+    listTextureAssetGuids(): string[] {
+        return this.context.assetDatabase
+            .getAllRecords()
+            .filter((r) => r.loader === "loadTexture")
+            .map((r) => r.guid);
+    }
+
+    /** Spawn a 3D model asset (GLB + manifest) into the ECS world. */
+    async spawnModelInstance(
+        modelGuid: string,
+        options?: SpawnModelInstanceOptions,
+    ): Promise<number> {
+        return spawnModelInstance(this.context, modelGuid, options);
+    }
+
+    /** Spawn from an in-memory manifest (editor preview before saving assets). */
+    async spawnModelManifest(
+        manifest: ModelManifest,
+        options?: SpawnModelInstanceOptions,
+    ): Promise<number> {
+        return spawnModelManifest(this.context, manifest, options);
+    }
+
+    /** Expand all {@link ModelInstance} marker entities after scene load. */
+    async expandAllModelInstances(): Promise<void> {
+        await expandAllModelInstances(this.context);
+    }
+
+    /** Expand a single {@link ModelInstance} marker entity. */
+    async expandModelInstanceAt(markerEid: number): Promise<number | null> {
+        return expandModelInstanceMarker(this.context, markerEid);
+    }
+
+    /** Register asset meta and optional preloaded resource (editor drop preview). */
+    preloadAsset(record: AssetRecord, resource?: unknown): void {
+        this.context.assetManager.preloadAsset(record, resource);
+    }
+
+    /** Load asset by GUID into ResourceManager (textures, models, scenes, …). */
+    async loadAsset(guid: string): Promise<number> {
+        return this.context.assetManager.loadAsset(guid);
     }
 
     /**

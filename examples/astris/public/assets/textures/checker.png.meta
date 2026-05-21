@@ -1,0 +1,6 @@
+{
+  "guid": "guid://textures/checker",
+  "type": "texture",
+  "loader": "loadTexture",
+  "dependencies": []
+}

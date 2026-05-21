@@ -14,6 +14,11 @@
 |----------|----------|
 | Публичный API **`helios-core`** (`EngineAPI`, экспорты, формат буфера, спавн/merge) | `docs/architecture.md` (раздел «Ядро»), при необходимости `AGENTS.md` |
 | **`helios-core`**: `rendering/`, компоненты `Geometry`/`Material`/`Mesh`/`Camera`/lights, формат сцен | `docs/scene-serialization.md`, `docs/architecture.md` |
+| **`helios-core` / `helios-three-plugin`**: texture assets (`loadTexture`), `Material.descriptor` map slots | `docs/textures.md`, `docs/scene-serialization.md` |
+| **`helios-core`**: `ModelInstance`, `ModelManifest`, `spawnModelInstance`, asset `loadModel` | `docs/model-import.md`, `docs/architecture.md`, `docs/scene-serialization.md` |
+| **`helios-three-plugin`**: GLTF loaders (`loadGltfBinary` / mesh / material), `buildModelBundleFromGltf` | `docs/model-import.md`, `docs/architecture.md` |
+| **`helios-cli`**: `helios import-model` | `docs/model-import.md`, `AGENTS.md` |
+| **`helios-editor`**: Assets panel, model drop, `ModelInstance` inspector | `docs/model-import.md`, `docs/architecture.md` |
 | **`helios-three-plugin`**: capability, `ThreeRenderContext`, `EnsureThreeRenderable`, системы рендера, **теги пикинга** (`heliosEntityEid`) | `docs/architecture.md` (раздел «Плагин Three.js»), при смене JSON — `docs/scene-serialization.md` |
 | **`helios-editor`**: `createEditor`, жизненный цикл, панели, буфер, контекстные меню, выделение, **пикинг/жесты вьюпорта** | `docs/architecture.md` (раздел «Редактор»), при смене peers — `README.md` и `docs/overview.md` |
 | **`examples/astris`**: скрипты, способ подключения редактора | `README.md`, при необходимости `docs/architecture.md` (астрис) |

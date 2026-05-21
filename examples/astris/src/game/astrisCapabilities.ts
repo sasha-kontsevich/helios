@@ -7,8 +7,11 @@ export const ASTRIS_GOL_TOOL_CAPABILITY = "astris.golTool";
 /** Live generation counter and cell count (updated by {@link GameOfLifeStepSystem}). */
 export const ASTRIS_GOL_STATS_CAPABILITY = "astris.golStats";
 
-/** Hover intent for {@link GolHoverSyncSystem} (preview entities live in ECS). */
+/** Hover intent for {@link GolHoverSyncSystem} (instanced mesh preview). */
 export const ASTRIS_GOL_HOVER_CAPABILITY = "astris.golHover";
+
+/** O(1) set of occupied {@link LifeCell} grid coordinates. */
+export const ASTRIS_GOL_CELL_INDEX_CAPABILITY = "astris.golCellIndex";
 
 /** Pattern armed for next LMB placement (HUD preset buttons). */
 export const ASTRIS_GOL_ARMED_PRESET_CAPABILITY = "astris.golArmedPreset";

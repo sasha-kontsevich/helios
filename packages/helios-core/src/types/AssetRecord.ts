@@ -6,4 +6,6 @@ export interface AssetRecord {
     loader: string;
     path: string;
     dependencies?: string[];
+    gltfMeshIndex?: number;
+    gltfPrimitiveIndex?: number;
 }

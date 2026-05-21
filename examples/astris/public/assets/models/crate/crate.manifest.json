@@ -1,0 +1,49 @@
+{
+  "guid": "guid://models/crate",
+  "name": "crate",
+  "glbGuid": "guid://models/crate/glb",
+  "entities": [
+    {
+      "id": "root",
+      "components": {
+        "Name": {
+          "label": "crate"
+        }
+      }
+    },
+    {
+      "id": "mesh_0",
+      "components": {
+        "Name": {
+          "label": "Node"
+        },
+        "Parent": {
+          "target": "root"
+        },
+        "Position": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "Rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 1
+        },
+        "Scale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        },
+        "Mesh": {},
+        "Geometry": {
+          "guid": "guid://models/crate/geo/0"
+        },
+        "Material": {
+          "guid": "guid://models/crate/mat/0"
+        }
+      }
+    }
+  ]
+}

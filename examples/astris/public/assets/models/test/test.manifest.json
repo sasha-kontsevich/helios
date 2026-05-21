@@ -1,0 +1,49 @@
+{
+  "guid": "guid://models/test",
+  "name": "test",
+  "glbGuid": "guid://models/test/glb",
+  "entities": [
+    {
+      "id": "root",
+      "components": {
+        "Name": {
+          "label": "test"
+        }
+      }
+    },
+    {
+      "id": "mesh_0",
+      "components": {
+        "Name": {
+          "label": "lowpoly"
+        },
+        "Parent": {
+          "target": "root"
+        },
+        "Position": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "Rotation": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 1
+        },
+        "Scale": {
+          "x": 1,
+          "y": 1,
+          "z": 1
+        },
+        "Mesh": {},
+        "Geometry": {
+          "guid": "guid://models/test/geo/0"
+        },
+        "Material": {
+          "guid": "guid://models/test/mat/0"
+        }
+      }
+    }
+  ]
+}

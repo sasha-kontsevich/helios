@@ -8,28 +8,30 @@ export class AssetDatabase {
     constructor(private baseUrl = '/assets') {}
 
     /**
-     * Сканирует указанный список JSON-файлов (из asset-index.json)
-     * и читает к каждому его .meta, заполняя карту GUID → AssetRecord
+     * Scans asset-index paths and reads each sidecar `.meta` (JSON, GLB, manifest, stubs).
      */
     async indexMeta(assetList: string[]): Promise<void> {
         if (this.indexed) return;
-        await Promise.all(assetList.map(async assetPath => {
-            if (!assetPath.endsWith('.json')) return;
-
-            const jsonUrl  = `${this.baseUrl}/${assetPath}`;
-
-            const metaUrl  = `${jsonUrl}.meta`;
-            const metaText = await fetch(metaUrl).then(r => r.text());
-            const meta: AssetMeta = JSON.parse(metaText);
-
-            this.assetsByGuid.set(meta.guid, {
-                guid:         meta.guid,
-                type:         meta.type,
-                loader:       meta.loader,
-                dependencies: meta.dependencies,
-                path:         jsonUrl,
-            });
-        }));
+        await Promise.all(
+            assetList.map(async (assetPath) => {
+                const assetUrl = `${this.baseUrl}/${assetPath}`;
+                const metaUrl = `${assetUrl}.meta`;
+                const res = await fetch(metaUrl);
+                if (!res.ok) {
+                    return;
+                }
+                const meta: AssetMeta = JSON.parse(await res.text());
+                this.assetsByGuid.set(meta.guid, {
+                    guid: meta.guid,
+                    type: meta.type,
+                    loader: meta.loader,
+                    dependencies: meta.dependencies,
+                    path: assetUrl,
+                    gltfMeshIndex: meta.gltfMeshIndex,
+                    gltfPrimitiveIndex: meta.gltfPrimitiveIndex,
+                });
+            }),
+        );
         this.indexed = true;
     }
 
@@ -54,5 +56,10 @@ export class AssetDatabase {
     /** Список всех записей (AssetRecord) */
     getAllRecords(): AssetRecord[] {
         return Array.from(this.assetsByGuid.values());
+    }
+
+    /** Register meta at runtime (e.g. editor model drop preview before asset-index refresh). */
+    registerRecord(record: AssetRecord): void {
+        this.assetsByGuid.set(record.guid, record);
     }
 }

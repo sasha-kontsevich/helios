@@ -52,7 +52,8 @@
             "color": 16777215,
             "roughness": 0.55,
             "metalness": 0.15,
-            "wireframe": false
+            "wireframe": false,
+            "map": "guid://textures/checker"
           }
         },
         "Parent": { "target": "demo-content" }
@@ -98,6 +99,16 @@
           "y": 0.629130474869533,
           "z": 0.47889997440704235
         }
+      }
+    },
+    {
+      "id": "lp-prop",
+      "components": {
+        "Name": { "label": "Корабль" },
+        "ModelInstance": { "model": "guid://models/lp" },
+        "Position": { "x": 0, "y": 20, "z": -20 },
+        "Scale": { "x": 0.01, "y": 0.01, "z": 0.01 },
+        "Parent": { "target": "scene-root" }
       }
     }
   ]

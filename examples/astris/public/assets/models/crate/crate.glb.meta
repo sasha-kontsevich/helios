@@ -1,0 +1,6 @@
+{
+  "guid": "guid://models/crate/glb",
+  "type": "gltf",
+  "loader": "loadGltfBinary",
+  "dependencies": []
+}

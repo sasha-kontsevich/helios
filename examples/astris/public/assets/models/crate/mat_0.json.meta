@@ -1,0 +1,10 @@
+{
+  "guid": "guid://models/crate/mat/0",
+  "type": "material",
+  "loader": "loadGltfMaterial",
+  "dependencies": [
+    "guid://models/crate/glb"
+  ],
+  "gltfMeshIndex": 0,
+  "gltfPrimitiveIndex": 0
+}

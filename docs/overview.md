@@ -6,11 +6,11 @@
 
 ### `@merlinn/helios-core`
 
-Ядро: `Engine`, мир **bitecs**, **`EngineAPI`**, сериализуемые компоненты рендера (**`Geometry`**, **`Material`**, **`Mesh`**, **`Camera`**, свет), модуль **`rendering/`** (дескрипторы, **`meshEntityComponents`**), спавн и слияние сущностей, **`EditorEntityClipboardV1`**.
+Ядро: `Engine`, мир **bitecs**, **`EngineAPI`**, сериализуемые компоненты рендера (**`Geometry`**, **`Material`**, **`Mesh`**, **`Camera`**, свет), **`ModelInstance`** / **`ModelManifest`**, модуль **`rendering/`** (дескрипторы, **`meshEntityComponents`**), спавн и слияние сущностей, **`EditorEntityClipboardV1`**.
 
 ### `@merlinn/helios-three-plugin`
 
-Интеграция **Three.js**: capability **`renderer.three`**, **`ThreeRenderContext`**, **`EnsureThreeRenderable`**, компиляция core-дескрипторов в **`ThreeMesh`** / **`ThreeObject`**, системы камеры/света/сцены.
+Интеграция **Three.js**: capability **`renderer.three`**, **`ThreeRenderContext`**, **`EnsureThreeRenderable`**, компиляция core-дескрипторов в **`ThreeMesh`** / **`ThreeObject`**, GLTF-лоадеры для импортированных моделей, системы камеры/света/сцены.
 
 ### `@merlinn/helios-input-plugin`
 
@@ -18,7 +18,11 @@
 
 ### `@merlinn/helios-editor`
 
-Редактор на **Vue 3**: **`createEditor`**, **`SelectionBus`**, панели сущностей и инспектора, **`EditorSceneView`**, оверлей выделения, контекстные меню в **`ui/contextMenu/`**.
+Редактор на **Vue 3**: **`createEditor`**, **`SelectionBus`**, панели сущностей, **Assets** (модели), инспектора, **`EditorSceneView`**, drag-and-drop GLB/OBJ, оверлей выделения, контекстные меню в **`ui/contextMenu/`**.
+
+### `@merlinn/helios-cli`
+
+CLI: **`helios import-model`** — OBJ/FBX/GLB → `*.glb` + `*.manifest.json` (см. **[model-import.md](model-import.md)**).
 
 Требуются peer-зависимости: **`vue`**, **`@merlinn/helios-core`**, **`@merlinn/helios-three-plugin`**, **`three`** (см. `packages/helios-editor/package.json`).
 

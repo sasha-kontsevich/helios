@@ -2,28 +2,35 @@ import { addComponent, defineQuery, hasComponent } from "bitecs";
 import { Geometry, Material, Mesh, System } from "@merlinn/helios-core";
 import { parseGeometryDescriptor, parseMaterialDescriptor } from "@merlinn/helios-core";
 import * as THREE from "three";
+import { createGeometryFromDescriptor, createMaterialFromDescriptor, createTextureResolver } from "../builders/descriptors";
+import { collectTextureGuidsFromMaterialDescriptor } from "@merlinn/helios-core";
 import {
-    createGeometryFromDescriptor,
-    createMaterialFromDescriptor,
-} from "../builders/descriptors";
+    assetGuidCacheKey,
+    descriptorCacheKey,
+    isResolvedThreeResource,
+    resolveAndApplyGeometry,
+    resolveAndApplyMaterial,
+    resolveRefField,
+} from "../assets/resolveGeometryMaterialRef";
 import { MeshResourcesResolved, ThreeMesh, ThreeObject } from "../components";
+import { ensureGeometryUv2FromUv } from "../assets/geometryUv";
+import { removeStaleTaggedObjectsForEntity } from "../entityThreeObject";
+import { getThreeRenderContext } from "../ThreeRenderContext";
 
-function resolveRefField(
-    ctx: { resources: { getOrNot(id: number): unknown } },
-    refComponent: typeof Geometry | typeof Material,
-    eid: number,
-    field: "guid" | "descriptor",
-): unknown {
-    if (typeof refComponent?.get === "function") {
-        try {
-            return refComponent.get(eid)?.[field];
-        } catch {
-            // ignore
-        }
+function hashDescriptorJson(value: unknown): number {
+    if (typeof value !== "object" || value === null) {
+        return 0;
     }
-    const id = refComponent?.[field]?.[eid] as number | undefined;
-    return id ? ctx.resources.getOrNot(id) : undefined;
+    let hash = 0;
+    const s = JSON.stringify(value);
+    for (let i = 0; i < s.length; i++) {
+        hash = (hash * 31 + s.charCodeAt(i)) | 0;
+    }
+    return hash >>> 0;
 }
+
+const geometryResourceByDescHash = new Map<number, number>();
+const materialResourceByDescHash = new Map<number, number>();
 
 /**
  * Per-frame resolver for editor-created entities.
@@ -33,6 +40,7 @@ export class ThreeResourceBuildSystem extends System {
     static override readonly runsInEditor = true;
 
     private readonly query = defineQuery([Mesh, Geometry, Material, ThreeObject]);
+    private readonly textureLoadsPending = new Set<number>();
 
     update(): void {
         const world = this.world;
@@ -48,12 +56,27 @@ export class ThreeResourceBuildSystem extends System {
 
             if (!hasComponent(world, MeshResourcesResolved, eid)) {
                 addComponent(world, MeshResourcesResolved, eid);
+            } else if (MeshResourcesResolved.built[eid] === 1) {
+                const geoGuidId = needsGeometry ? assetGuidCacheKey(Geometry, eid) : 0;
+                const geoDescId = needsGeometry ? descriptorCacheKey(Geometry, eid) : 0;
+                const matGuidId = needsMaterial ? assetGuidCacheKey(Material, eid) : 0;
+                const matDescId = needsMaterial ? descriptorCacheKey(Material, eid) : 0;
+                const unchanged =
+                    (!needsGeometry ||
+                        (MeshResourcesResolved.geoGuidId[eid] === geoGuidId &&
+                            MeshResourcesResolved.geoDescId[eid] === geoDescId)) &&
+                    (!needsMaterial ||
+                        (MeshResourcesResolved.matGuidId[eid] === matGuidId &&
+                            MeshResourcesResolved.matDescId[eid] === matDescId));
+                if (unchanged) {
+                    continue;
+                }
             }
 
-            const geoGuidId = needsGeometry ? (Geometry.guid[eid] ?? 0) : 0;
-            const geoDescId = needsGeometry ? (Geometry.descriptor[eid] ?? 0) : 0;
-            const matGuidId = needsMaterial ? (Material.guid[eid] ?? 0) : 0;
-            const matDescId = needsMaterial ? (Material.descriptor[eid] ?? 0) : 0;
+            const geoGuidId = needsGeometry ? assetGuidCacheKey(Geometry, eid) : 0;
+            const geoDescId = needsGeometry ? descriptorCacheKey(Geometry, eid) : 0;
+            const matGuidId = needsMaterial ? assetGuidCacheKey(Material, eid) : 0;
+            const matDescId = needsMaterial ? descriptorCacheKey(Material, eid) : 0;
 
             const changed =
                 (needsGeometry &&
@@ -73,15 +96,9 @@ export class ThreeResourceBuildSystem extends System {
                 ThreeMesh.geometry[eid] = 0;
                 ThreeMesh.material[eid] = 0;
 
-                const obj = ThreeObject.get(eid).object;
-                if (obj) {
-                    obj.parent?.remove(obj);
-                    if (obj instanceof THREE.Mesh) {
-                        obj.geometry.dispose?.();
-                        (obj.material as THREE.Material)?.dispose?.();
-                    }
-                    ThreeObject.object[eid] = 0;
-                }
+                const root = getThreeRenderContext(this.context).getWorldRoot();
+                const live = ThreeObject.get(eid).object as THREE.Object3D | undefined;
+                removeStaleTaggedObjectsForEntity(root, eid, live);
             }
 
             if (MeshResourcesResolved.built[eid] === 1) {
@@ -89,54 +106,91 @@ export class ThreeResourceBuildSystem extends System {
             }
 
             if (needsGeometry && (ThreeMesh.geometry[eid] ?? 0) === 0) {
-                const guid = resolveRefField(this.context, Geometry, eid, "guid");
-                const descRaw = resolveRefField(this.context, Geometry, eid, "descriptor");
-
-                if (guid && typeof guid === "string" && guid.length > 0) {
-                    if (this.context.assetManager.hasAsset(guid)) {
-                        const rid = this.context.assetManager.getResourceId(guid);
-                        const loaded = this.context.resources.get<unknown>(rid);
-                        if (loaded instanceof THREE.BufferGeometry) {
-                            ThreeMesh.geometry[eid] = this.context.resources.set(loaded);
-                        }
-                    }
-                } else {
+                if (!resolveAndApplyGeometry(this.context, eid)) {
+                    const descRaw = resolveRefField(this.context, Geometry, eid, "descriptor");
                     const parsed = parseGeometryDescriptor(descRaw);
                     if (parsed) {
-                        const geo = createGeometryFromDescriptor(parsed);
-                        if (geo) {
-                            ThreeMesh.geometry[eid] = this.context.resources.set(geo);
-                        } else {
-                            console.warn(`[ThreeResourceBuildSystem] Invalid geometry descriptor eid=${eid}`, descRaw);
+                        const descHash = hashDescriptorJson(parsed);
+                        let geoId = geometryResourceByDescHash.get(descHash);
+                        if (geoId === undefined) {
+                            const geo = createGeometryFromDescriptor(parsed);
+                            if (!geo) {
+                                console.warn(
+                                    `[ThreeResourceBuildSystem] Invalid geometry descriptor eid=${eid}`,
+                                    descRaw,
+                                );
+                                continue;
+                            }
+                            geoId = this.context.resources.set(geo);
+                            geometryResourceByDescHash.set(descHash, geoId);
                         }
-                    } else if (descRaw !== undefined && descRaw !== null) {
+                        ThreeMesh.geometry[eid] = geoId;
+                    } else if (
+                        descRaw !== undefined &&
+                        descRaw !== null &&
+                        !isResolvedThreeResource(descRaw)
+                    ) {
                         console.warn(`[ThreeResourceBuildSystem] Unsupported geometry descriptor eid=${eid}`, descRaw);
                     }
                 }
             }
 
             if (needsMaterial && (ThreeMesh.material[eid] ?? 0) === 0) {
-                const guid = resolveRefField(this.context, Material, eid, "guid");
-                const descRaw = resolveRefField(this.context, Material, eid, "descriptor");
-
-                if (guid && typeof guid === "string" && guid.length > 0) {
-                    if (this.context.assetManager.hasAsset(guid)) {
-                        const rid = this.context.assetManager.getResourceId(guid);
-                        const loaded = this.context.resources.get<unknown>(rid);
-                        if (loaded instanceof THREE.Material) {
-                            ThreeMesh.material[eid] = this.context.resources.set(loaded);
-                        }
-                    }
-                } else {
+                if (!resolveAndApplyMaterial(this.context, eid)) {
+                    const descRaw = resolveRefField(this.context, Material, eid, "descriptor");
                     const parsed = parseMaterialDescriptor(descRaw);
                     if (parsed) {
-                        const mat = createMaterialFromDescriptor(parsed);
-                        if (mat) {
-                            ThreeMesh.material[eid] = this.context.resources.set(mat);
-                        } else {
-                            console.warn(`[ThreeResourceBuildSystem] Invalid material descriptor eid=${eid}`, descRaw);
+                        const texGuids = collectTextureGuidsFromMaterialDescriptor(parsed);
+                        const missingTex = texGuids.filter(
+                            (guid) => !this.context.assetManager.hasAsset(guid),
+                        );
+                        if (missingTex.length > 0) {
+                            if (!this.textureLoadsPending.has(eid)) {
+                                this.textureLoadsPending.add(eid);
+                                void Promise.all(
+                                    missingTex.map((guid) =>
+                                        this.context.assetManager.loadAsset(guid),
+                                    ),
+                                )
+                                    .catch((err) => {
+                                        console.warn(
+                                            `[ThreeResourceBuildSystem] texture preload failed eid=${eid}`,
+                                            err,
+                                        );
+                                    })
+                                    .finally(() => {
+                                        this.textureLoadsPending.delete(eid);
+                                        if (hasComponent(world, MeshResourcesResolved, eid)) {
+                                            MeshResourcesResolved.built[eid] = 0;
+                                        }
+                                    });
+                            }
+                            continue;
                         }
-                    } else if (descRaw !== undefined && descRaw !== null) {
+
+                        const descHash = hashDescriptorJson(parsed);
+                        let matId = materialResourceByDescHash.get(descHash);
+                        if (matId === undefined) {
+                            const mat = createMaterialFromDescriptor(
+                                parsed,
+                                createTextureResolver(this.context),
+                            );
+                            if (!mat) {
+                                console.warn(
+                                    `[ThreeResourceBuildSystem] Invalid material descriptor eid=${eid}`,
+                                    descRaw,
+                                );
+                                continue;
+                            }
+                            matId = this.context.resources.set(mat);
+                            materialResourceByDescHash.set(descHash, matId);
+                        }
+                        ThreeMesh.material[eid] = matId;
+                    } else if (
+                        descRaw !== undefined &&
+                        descRaw !== null &&
+                        !isResolvedThreeResource(descRaw)
+                    ) {
                         console.warn(`[ThreeResourceBuildSystem] Unsupported material descriptor eid=${eid}`, descRaw);
                     }
                 }
@@ -145,6 +199,21 @@ export class ThreeResourceBuildSystem extends System {
             const geoOk = !needsGeometry || ThreeMesh.geometry[eid] > 0;
             const matOk = !needsMaterial || ThreeMesh.material[eid] > 0;
             if (geoOk && matOk) {
+                const obj = ThreeObject.get(eid).object;
+                if (obj instanceof THREE.Mesh) {
+                    if (needsGeometry) {
+                        const geo = this.context.resources.get(
+                            ThreeMesh.geometry[eid],
+                        ) as THREE.BufferGeometry;
+                        ensureGeometryUv2FromUv(geo);
+                        obj.geometry = geo;
+                    }
+                    if (needsMaterial) {
+                        obj.material = this.context.resources.get(
+                            ThreeMesh.material[eid],
+                        ) as THREE.Material;
+                    }
+                }
                 MeshResourcesResolved.built[eid] = 1;
             }
         }

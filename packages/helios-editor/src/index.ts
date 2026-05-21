@@ -17,6 +17,14 @@ export type { GameUiContext } from "./gameUi/GameUiContext";
 export { GameUiHost } from "./gameUi/GameUiHost";
 export { Editor, type EditorOptions } from "./Editor";
 export { createEditor, type CreateEditorOptions, type EditorHandle } from "./createEditor";
+export type { EditorModelImportHost, ModelImportFiles, SavedTextureAsset } from "./modelImport/types";
+export {
+    fileToBase64,
+    isDroppedImageFile,
+    registerDroppedTexture,
+    textureAssetRecord,
+    textureGuidFromFileName,
+} from "./modelImport/textureImport";
 export { PlayModeController, type PlayModeOptions } from "./play/PlayModeController";
 export type { EditorViewportInteractionController, EditorViewportInteractionMode } from "./viewport/EditorViewportInteractionMode";
 export { EditorSceneView } from "./view/EditorSceneView";

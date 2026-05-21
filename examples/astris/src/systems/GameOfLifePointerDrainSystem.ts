@@ -3,10 +3,12 @@ import { Name, System } from "@merlinn/helios-core";
 import { LifeCell } from "../components";
 import type { GridClickQueue } from "../game/GridClickQueue";
 import {
+    ASTRIS_GOL_CELL_INDEX_CAPABILITY,
     ASTRIS_GOL_STATS_CAPABILITY,
     ASTRIS_GRID_CLICK_QUEUE_CAPABILITY,
     type GolStatsState,
 } from "../game/astrisCapabilities";
+import type { GolAliveCellIndex } from "../game/golCellIndex";
 import { lifeCellComponentMap } from "../game/lifeCellPrefab";
 import { ensureLifeCellsRootEid } from "../game/lifeCellsRoot";
 
@@ -33,6 +35,9 @@ export class GameOfLifePointerDrainSystem extends System {
         const api = this.context.engine.api;
         const world = this.world;
         const cellsRootEid = ensureLifeCellsRootEid(api, world, this.nameQuery);
+        const cellIndex = this.context.capabilities.getOrUndefined<GolAliveCellIndex>(
+            ASTRIS_GOL_CELL_INDEX_CAPABILITY,
+        );
 
         for (const { gx, gz, mode } of clicks) {
             let existing: number | null = null;
@@ -44,6 +49,7 @@ export class GameOfLifePointerDrainSystem extends System {
             }
             if (mode === "erase") {
                 if (existing !== null) {
+                    cellIndex?.remove(gx, gz);
                     api.deleteEntity(existing);
                 }
                 continue;
@@ -51,24 +57,23 @@ export class GameOfLifePointerDrainSystem extends System {
             if (mode === "place") {
                 if (existing === null) {
                     api.createEntityFromComponents(lifeCellComponentMap(gx, gz, cellsRootEid));
+                    cellIndex?.add(gx, gz);
                 }
                 continue;
             }
             if (existing !== null) {
+                cellIndex?.remove(gx, gz);
                 api.deleteEntity(existing);
                 continue;
             }
 
             api.createEntityFromComponents(lifeCellComponentMap(gx, gz, cellsRootEid));
+            cellIndex?.add(gx, gz);
         }
 
         const stats = this.context.capabilities.getOrUndefined<GolStatsState>(ASTRIS_GOL_STATS_CAPABILITY);
         if (stats) {
-            let count = 0;
-            for (const _eid of this.cellQuery(world)) {
-                count++;
-            }
-            stats.aliveCount = count;
+            stats.aliveCount = cellIndex?.size ?? [...this.cellQuery(world)].length;
         }
     }
 }

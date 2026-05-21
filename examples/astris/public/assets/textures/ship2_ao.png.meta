@@ -1,0 +1,6 @@
+{
+  "guid": "guid://textures/ship2_ao",
+  "type": "texture",
+  "loader": "loadTexture",
+  "dependencies": []
+}

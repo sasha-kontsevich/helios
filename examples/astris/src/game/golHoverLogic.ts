@@ -8,7 +8,8 @@ import {
     type GolHoverState,
     type GolToolState,
 } from "./astrisCapabilities";
-import { livingCellKeys, mapPresetCellsToWorld } from "./golPresets";
+import { getLivingCellKeys } from "./golCellIndex";
+import { mapPresetCellsToWorld } from "./golPresets";
 
 export const HOVER_PREVIEW_MAX_CELLS = 128;
 
@@ -31,8 +32,7 @@ export function computeHoverCells(
     originGx: number,
     originGz: number,
 ): HoverCellsResult {
-    const api = engine.api;
-    const alive = livingCellKeys(api);
+    const alive = getLivingCellKeys(engine);
     const key = `${originGx},${originGz}`;
     const occupied = alive.has(key);
 

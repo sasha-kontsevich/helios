@@ -1,12 +1,15 @@
-const fs = require('fs');
-const path = require('path');
-const execSync = require('child_process').execSync;
+import * as fs from "fs";
+import * as path from "path";
+import { execSync } from "child_process";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Путь к шаблону
-const templatePath = path.resolve(__dirname, 'game-template');
+const templatePath = path.resolve(__dirname, "game-template");
 
 // Путь к новой директории проекта
-const newProjectPath = path.resolve(__dirname, 'new-game');
+const newProjectPath = path.resolve(__dirname, "new-game");
 
 // Функция для копирования файлов из шаблона в новый проект
 function copyTemplate() {
@@ -15,7 +18,7 @@ function copyTemplate() {
     fs.mkdirSync(newProjectPath);
 
     const files = fs.readdirSync(templatePath);
-    files.forEach(file => {
+    files.forEach((file) => {
         const currentFile = path.join(templatePath, file);
         const destination = path.join(newProjectPath, file);
         if (fs.statSync(currentFile).isDirectory()) {
@@ -30,7 +33,7 @@ function copyTemplate() {
 // Функция для копирования директории
 function copyDirectory(source, destination) {
     const files = fs.readdirSync(source);
-    files.forEach(file => {
+    files.forEach((file) => {
         const currentFile = path.join(source, file);
         const destinationFile = path.join(destination, file);
         if (fs.statSync(currentFile).isDirectory()) {
@@ -44,15 +47,15 @@ function copyDirectory(source, destination) {
 
 // Функция для установки зависимостей
 function installDependencies() {
-    execSync('pnpm install', { cwd: newProjectPath, stdio: 'inherit' });
+    execSync("pnpm install", { cwd: newProjectPath, stdio: "inherit" });
 }
 
 // Основная функция
 function createGame() {
-    console.log('Создание нового проекта...');
+    console.log("Создание нового проекта...");
     copyTemplate();
     installDependencies();
-    console.log('Проект создан успешно!');
+    console.log("Проект создан успешно!");
 }
 
 createGame();

@@ -1,3 +1,18 @@
 [
-  "scenes/main.json"
+  "models/crate/crate.glb",
+  "models/crate/crate.manifest.json",
+  "models/crate/geo_0.json",
+  "models/crate/mat_0.json",
+  "models/lp/geo_0.json",
+  "models/lp/lp.glb",
+  "models/lp/lp.manifest.json",
+  "models/lp/mat_0.json",
+  "models/test/geo_0.json",
+  "models/test/mat_0.json",
+  "models/test/test.glb",
+  "models/test/test.manifest.json",
+  "scenes/main.json",
+  "textures/checker.png",
+  "textures/ship2_ao.png",
+  "textures/ship2_normal.png"
 ]

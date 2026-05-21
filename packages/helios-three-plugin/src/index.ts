@@ -14,5 +14,9 @@ export * from './systems/ThreeResourceBuildSystem'
 
 export * from './builders/ThreeMeshResourceBuilder'
 
+export * from './import/gltfToManifest'
+export { registerThreeAssetLoaders } from './assets/registerThreeAssetLoaders'
+export * from './assets/gltfMeshGeometry'
+
 export * from './editor/tryGetEntityThreeObject'
 export * from './picking/tagThreeObjectForPicking'

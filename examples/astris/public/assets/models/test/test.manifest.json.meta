@@ -1,0 +1,8 @@
+{
+  "guid": "guid://models/test",
+  "type": "model",
+  "loader": "loadModel",
+  "dependencies": [
+    "guid://models/test/glb"
+  ]
+}

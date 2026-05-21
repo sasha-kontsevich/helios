@@ -31,5 +31,6 @@ export {
     Camera,
     AmbientLight,
     DirectionalLight,
+    ModelInstance,
 } from "@merlinn/helios-core";
 export { ThreeObject, ThreeMesh, MeshResourcesResolved } from "@merlinn/helios-three-plugin";

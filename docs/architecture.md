@@ -37,6 +37,7 @@
 - **Жизненный цикл:** создание `Engine` с конфигурацией → `init()` → игровой цикл / системы; публичные операции уровня редактора идут через **`EngineAPI`** (сущности, компоненты, сериализация для буфера и т.д.).
 - **Расширение:** новые компоненты и системы регистрируются в конфигурации движка; публичные контракты, которые видит редактор, должны оставаться стабильными или сопровождаться обновлением документации и потребителей.
 - **Сущности из данных:** спавн из карты компонентов и слияние карты на существующую сущность — точки входа для вставки из буфера и пресетов.
+- **Импорт 3D-моделей:** ассет **`ModelManifest`** (`loadModel`) + бинарный GLB (`loadGltfBinary`); маркер **`ModelInstance`** в сцене раскрывается в дерево сущностей (`spawnModelInstance` / `expandAllModelInstances`). Импорт на границе пайплайна (CLI, drag-and-drop) — см. **[model-import.md](model-import.md)**.
 - **Имя сущности:** компонент **`Name`** с полем **`label`** (строка) — для списка сущностей в редакторе и сцен; в сцене JSON обычные строки в `label` не считаются GUID ассетов, если путь не зарегистрирован в `AssetManager`.
 - **Буфер редактора:** формат **`EditorEntityClipboardV1`** и операции уровня API (копирование/вставка сущности или компонента, слияние на выбранную сущность) живут в core, чтобы UI не дублировал правила данных.
 - **Системы и Play в редакторе:** у **`System`** статическое **`runsInEditor`** (по умолчанию `false`). Хост с capability **`EDITOR_PLAY_SESSION_CAPABILITY`** при `attachEngine` вызывает **`EngineAPI.applyEditorSystemHostPolicy()`** — симуляционные системы **disabled**, без `start`/`update`. Слой редактора (`runsInEditor === true`) стартует с **`engine.start()`**. Enter Play: **`beginPlaySessionSystems()`** (enable + start симуляции, restart editor-систем после снимка); **`createEditor`** переключает shell и game viewport на вкладку **Игра** (`viewportInteraction.setMode("game")`). Exit Play: **`endPlaySessionSystems()`** (stop + disable симуляции, restart editor-систем). Пауза game window через **`EngineAPI.setSimulationPaused()`** временно пропускает `update` у simulation systems без `stop`/`disable`; `runsInEditor` systems продолжают input/render/camera. Снимок UI — **`SystemRuntimeSnapshot`** / **`listSystemRuntimeSnapshots()`**, `updateActive` отражает pause.
@@ -50,6 +51,8 @@
 - **Камера ECS:** движок **не** создаёт камеру по умолчанию. Сущность с **`Camera`** из сцены/префаба/spawn; **`UpdateThreeCameraSystem`** синхронизирует `THREE.PerspectiveCamera` (aspect из canvas).
 - **Свет ECS:** **`AmbientLight`** / **`DirectionalLight`** в данных сцены; **`targetEntity`**: sentinel **`DIRECTIONAL_LIGHT_NO_TARGET_ENTITY`** (или `0` в JSON) — `light.target` на корень мира; иначе цель на сущность **`targetEntity`**.
 - **Системы (порядок):** **`EnsureThreeRenderable`** → **`ThreeResourceBuild`** / билдеры → **`UpdateThreeMesh`** / камера / свет / **`UpdateThreeObject`** → сцена / render.
+- **GLTF-ассеты:** `registerThreeAssetLoaders` — **`loadGltfBinary`** (кэш `GLTF`), **`loadGltfMesh`** / **`loadGltfMaterial`** (срезы по индексам); manifest-сущности ссылаются на sub-GUID через **`Geometry.guid`** / **`Material.guid`**.
+- **Текстуры:** **`loadTexture`** (PNG/JPG по пути из `.meta`); слоты в **`Material.descriptor`** (`map`, `normalMap`, …) — см. **[textures.md](textures.md)**.
 - **Редактор:** вспомогательные функции вроде **`tryGetEntityThreeObject`** связывают выделенную сущность с объектом в сцене для подсветки и манипуляций; для **ray pick** на мешах/светах/камерах на корневой `Object3D` пишется **`userData.heliosEntityEid`** ([`tagThreeObjectForPicking`](../packages/helios-three-plugin/src/picking/tagThreeObjectForPicking.ts)).
 
 ## Редактор (`helios-editor`)
@@ -62,7 +65,7 @@
 ### Состояние выделения
 
 - **`SelectionBus`** — общая шина: список сущностей, инспектор, оверлей и **ray pick во вьюпорте** подписаны на одни и те же события выделения.
-- **Левая колонка:** вкладки **Entities** / **Systems**; список сущностей — **дерево иерархии** (как в Unity): `Parent.target` задаёт родителя, expand/collapse, drag-and-drop вызывает **`EngineAPI.setEntityParent`**. Список систем опрашивает **`EngineAPI.listSystemRuntimeSnapshots()`** (индикаторы enabled, started, runsInEditor, updateActive).
+- **Левая колонка:** вкладки **Entities** / **Systems** / **Assets**; список сущностей — **дерево иерархии** (как в Unity): `Parent.target` задаёт родителя, expand/collapse, drag-and-drop вызывает **`EngineAPI.setEntityParent`**. Список систем опрашивает **`EngineAPI.listSystemRuntimeSnapshots()`** (индикаторы enabled, started, runsInEditor, updateActive). **Assets** — модели (`listModelAssetGuids`) и текстуры (`listTextureAssetGuids`); drag-and-drop `.glb`/`.obj` или `.png`/`.jpg` на вьюпорт (FBX → CLI).
 
 ### Управление вьюпортом (Unity-like)
 
@@ -90,7 +93,7 @@
 
 - Компонент **`Parent`**: `target` — eid родителя; **`UpdateThreeObjectSystem`** вешает `THREE.Object3D` на родительский object (с **`isCyclic`**).
 - **Scene JSON:** у сущности можно указать `"id": "cube-1"` и `"Parent": { "target": "scene-root" }` (строка = scene id) или числовой eid. [`SceneManager`](packages/helios-core/src/engine/SceneManager.ts) спавнит в два прохода через [`spawnSceneEntityInstances`](packages/helios-core/src/engine/spawnEntitiesWithParent.ts).
-- **Play snapshot:** при capture сохраняется **`sourceEid`**; при **`applySceneSnapshot`** `Parent.target` переназначается на новые eid.
+- **Play snapshot:** при capture сохраняется **`sourceEid`**; при **`applySceneSnapshot`** `Parent.target` переназначается на новые eid; затем **`expandAllModelInstances`** раскрывает маркеры **`ModelInstance`** (после Play в снимке обычно уже развёрнутые меши).
 - **API:** **`EngineAPI.setEntityParent(child, parent | null)`**, **`getEntityParentEid`**; утилиты дерева — [`entityHierarchy.ts`](packages/helios-core/src/utils/entityHierarchy.ts).
 
 
@@ -121,7 +124,7 @@
 
 - Скрипт **`dev`** собирает **`@merlinn/helios-editor`** и запускает Vite — приложение импортирует **собранный** редактор из `dist/`.
 - Служит эталоном подключения: зависимости workspace, инициализация движка, регистрация плагинов, монтирование `createEditor({ gameUiPlugins: [new AstrisGameHudPlugin()] })`.
-- **Game of Life:** `GameOfLifeViewportPlugin` регистрирует очередь кликов, `astris.golTool` / `astris.golStats` / `astris.golHover` / `astris.golArmedPreset`; `AstrisGridPointerSink` — клик toggle, drag paint/erase, armed preset по ЛКМ в ячейке под курсором; hover без кнопок через опциональный `IGameViewportPointerSink.tryHandlePointerHover` / `tryHandlePointerLeave` (слушатели на game canvas в `EditorSceneView`). Превью клеток — ECS `LifeCellPreview` под группой `LifeCellsPreview`, синхронизация из `astris.golHover` в `GolHoverSyncSystem` (тот же three-plugin mesh pipeline, что у `LifeCell`); сущности с `LifeCellPreview` исключаются из play-snapshot и не участвуют в `GameOfLifeStepSystem`. Пресеты — `golPresets.ts` (`GOL_BASIC_PRESET_IDS` слева, `GOL_ADVANCED_PRESET_IDS` справа: пушки, пульсар, метузелы); HUD **вооружает** паттерн (`astris.golArmedPreset`), установка по клику; SVG-превью и тултипы — `GolPatternPreviewSvg`, `AstrisBrushTooltip`, `golPresetTooltips.ts`. `GameOfLifeStepSystem`, группа `LifeCells` в сцене; cockpit — `examples/astris/src/gameUi/`.
+- **Game of Life:** `GameOfLifeViewportPlugin` регистрирует очередь кликов, `astris.golTool` / `astris.golStats` / `astris.golHover` / `astris.golArmedPreset`; `AstrisGridPointerSink` — клик toggle, drag paint/erase, armed preset по ЛКМ в ячейке под курсором; hover без кнопок через опциональный `IGameViewportPointerSink.tryHandlePointerHover` / `tryHandlePointerLeave` (слушатели на game canvas в `EditorSceneView`). Превью при наведении — `GolHoverSyncSystem` (`InstancedMesh`, до 128 клеток); живые клетки — `LifeCellInstancedRenderSystem` (один `InstancedMesh` на всё поле, без ECS `Mesh` на клетку); занятость — `astris.golCellIndex` (O(1)). GLTF: `loadGltfMesh` запекает `mesh.matrix` в геометрию, `gltf.scene` скрыт от рендера. Пресеты — `golPresets.ts` (`GOL_BASIC_PRESET_IDS` слева, `GOL_ADVANCED_PRESET_IDS` справа: пушки, пульсар, метузелы); HUD **вооружает** паттерн (`astris.golArmedPreset`), установка по клику; SVG-превью и тултипы — `GolPatternPreviewSvg`, `AstrisBrushTooltip`, `golPresetTooltips.ts`. `GameOfLifeStepSystem`, группа `LifeCells` в сцене; cockpit — `examples/astris/src/gameUi/`.
 
 ## Поток данных (схема)
 

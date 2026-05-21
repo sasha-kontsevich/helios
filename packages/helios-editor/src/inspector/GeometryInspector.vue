@@ -28,6 +28,22 @@
         JSON только объекта дескриптора; проверка при blur (неверный JSON не применяется).
       </p>
     </template>
+    <template v-else-if="guidOnly">
+      <div class="ref-inspector__rawGrid">
+        <label class="ref-inspector__rawLabel" for="geo-guid-readonly">guid</label>
+        <input
+          id="geo-guid-readonly"
+          class="inspector__input ref-inspector__guid"
+          type="text"
+          :value="assetGuid"
+          readonly
+          spellcheck="false"
+        />
+      </div>
+      <p class="ref-inspector__hint">
+        Геометрия из импортированной модели (GLTF sub-asset). Редактирование — вкладка Raw.
+      </p>
+    </template>
     <template v-else>
       <div class="inspector__descriptor">
         <select
@@ -145,6 +161,13 @@ const descriptorType = computed(() => {
   const t = desc.value.type;
   return typeof t === "string" ? t : "";
 });
+
+const assetGuid = computed(() => {
+  const g = props.fields["guid"];
+  return typeof g === "string" ? g : "";
+});
+
+const guidOnly = computed(() => assetGuid.value.length > 0 && !descriptorType.value);
 
 function strNum(v: unknown, fallback: number): string {
   if (typeof v === "number" && Number.isFinite(v)) return String(v);
