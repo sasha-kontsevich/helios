@@ -10,6 +10,7 @@ import type { GameUiHost } from "./gameUi/GameUiHost";
 import type { EditorViewportInteractionController } from "./viewport/EditorViewportInteractionMode";
 import { PlayModeController, type PlayModeOptions } from "./play/PlayModeController";
 import type { EditorModelImportHost } from "./modelImport/types";
+import type { EditorWelcomeGuideOptions } from "./guide/editorGuideTypes";
 
 export interface EditorOptions {
     /** Defaults to `document.getElementById('editor-root')`. */
@@ -32,6 +33,8 @@ export interface EditorOptions {
     gameUiHost?: GameUiHost;
     /** Optional hooks for 3D model import (save bundle, spawn notification). */
     modelImport?: EditorModelImportHost;
+    /** First-visit welcome modal and «?» help (see {@link EditorGuideModal}). */
+    welcomeGuide?: EditorWelcomeGuideOptions;
 }
 
 export class Editor {
@@ -61,6 +64,7 @@ export class Editor {
             ...(options.viewportInteraction !== undefined ? { viewportInteraction: options.viewportInteraction } : {}),
             ...(options.gameUiHost !== undefined ? { gameUiHost: options.gameUiHost } : {}),
             ...(options.modelImport !== undefined ? { modelImport: options.modelImport } : {}),
+            ...(options.welcomeGuide !== undefined ? { welcomeGuide: options.welcomeGuide } : {}),
         };
 
         for (const plugin of plugins) {

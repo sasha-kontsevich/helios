@@ -1,6 +1,7 @@
 import "./componentMapAugment";
 import { Engine } from "@merlinn/helios-core";
 import { createEditor, textureGuidFromFileName } from "@merlinn/helios-editor";
+import { ASTRIS_EDITOR_GUIDE_SECTIONS } from "./editorWelcomeGuide";
 import { saveTextureToAssets } from "./editorTextureSave";
 import { AstrisGameHudPlugin } from "./gameUi/AstrisGameHudPlugin";
 import {
@@ -31,6 +32,9 @@ async function bootstrap() {
             saveTexture: async (file, guid) => saveTextureToAssets(file, guid ?? textureGuidFromFileName(file.name)),
         },
         gameUiPlugins: [new AstrisGameHudPlugin()],
+        welcomeGuide: {
+            extraSections: ASTRIS_EDITOR_GUIDE_SECTIONS,
+        },
         playMode: {
             shouldExcludeEntity: (_, snap) => {
                 const name = snap.components.Name as { label?: string } | undefined;

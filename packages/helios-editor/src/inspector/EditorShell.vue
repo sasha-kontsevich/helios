@@ -118,7 +118,18 @@
               <TransformToolIcon :kind="gamePausePressed ? 'play' : 'pause'" :size="CHROME_TAB_ICON_SIZE" />
             </button>
           </div>
-          <div class="shell__tabStripFiller" aria-hidden="true" />
+          <div class="shell__tabStripActions">
+            <button
+              v-if="guideEnabled"
+              type="button"
+              class="shell__helpBtn"
+              title="Справка по редактору"
+              aria-label="Справка по редактору"
+              @click="guideOpen = true"
+            >
+              ?
+            </button>
+          </div>
         </div>
 
         <div
@@ -223,6 +234,12 @@
     </aside>
     </div>
     <EditorStatusBar :engine-api="engineApi" />
+    <EditorGuideModal
+      v-if="guideEnabled"
+      v-model:open="guideOpen"
+      :sections="guideSections"
+      :storage-key="guideStorageKey"
+    />
   </div>
 </template>
 
@@ -259,6 +276,11 @@ import { preloadModelBundleForPreview } from "../modelImport/preloadModelBundle"
 import type { EditorModelImportHost } from "../modelImport/types";
 import TransformToolIcon from "./TransformToolIcon.vue";
 import EditorStatusBar from "../ui/EditorStatusBar.vue";
+import EditorGuideModal from "../ui/EditorGuideModal.vue";
+import { DEFAULT_EDITOR_GUIDE_STORAGE_KEY } from "../guide/defaultEditorGuideSections";
+import { isGuideDismissed } from "../guide/editorGuideStorage";
+import type { EditorWelcomeGuideOptions } from "../guide/editorGuideTypes";
+import { resolveEditorGuideSections } from "../guide/resolveEditorGuideSections";
 import {
   defaultEditorPrimitiveComponents,
   type EditorPrimitiveKind,
@@ -286,7 +308,16 @@ const props = defineProps<{
   playMode: PlayModeController;
   gameUiHost?: GameUiHost | null;
   modelImport?: EditorModelImportHost | null;
+  welcomeGuide?: EditorWelcomeGuideOptions | null;
 }>();
+
+const guideOptions = computed(() => props.welcomeGuide ?? undefined);
+const guideEnabled = computed(() => guideOptions.value?.enabled !== false);
+const guideSections = computed(() => resolveEditorGuideSections(guideOptions.value ?? undefined));
+const guideStorageKey = computed(
+  () => guideOptions.value?.storageKey ?? DEFAULT_EDITOR_GUIDE_STORAGE_KEY,
+);
+const guideOpen = ref(false);
 
 const gameUiMount = ref<HTMLElement | null>(null);
 
@@ -762,6 +793,13 @@ watch(selectedEid, () => {
 });
 
 onMounted(() => {
+  if (
+    guideEnabled.value &&
+    guideOptions.value?.showOnFirstVisit !== false &&
+    !isGuideDismissed(guideStorageKey.value)
+  ) {
+    guideOpen.value = true;
+  }
   if (props.viewportInteraction) {
     centerView.value = props.viewportInteraction.getMode();
   }
@@ -881,7 +919,8 @@ onUnmounted(() => {
   border-bottom-color: #5a8ab8;
 }
 .shell__left > .entity-list,
-.shell__left > .system-list {
+.shell__left > .system-list,
+.shell__left > .assets-panel {
   flex: 1;
   min-height: 0;
 }
@@ -925,9 +964,36 @@ onUnmounted(() => {
   gap: 2px;
   align-self: center;
 }
-.shell__tabStripFiller {
+.shell__tabStripActions {
   grid-column: 3;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  align-self: center;
   min-width: 0;
+  padding-right: 4px;
+}
+.shell__helpBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--helios-chrome-icon-hit);
+  height: var(--helios-chrome-icon-hit);
+  padding: 0;
+  border-radius: 4px;
+  border: 1px solid #4b5563;
+  background: #2a3038;
+  color: #b8c9e0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+}
+.shell__helpBtn:hover {
+  background: #374151;
+  color: #f1f5f9;
+  border-color: #64748b;
 }
 .shell__windowTab {
   position: relative;

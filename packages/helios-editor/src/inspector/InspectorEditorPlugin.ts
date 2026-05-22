@@ -20,6 +20,7 @@ export class InspectorEditorPlugin implements EditorPlugin {
             playMode: context.playMode,
             gameUiHost: context.gameUiHost ?? null,
             modelImport: context.modelImport ?? null,
+            welcomeGuide: context.welcomeGuide ?? null,
         });
         this.app.mount(context.root);
     }

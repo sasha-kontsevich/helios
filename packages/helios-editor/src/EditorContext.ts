@@ -6,6 +6,7 @@ import type { PlayModeController } from "./play/PlayModeController";
 import type { ISelectionBus } from "./selection/SelectionBus";
 import type { EditorViewportInteractionController } from "./viewport/EditorViewportInteractionMode";
 import type { EditorModelImportHost } from "./modelImport/types";
+import type { EditorWelcomeGuideOptions } from "./guide/editorGuideTypes";
 
 /**
  * Immutable context passed to {@link EditorPlugin.setup}.
@@ -29,4 +30,5 @@ export interface EditorContext {
     /** Present when {@link createEditor} was given `gameUiPlugins`. */
     readonly gameUiHost?: GameUiHost;
     readonly modelImport?: EditorModelImportHost;
+    readonly welcomeGuide?: EditorWelcomeGuideOptions;
 }

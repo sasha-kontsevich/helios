@@ -54,3 +54,5 @@ export {
 export type { ComponentInspectorExtension } from "./inspector/registry/inspectorTypes";
 export { EditorInspectorRegistry } from "./inspector/registry/EditorInspectorRegistry";
 export { createDefaultInspectorRegistry } from "./inspector/registry/createDefaultInspectorRegistry";
+export type { EditorGuideSection, EditorWelcomeGuideOptions } from "./guide/editorGuideTypes";
+export { DEFAULT_EDITOR_GUIDE_SECTIONS, DEFAULT_EDITOR_GUIDE_STORAGE_KEY } from "./guide/defaultEditorGuideSections";
