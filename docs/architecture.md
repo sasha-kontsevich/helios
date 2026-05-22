@@ -62,6 +62,7 @@
 ### Точки входа
 
 - **`createEditor({ api, root, … })`** создаёт **`Editor`** (Vue-приложение в `root`), **`EditorSceneView`** (канвас сцены + управление камерой после привязки движка), **`EditorSelectionOverlay`** (оверлей выделения в 3D).
+- **Статусбар загрузки:** внизу **`EditorShell`** — [`EditorStatusBar.vue`](../packages/helios-editor/src/ui/EditorStatusBar.vue) подписан на **`EngineAPI.getAssetLoadStatus()`** / **`subscribeAssetLoadStatus()`**; ядро считает фазы **`Engine.init`** (индексация `.meta`, загрузка сцены) и параллельные **`AssetManager.loadAsset`** (текстуры, GLB, drop в редакторе).
 - После **`engine.init()`** нужно вызвать **`attachEngine(engine)`** (или передать `engine` в опциях, если он уже инициализирован), чтобы сценовый вид и оверлей получили контекст Three.
 
 ### Состояние выделения

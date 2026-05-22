@@ -17,6 +17,7 @@ import {
 } from "../types";
 import type { SystemRuntimeSnapshot } from "../types/SystemRuntimeSnapshot";
 import { Context } from "../engine/Context";
+import type { AssetLoadStatusSnapshot } from "../engine/AssetLoadStatusStore";
 import {
     applyParentLink,
     spawnSnapshotEntitiesWithParentRemap,
@@ -397,6 +398,16 @@ export class EngineAPI {
     /** Load asset by GUID into ResourceManager (textures, models, scenes, …). */
     async loadAsset(guid: string): Promise<number> {
         return this.context.assetManager.loadAsset(guid);
+    }
+
+    /** Snapshot for editor status bar (asset indexing, scene load, in-flight `loadAsset`). */
+    getAssetLoadStatus(): AssetLoadStatusSnapshot {
+        return this.context.assetLoadStatus.getSnapshot();
+    }
+
+    /** Subscribe to asset load status changes; returns unsubscribe. */
+    subscribeAssetLoadStatus(listener: () => void): () => void {
+        return this.context.assetLoadStatus.subscribe(listener);
     }
 
     /**

@@ -10,6 +10,7 @@ import {AssetManager} from "./AssetManager";
 import {SceneManager} from "./SceneManager";
 import {BuilderManger} from "./BuilderManger";
 import {CapabilityRegistry} from "./CapabilityRegistry";
+import { AssetLoadStatusStore } from "./AssetLoadStatusStore";
 
 export class Context {
     readonly engine: Engine;
@@ -24,6 +25,7 @@ export class Context {
     readonly scenes: SceneManager;
     readonly builders: BuilderManger;
     readonly capabilities: CapabilityRegistry;
+    readonly assetLoadStatus: AssetLoadStatusStore;
 
     constructor(engine: Engine) {
         this.engine = engine;
@@ -33,6 +35,7 @@ export class Context {
         this.resources = new ResourceManager();
         this.plugins = new PluginManager(this);
         this.prefabs = new PrefabManager(this);
+        this.assetLoadStatus = new AssetLoadStatusStore();
         this.assetDatabase = new AssetDatabase();
         this.assetManager = new AssetManager(this);
         this.scenes = new SceneManager(this);

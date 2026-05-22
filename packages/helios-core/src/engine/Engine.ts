@@ -27,7 +27,13 @@ export class Engine {
         registerDefaultAssetLoaders(this.context);
 
         if (config.assetIndex?.length) {
-            await this.context.assetDatabase.indexMeta(config.assetIndex);
+            const status = this.context.assetLoadStatus;
+            status.beginPhase("indexing", "Индексация ассетов…");
+            try {
+                await this.context.assetDatabase.indexMeta(config.assetIndex);
+            } finally {
+                status.endPhase("indexing");
+            }
         }
 
         this.context.components.registerAll(config.components);
@@ -39,7 +45,13 @@ export class Engine {
         await this.context.plugins.initAll();
 
         if (config.initialSceneGuid) {
-            await this.context.scenes.loadScene(config.initialSceneGuid);
+            const status = this.context.assetLoadStatus;
+            status.beginPhase("scene", "Загрузка сцены…");
+            try {
+                await this.context.scenes.loadScene(config.initialSceneGuid);
+            } finally {
+                status.endPhase("scene");
+            }
         }
 
         if (config.builders?.length) {

@@ -1,5 +1,6 @@
 <template>
   <div class="shell">
+    <div class="shell__body">
     <aside class="shell__left">
       <div class="shell__leftTabs" role="tablist" aria-label="Левая панель">
         <button
@@ -220,6 +221,8 @@
         @paste-components="onPasteComponents"
       />
     </aside>
+    </div>
+    <EditorStatusBar :engine-api="engineApi" />
   </div>
 </template>
 
@@ -255,6 +258,7 @@ import {
 import { preloadModelBundleForPreview } from "../modelImport/preloadModelBundle";
 import type { EditorModelImportHost } from "../modelImport/types";
 import TransformToolIcon from "./TransformToolIcon.vue";
+import EditorStatusBar from "../ui/EditorStatusBar.vue";
 import {
   defaultEditorPrimitiveComponents,
   type EditorPrimitiveKind,
@@ -817,7 +821,7 @@ onUnmounted(() => {
 <style scoped>
 .shell {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   width: 100%;
   height: 100%;
   min-height: 0;
@@ -825,6 +829,13 @@ onUnmounted(() => {
   color: #e0e0e0;
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
     "Noto Sans", "Liberation Sans", sans-serif;
+}
+.shell__body {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  min-height: 0;
+  min-width: 0;
 }
 .shell__left {
   width: 240px;

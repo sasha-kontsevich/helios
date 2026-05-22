@@ -9,6 +9,7 @@ export * from './ResourceManager';
 export * from './PluginManager';
 export * from './AssetDatabase';
 export * from './AssetManager';
+export * from './AssetLoadStatusStore';
 export * from './PrefabManager';
 export * from './SceneManager';
 export * from './BuilderManger';

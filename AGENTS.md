@@ -32,6 +32,7 @@ After changing **`helios-core` public surface** (`EngineAPI`, exports), run **`p
 ## Architecture hints
 
 - **Editor entry:** `createEditor({ api, root })` in `packages/helios-editor` — mounts Vue shell, `EditorSceneView`, selection overlay; `attachEngine(engine)` after `engine.init()`.
+- **Asset load status bar:** bottom of `EditorShell` — poll via `EngineAPI.getAssetLoadStatus()` / `subscribeAssetLoadStatus()` (indexing, scene load, in-flight `loadAsset`).
 - **Selection:** `SelectionBus` in editor context; scene highlights via `EditorSelectionOverlay` + `tryGetEntityThreeObject` (three-plugin).
 - **Three capability:** string key `renderer.three` → `ThreeRenderContext`; editor-only nodes under `getEditorRoot()`.
 - **Clipboard:** `EditorEntityClipboardV1` — entity paste creates a **new** entity; inspector **Paste** merges onto the **selected** entity via `mergeEntityFromEditorClipboardPayload`.

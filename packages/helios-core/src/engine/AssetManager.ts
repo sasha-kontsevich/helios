@@ -1,18 +1,22 @@
 // AssetManager.ts
-import {AssetMeta, AssetRecord, IAssetLoader} from "../types";
+import {AssetRecord, IAssetLoader} from "../types";
 import { ResourceManager } from "./ResourceManager";
 import { AssetDatabase } from "./AssetDatabase";
 import {Context} from "./index";
+import { AssetLoadStatusStore, labelFromAssetRecord } from "./AssetLoadStatusStore";
 
 export class AssetManager {
     private loaders = new Map<string, IAssetLoader>();
     private cache   = new Map<string, number>(); // GUID → resourceId
+    private readonly pendingByGuid = new Map<string, Promise<number>>();
     private assetDatabase: AssetDatabase;
     private resources: ResourceManager;
+    private readonly loadStatus: AssetLoadStatusStore;
 
     constructor(context: Context) {
         this.resources = context.resources;
         this.assetDatabase = context.assetDatabase;
+        this.loadStatus = context.assetLoadStatus;
     }
 
     /** Регистрируем лоадер для данного типа ассета (type из .meta) */
@@ -36,33 +40,45 @@ export class AssetManager {
      * возвращает numeric resourceId.
      */
     async loadAsset(guid: string): Promise<number> {
-        // если уже загружено — сразу возвращаем ID
         if (this.cache.has(guid)) {
             return this.cache.get(guid)!;
         }
 
-        // 1) берём мета
+        const existing = this.pendingByGuid.get(guid);
+        if (existing) {
+            return existing;
+        }
+
+        const promise = this.loadAssetUncached(guid);
+        this.pendingByGuid.set(guid, promise);
+        try {
+            return await promise;
+        } finally {
+            this.pendingByGuid.delete(guid);
+        }
+    }
+
+    private async loadAssetUncached(guid: string): Promise<number> {
         const meta: AssetRecord | undefined = this.assetDatabase.getMeta(guid);
         if (!meta) throw new Error(`Asset "${guid}" not found in AssetDatabase`);
 
-        // 2) рекурсивно грузим зависимости
-        if (meta.dependencies) {
-            await Promise.all(meta.dependencies.map(dep => this.loadAsset(dep)));
+        const label = labelFromAssetRecord(meta);
+        this.loadStatus.pushLoad(label);
+        try {
+            if (meta.dependencies) {
+                await Promise.all(meta.dependencies.map(dep => this.loadAsset(dep)));
+            }
+
+            const loader = this.loaders.get(meta.loader);
+            if (!loader) throw new Error(`No loader registered for type "${meta.loader}"`);
+
+            const obj = await loader.load(meta);
+            const id = this.resources.set(obj);
+            this.cache.set(guid, id);
+            return id;
+        } finally {
+            this.loadStatus.popLoad(label);
         }
-
-        // 3) берём лоадер
-        const loader = this.loaders.get(meta.loader);
-        if (!loader) throw new Error(`No loader registered for type "${meta.loader}"`);
-
-        // 4) фактически грузим «сырой» объект
-        const obj = await loader.load(meta);
-
-        // 5) кладём в ResourceManager — получаем numeric ID
-        const id = this.resources.set(obj);
-
-        // 6) кэшируем и возвращаем
-        this.cache.set(guid, id);
-        return id;
     }
 
     /**

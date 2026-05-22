@@ -5,6 +5,7 @@
 :root {
   /* Top tab strip and side panel title rows (align when panels sit beside the center). */
   --helios-chrome-row-height: 32px;
+  --helios-statusbar-height: 24px;
   --helios-chrome-row-pad-x: 10px;
   --helios-chrome-title-font-size: 12px;
   --helios-chrome-tab-font-size: 11px;
