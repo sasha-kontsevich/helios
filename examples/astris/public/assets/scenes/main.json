@@ -14,7 +14,14 @@
       "components": {
         "Name": { "label": "Environment" },
         "Parent": { "target": "scene-root" },
-        "Skybox": { "texture": "guid://textures/nebulae" }
+        "Skybox": { "texture": "guid://textures/nebulae" },
+        "Fog": {
+          "type": "exp2",
+          "color": 263173,
+          "near": 1,
+          "far": 600,
+          "density": 0.005
+        }
       }
     },
     {
@@ -109,7 +116,7 @@
         }
       }
     },
-    {
+    { 
       "id": "lp-prop",
       "components": {
         "Name": { "label": "Корабль" },

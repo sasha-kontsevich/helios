@@ -9,6 +9,7 @@ import {
     UpdateThreeLightSystem,
     UpdateThreeMeshSystem,
     UpdateSkyboxSystem,
+    UpdateFogSystem,
 } from "@merlinn/helios-three-plugin";
 import {RotatingCubeSystem} from "./RotatingCubeSystem";
 import {GameGridVisualSystem} from "./GameGridVisualSystem";
@@ -36,5 +37,6 @@ export const Systems: SystemConstructor[] = [
     UpdateThreeObjectSystem,
     ThreeSceneSystem,
     UpdateSkyboxSystem,
+    UpdateFogSystem,
     RenderSystem,
 ];

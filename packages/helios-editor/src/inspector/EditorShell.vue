@@ -695,6 +695,15 @@ function onAddComponent(componentName: string): void {
   if (componentName === "Scale" && props.engineApi.hasComponent(id, "Scale" as keyof ComponentMap)) {
     props.engineApi.applyComponentPatch(id, "Scale" as keyof ComponentMap, { x: 1, y: 1, z: 1 });
   }
+  if (componentName === "Fog" && props.engineApi.hasComponent(id, "Fog" as keyof ComponentMap)) {
+    props.engineApi.applyComponentPatch(id, "Fog" as keyof ComponentMap, {
+      type: 1,
+      color: 0x888899,
+      near: 10,
+      far: 500,
+      density: 0.00035,
+    });
+  }
   refreshInspector();
   refreshEntityList();
 }

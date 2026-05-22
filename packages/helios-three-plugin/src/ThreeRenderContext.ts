@@ -292,6 +292,19 @@ export class ThreeRenderContext {
         }
     }
 
+    /** Linear or exponential fog on the shared scene (editor + game pass). */
+    setSceneFog(fog: THREE.Fog | THREE.FogExp2): void {
+        if (this.scene) {
+            this.scene.fog = fog;
+        }
+    }
+
+    clearSceneFog(): void {
+        if (this.scene) {
+            this.scene.fog = null;
+        }
+    }
+
     registerBeforeRender(callback: () => void): () => void {
         this.beforeRenderHooks.push(callback);
         return () => {

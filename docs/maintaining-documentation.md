@@ -16,6 +16,7 @@
 | **`helios-core`**: `rendering/`, компоненты `Geometry`/`Material`/`Mesh`/`Camera`/lights, формат сцен | `docs/scene-serialization.md`, `docs/architecture.md` |
 | **`helios-core` / `helios-three-plugin`**: texture assets (`loadTexture`), `Material.descriptor` map slots | `docs/textures.md`, `docs/scene-serialization.md` |
 | **`helios-core` / `helios-three-plugin`**: `Skybox` component, `UpdateSkyboxSystem` | `docs/skybox.md`, `docs/scene-serialization.md`, `docs/architecture.md` |
+| **`helios-core` / `helios-three-plugin` / editor**: `Fog`, `UpdateFogSystem`, `FogInspector` | `docs/fog.md`, `docs/scene-serialization.md`, `docs/architecture.md` |
 | **`helios-core`**: `ModelInstance`, `ModelManifest`, `spawnModelInstance`, asset `loadModel` | `docs/model-import.md`, `docs/architecture.md`, `docs/scene-serialization.md` |
 | **`helios-three-plugin`**: GLTF loaders (`loadGltfBinary` / mesh / material), `buildModelBundleFromGltf` | `docs/model-import.md`, `docs/architecture.md` |
 | **`helios-cli`**: `helios import-model` | `docs/model-import.md`, `AGENTS.md` |

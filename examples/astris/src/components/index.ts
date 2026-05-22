@@ -33,5 +33,6 @@ export {
     DirectionalLight,
     ModelInstance,
     Skybox,
+    Fog,
 } from "@merlinn/helios-core";
 export { ThreeObject, ThreeMesh, MeshResourcesResolved } from "@merlinn/helios-three-plugin";

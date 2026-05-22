@@ -43,3 +43,15 @@ export const DirectionalLight = defineComponent({
  * Resolved by three-plugin {@link UpdateSkyboxSystem} → `THREE.Scene.background`.
  */
 export const Skybox = defineComponent({ texture: STRING_FIELD });
+
+/**
+ * Scene fog (`THREE.Fog` / `THREE.FogExp2`). Applied by three-plugin {@link UpdateFogSystem}.
+ * `type`: 0 = linear (near/far), 1 = exp2 (density).
+ */
+export const Fog = defineComponent({
+    type: Types.ui8,
+    color: Types.ui32,
+    near: Types.f32,
+    far: Types.f32,
+    density: Types.f32,
+});

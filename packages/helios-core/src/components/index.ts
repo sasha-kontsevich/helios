@@ -10,11 +10,13 @@ import type {
     Material as MaterialComponent,
     Mesh as MeshComponent,
     Skybox as SkyboxComponent,
+    Fog as FogComponent,
 } from "./rendering";
 export {
     AmbientLight,
     Camera,
     DirectionalLight,
+    Fog,
     Geometry,
     Material,
     Mesh,
@@ -48,6 +50,7 @@ declare module "../types/ComponentMap" {
         AmbientLight: typeof AmbientLightComponent;
         DirectionalLight: typeof DirectionalLightComponent;
         Skybox: typeof SkyboxComponent;
+        Fog: typeof FogComponent;
         ModelInstance: typeof ModelInstanceComponent;
     }
 }

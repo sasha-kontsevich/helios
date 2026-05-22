@@ -1,6 +1,7 @@
 import { addComponent, addEntity, hasComponent, removeComponent } from 'bitecs';
 import type { Context } from './Context';
 import type { ComponentMap } from '../types';
+import { normalizeFogSpawnFields } from '../rendering/fog';
 import { normalizeRotationSpawnFields } from '../utils/rotation';
 
 /**
@@ -71,7 +72,11 @@ export function applyComponentsToEntity(
         const schema = ctx.components.get(compName as keyof ComponentMap);
         addComponent(ctx.ecsWorld, schema, eid);
         const payload =
-            compName === "Rotation" ? normalizeRotationSpawnFields(fields) : fields;
+            compName === "Rotation"
+                ? normalizeRotationSpawnFields(fields)
+                : compName === "Fog"
+                  ? normalizeFogSpawnFields(fields)
+                  : fields;
         applyComponentFields(ctx, compName, schema as unknown as Record<string, unknown>, eid, payload);
     }
 }
@@ -107,7 +112,11 @@ export function mergeComponentMapOntoEntity(
         }
         addComponent(world, schema, eid);
         const payload =
-            compName === "Rotation" ? normalizeRotationSpawnFields(fields) : fields;
+            compName === "Rotation"
+                ? normalizeRotationSpawnFields(fields)
+                : compName === "Fog"
+                  ? normalizeFogSpawnFields(fields)
+                  : fields;
         applyComponentFields(ctx, compName, schema as unknown as Record<string, unknown>, eid, payload);
     }
 }

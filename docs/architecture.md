@@ -54,6 +54,7 @@
 - **GLTF-ассеты:** `registerThreeAssetLoaders` — **`loadGltfBinary`** (кэш `GLTF`), **`loadGltfMesh`** / **`loadGltfMaterial`** (срезы по индексам); manifest-сущности ссылаются на sub-GUID через **`Geometry.guid`** / **`Material.guid`**.
 - **Текстуры:** **`loadTexture`** (PNG/JPG по пути из `.meta`); слоты в **`Material.descriptor`** (`map`, `normalMap`, …) — см. **[textures.md](textures.md)**.
 - **Скайбокс:** компонент **`Skybox`** (`texture` = GUID equirect 2:1) на сущности сцены → **`UpdateSkyboxSystem`** → `scene.background` — см. **[skybox.md](skybox.md)**.
+- **Туман:** компонент **`Fog`** на сущности сцены → **`UpdateFogSystem`** → `scene.fog` — см. **[fog.md](fog.md)**.
 - **Редактор:** вспомогательные функции вроде **`tryGetEntityThreeObject`** связывают выделенную сущность с объектом в сцене для подсветки и манипуляций; для **ray pick** на мешах/светах/камерах на корневой `Object3D` пишется **`userData.heliosEntityEid`** ([`tagThreeObjectForPicking`](../packages/helios-three-plugin/src/picking/tagThreeObjectForPicking.ts)).
 
 ## Редактор (`helios-editor`)

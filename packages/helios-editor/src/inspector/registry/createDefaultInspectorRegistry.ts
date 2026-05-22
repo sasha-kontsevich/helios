@@ -1,4 +1,5 @@
 import { markRaw } from "vue";
+import FogInspector from "../FogInspector.vue";
 import GeometryInspector from "../GeometryInspector.vue";
 import MaterialInspector from "../MaterialInspector.vue";
 import ModelInstanceInspector from "../ModelInstanceInspector.vue";
@@ -13,6 +14,7 @@ function builtInExtensions(): ComponentInspectorExtension[] {
     const Geo = markRaw(GeometryInspector);
     const Mat = markRaw(MaterialInspector);
     const ModelInst = markRaw(ModelInstanceInspector);
+    const Fog = markRaw(FogInspector);
     return [
         {
             id: "builtin-inspector-position",
@@ -34,6 +36,13 @@ function builtInExtensions(): ComponentInspectorExtension[] {
             priority: 0,
             supportsRaw: true,
             view: Vec3,
+        },
+        {
+            id: "builtin-inspector-fog",
+            componentNames: ["Fog"],
+            priority: 0,
+            supportsRaw: true,
+            view: Fog,
         },
         {
             id: "builtin-inspector-geometry",

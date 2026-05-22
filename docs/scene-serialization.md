@@ -20,6 +20,7 @@
 | **`AmbientLight`** | `intensity` |
 | **`DirectionalLight`** | `intensity`, `targetEntity` — use **`DIRECTIONAL_LIGHT_NO_TARGET_ENTITY`** when the light target is not another ECS entity |
 | **`Skybox`** | `texture` — GUID of equirectangular texture (`loadTexture`); see **[skybox.md](skybox.md)** |
+| **`Fog`** | `type`, `color`, `near`, `far`, `density` — scene fog; see **[fog.md](fog.md)** |
 | **`ModelInstance`** | `model` — GUID of a **`ModelManifest`** asset (`loadModel`); expanded to a mesh hierarchy on scene load / Play snapshot restore |
 
 Helper: **`meshEntityComponents()`** in `packages/helios-core/src/rendering/meshSpawn.ts` builds a spawn map for mesh entities (no Three runtime fields).
