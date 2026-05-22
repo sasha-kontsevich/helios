@@ -2,6 +2,8 @@
 
 Helios is an experimental ECS web game engine with a Vue editor shell, a Three.js rendering plugin, and an example game/editor project called Astris.
 
+**Live demo:** [https://helios-editor.space/](https://helios-editor.space/) — Astris editor + Game of Life scene in the browser (no local install).
+
 The repo is set up as a pnpm monorepo:
 
 - `packages/helios-core` - ECS engine, components, systems, scene loading, and editor-facing API.
