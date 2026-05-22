@@ -30,6 +30,8 @@ export function registerThreeAssetLoaders(context: Context): void {
         async load(record) {
             const tex = await new TextureLoader().loadAsync(record.path);
             tex.colorSpace = THREE.SRGBColorSpace;
+            // Match GLTF/OBJ/Unity UV origin (true flips islands on imported meshes).
+            tex.flipY = false;
             return tex;
         },
     });

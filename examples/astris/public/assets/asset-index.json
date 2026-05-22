@@ -15,5 +15,9 @@
   "textures/checker.png",
   "textures/nebulae.hdr",
   "textures/ship2_ao.png",
-  "textures/ship2_normal.png"
+  "textures/ship2_normal.png",
+  "textures/ship_albedo.png",
+  "textures/ship_emissive.png",
+  "textures/ship_metallic.png",
+  "textures/ship_roughness.png"
 ]

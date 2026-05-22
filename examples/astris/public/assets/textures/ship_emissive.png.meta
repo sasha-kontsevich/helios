@@ -1,0 +1,6 @@
+{
+  "guid": "guid://textures/ship_emissive",
+  "type": "texture",
+  "loader": "loadTexture",
+  "dependencies": []
+}

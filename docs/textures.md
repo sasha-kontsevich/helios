@@ -66,7 +66,7 @@ Materials from **`loadGltfMaterial`** keep embedded GLTF textures; descriptor te
 
 ## Notes
 
-- Albedo / emissive maps use **sRGB**; normal/roughness/metalness/AO use **linear** color space on the Three.js texture (`flipY = false` for data maps, as in glTF).
+- Albedo / emissive maps use **sRGB** with **`flipY = false`** (Unity/OBJ/GLB UV origin). Normal/roughness/metalness/AO use **linear** + **`flipY = false`** (as in glTF).
 - **`aoMap`** in Three.js reads the **`uv2`** attribute. Helios copies **`uv` → `uv2`** when the mesh has no second UV set (same as many Unity FBX/OBJ imports).
 - Export normal maps from Unity as **PNG** (type Normal map), not via PSD→ImageMagick — composite PSD layers can break tangent-space normals.
 - Supported loaders: PNG, JPG, and other formats **`THREE.TextureLoader`** accepts via URL.

@@ -1,0 +1,6 @@
+{
+  "guid": "guid://textures/ship_albedo",
+  "type": "texture",
+  "loader": "loadTexture",
+  "dependencies": []
+}

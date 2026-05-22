@@ -42,6 +42,8 @@ coverage/
 # Large source art in repo root (exported PNGs live under examples/astris/public/assets)
 /*.psd
 /*.hdr
+/ship.obj
+/model_default_*.png
 
 # Editor specific
 .editorconfig

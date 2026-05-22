@@ -6,48 +6,30 @@
     {
       "id": "root",
       "components": {
-        "Name": {
-          "label": "lp"
-        }
+        "Name": { "label": "ship" }
       }
     },
     {
       "id": "mesh_0",
       "components": {
-        "Name": {
-          "label": "lowpoly002"
-        },
-        "Parent": {
-          "target": "root"
-        },
-        "Position": {
-          "x": 0,
-          "y": 0,
-          "z": 0
-        },
-        "Rotation": {
-          "x": 0,
-          "y": 0,
-          "z": 0,
-          "w": 1
-        },
-        "Scale": {
-          "x": 1,
-          "y": 1,
-          "z": 1
-        },
+        "Name": { "label": "ship" },
+        "Parent": { "target": "root" },
+        "Position": { "x": 0, "y": 0, "z": 0 },
+        "Rotation": { "x": 0, "y": 0, "z": 0, "w": 1 },
+        "Scale": { "x": 1, "y": 1, "z": 1 },
         "Mesh": {},
-        "Geometry": {
-          "guid": "guid://models/lp/geo/0"
-        },
+        "Geometry": { "guid": "guid://models/lp/geo/0" },
         "Material": {
           "descriptor": {
             "type": "meshStandard",
             "color": 16777215,
-            "roughness": 0.65,
-            "metalness": 0.25,
+            "roughness": 1,
+            "metalness": 0.7,
+            "map": "guid://textures/ship_albedo",
             "normalMap": "guid://textures/ship2_normal",
-            "aoMap": "guid://textures/ship2_ao"
+            "aoMap": "guid://textures/ship2_ao",
+            "roughnessMap": "guid://textures/ship_roughness",
+            "metalnessMap": "guid://textures/ship_metallic"
           }
         }
       }

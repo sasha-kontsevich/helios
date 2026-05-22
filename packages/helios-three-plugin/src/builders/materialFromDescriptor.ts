@@ -23,6 +23,7 @@ function configureTextureForSlot(tex: THREE.Texture, slot: MaterialTextureSlot):
         tex.flipY = false;
     } else {
         tex.colorSpace = THREE.SRGBColorSpace;
+        tex.flipY = false;
     }
     tex.needsUpdate = true;
 }

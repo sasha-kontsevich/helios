@@ -40,7 +40,7 @@ After changing **`helios-core` public surface** (`EngineAPI`, exports), run **`p
 - **Game viewport input/camera:** `ViewportInputPlugin` after `ThreePlugin`; game code reads ECS `ViewportInput`. In Astris, `AstrisFlyCameraSystem` runs before `UpdateThreeObjectSystem`; tag camera with `AstrisFlyCamera` in scene JSON.
 - **Game UI (HUD):** `GameUiPlugin` + `createEditor({ gameUiPlugins })` — overlays on game canvas, not `EditorPlugin`. Astris: `examples/astris/src/gameUi/AstrisGameHudPlugin.ts`.
 - **Rotation:** ECS stores quaternion (`Rotation.x/y/z/w`); inspector shows Euler XYZ. Legacy scene JSON with 3 euler fields migrates at spawn.
-- **Scene JSON:** core render components only (`Mesh`, `Geometry`, `Material`, `Camera`, lights) — no `ThreeObject` / `ThreeMesh` in spawn maps; see **`docs/scene-serialization.md`**.
+- **Scene JSON:** core render components only (`Mesh`, `Geometry`, `Material`, `Camera`, lights, `Skybox`, `Fog`) — no `ThreeObject` / `ThreeMesh` in spawn maps; see **`docs/scene-serialization.md`**. New core components must be **re-exported** from `examples/<game>/src/components/index.ts` or spawn/inspector will skip them.
 - **3D models:** import → `public/assets/models/<name>/` (`*.glb` + `*.manifest.json`); scene marker **`ModelInstance`** expands via **`EngineAPI.expandAllModelInstances`** / **`SceneManager.loadScene`**. CLI: `pnpm --filter @merlinn/helios-cli run build` then `node packages/helios-cli/dist/import-model.js … --out assets/models/<name> --project examples/astris`. Details: **`docs/model-import.md`**.
 
 ## Conventions

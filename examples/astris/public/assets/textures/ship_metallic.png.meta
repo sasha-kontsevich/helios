@@ -1,0 +1,6 @@
+{
+  "guid": "guid://textures/ship_metallic",
+  "type": "texture",
+  "loader": "loadTexture",
+  "dependencies": []
+}

@@ -1,0 +1,6 @@
+{
+  "guid": "guid://textures/ship_roughness",
+  "type": "texture",
+  "loader": "loadTexture",
+  "dependencies": []
+}
