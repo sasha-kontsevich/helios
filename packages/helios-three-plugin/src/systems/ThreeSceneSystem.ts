@@ -5,7 +5,7 @@ import { getThreeRenderContext } from "../ThreeRenderContext";
 
 export class ThreeSceneSystem extends System {
     static override readonly systemName = "ThreeSceneSystem";
-    static override readonly systemDescription = "Добавляет ThreeObject в корень сцены Three.js.";
+    static override readonly systemDescription = "Adds ThreeObject to the Three.js scene root.";
     static override readonly runsInEditor = true;
 
     private readonly query = defineQuery([ThreeObject]);

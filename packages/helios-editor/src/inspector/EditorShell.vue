@@ -2,7 +2,7 @@
   <div class="shell">
     <div class="shell__body">
     <aside class="shell__left">
-      <div class="shell__leftTabs" role="tablist" aria-label="Левая панель">
+      <div class="shell__leftTabs" role="tablist" aria-label="Left panel">
         <button
           type="button"
           class="shell__leftTab"
@@ -65,7 +65,7 @@
     <main class="shell__center">
       <div class="shell__centerInner">
         <div class="shell__tabStrip">
-          <div class="shell__tabStripTabs" role="tablist" aria-label="Редактор или Игра">
+          <div class="shell__tabStripTabs" role="tablist" aria-label="Editor or Game">
             <button
               type="button"
               class="shell__windowTab"
@@ -74,7 +74,7 @@
               :class="{ 'shell__windowTab--active': centerView === 'editor' }"
               @click="setCenterView('editor')"
             >
-              Редактор
+              Editor
             </button>
             <button
               type="button"
@@ -84,23 +84,23 @@
               :class="{ 'shell__windowTab--active': centerView === 'game' }"
               @click="setCenterView('game')"
             >
-              Игра
+              Game
             </button>
           </div>
-          <div class="shell__tabStripTransport" role="toolbar" aria-label="Воспроизведение сцены">
+          <div class="shell__tabStripTransport" role="toolbar" aria-label="Scene playback">
             <button
               type="button"
               class="shell__tabTransportBtn"
               :class="{ 'shell__tabTransportBtn--stop': playSessionActive }"
               :title="
                 playSessionActive
-                  ? 'Остановить воспроизведение и вернуть сцену редактора'
-                  : 'Воспроизвести снимок сцены'
+                  ? 'Stop playback and restore the editor scene'
+                  : 'Play scene snapshot'
               "
               :aria-label="
                 playSessionActive
-                  ? 'Остановить воспроизведение и вернуть сцену редактора'
-                  : 'Воспроизвести снимок сцены'
+                  ? 'Stop playback and restore the editor scene'
+                  : 'Play scene snapshot'
               "
               @click="onPlayToggle"
             >
@@ -123,8 +123,8 @@
               v-if="guideEnabled"
               type="button"
               class="shell__helpBtn"
-              title="Справка по редактору"
-              aria-label="Справка по редактору"
+              title="Editor help"
+              aria-label="Editor help"
               @click="guideOpen = true"
             >
               ?
@@ -141,14 +141,14 @@
         v-if="transformTools && centerView === 'editor'"
         class="shell__transformToolbar"
         role="toolbar"
-        aria-label="Инструменты трансформации"
+        aria-label="Transform tools"
       >
         <button
           type="button"
           class="shell__toolBtn"
           :class="{ 'shell__toolBtn--active': transformMode === 'translate' }"
-          title="Перенос (W)"
-          aria-label="Перенос (W)"
+          title="Move (W)"
+          aria-label="Move (W)"
           @click="setTransformMode('translate')"
         >
           <TransformToolIcon kind="move" />
@@ -157,8 +157,8 @@
           type="button"
           class="shell__toolBtn"
           :class="{ 'shell__toolBtn--active': transformMode === 'rotate' }"
-          title="Поворот (E)"
-          aria-label="Поворот (E)"
+          title="Rotate (E)"
+          aria-label="Rotate (E)"
           @click="setTransformMode('rotate')"
         >
           <TransformToolIcon kind="rotate" />
@@ -167,8 +167,8 @@
           type="button"
           class="shell__toolBtn"
           :class="{ 'shell__toolBtn--active': transformMode === 'scale' }"
-          title="Масштаб (R)"
-          aria-label="Масштаб (R)"
+          title="Scale (R)"
+          aria-label="Scale (R)"
           @click="setTransformMode('scale')"
         >
           <TransformToolIcon kind="scale" />
@@ -177,8 +177,8 @@
           type="button"
           class="shell__toolBtn shell__toolBtn--gizmo"
           :class="{ 'shell__toolBtn--active': transformGizmoVisible }"
-          title="Показать / скрыть гизмо (Q)"
-          :aria-label="transformGizmoVisible ? 'Скрыть гизмо (Q)' : 'Показать гизмо (Q)'"
+          title="Show / hide gizmo (Q)"
+          :aria-label="transformGizmoVisible ? 'Hide gizmo (Q)' : 'Show gizmo (Q)'"
           @click="toggleTransformGizmo"
         >
           <TransformToolIcon :kind="transformGizmoVisible ? 'eye' : 'eye-off'" />
@@ -187,16 +187,16 @@
       <div
         v-show="centerView === 'editor'"
         class="shell__sceneHud"
-        title="Свободная камера: orbit и полёт (ПКМ). Сущность с Camera: вид для предпросмотра, поза из ECS."
+        title="Free camera: orbit and fly (RMB). Entity with Camera: preview view, pose from ECS."
       >
         <label class="shell__cameraHudLabel">
-          Камера
+          Camera
           <select
             class="shell__cameraHudSelect"
             :value="editorRenderCameraEid === null ? '' : String(editorRenderCameraEid)"
             @change="onEditorViewportCameraChange"
           >
-            <option value="">Свободная</option>
+            <option value="">Free</option>
             <option v-for="c in cameraEntities" :key="c.eid" :value="String(c.eid)">{{ entityDisplayLabel(c) }}</option>
           </select>
         </label>
@@ -406,13 +406,13 @@ function setCenterView(mode: "editor" | "game"): void {
 
 const gamePauseLabel = computed(() => {
   void pauseUiTick.value;
-  return props.engineApi.isSimulationPaused() ? "Продолжить" : "Пауза";
+  return props.engineApi.isSimulationPaused() ? "Resume" : "Pause";
 });
 
 const gamePauseTitle = computed(() =>
   props.engineApi.isSimulationPaused()
-    ? "Возобновить шаги симуляции"
-    : "Приостановить шаги симуляции",
+    ? "Resume simulation steps"
+    : "Pause simulation steps",
 );
 
 const gamePausePressed = computed(() => {
@@ -508,7 +508,7 @@ function onSelect(eid: number): void {
 
 function onCreateEntity(): void {
   const eid = props.engineApi.createEntityFromComponents({
-    Name: { label: "Новая сущность" },
+    Name: { label: "New entity" },
   });
   refreshEntityList();
   selectedEid.value = eid;
@@ -537,7 +537,7 @@ async function onSpawnModelAsset(guid: string): Promise<void> {
     refreshInspector();
   } catch (err) {
     console.error("[HeliosEditor] spawnModelInstance failed:", err);
-    assetsPanelRef.value?.showToast?.("Не удалось загрузить модель");
+    assetsPanelRef.value?.showToast?.("Failed to load model");
   }
 }
 
@@ -588,7 +588,7 @@ async function onViewportDrop(ev: DragEvent): Promise<void> {
     refreshInspector();
   } catch (err) {
     console.error("[HeliosEditor] model drop failed:", err);
-    assetsPanelRef.value?.showToast?.("Ошибка предпросмотра модели");
+    assetsPanelRef.value?.showToast?.("Model preview failed");
   }
 }
 
@@ -600,21 +600,21 @@ async function onViewportTextureDrop(file: File): Promise<void> {
     }
     await registerDroppedTexture(props.engineApi, file.name, guid);
     assetsPanelRef.value?.refresh?.();
-    assetsPanelRef.value?.showToast?.(`Текстура ${guid} зарегистрирована`);
+    assetsPanelRef.value?.showToast?.(`Texture ${guid} registered`);
   } catch (err) {
     console.error("[HeliosEditor] texture drop failed:", err);
-    assetsPanelRef.value?.showToast?.("Не удалось сохранить текстуру");
+    assetsPanelRef.value?.showToast?.("Failed to save texture");
   }
 }
 
 function onApplyTextureMap(textureGuid: string): void {
   const id = selectedEid.value;
   if (id === null) {
-    assetsPanelRef.value?.showToast?.("Выберите сущность с Material");
+    assetsPanelRef.value?.showToast?.("Select an entity with Material");
     return;
   }
   if (!props.engineApi.hasComponent(id, "Material" as never)) {
-    assetsPanelRef.value?.showToast?.("У сущности нет Material");
+    assetsPanelRef.value?.showToast?.("Entity has no Material");
     return;
   }
   const snap = props.engineApi.getEntitySnapshot(id);
@@ -634,7 +634,7 @@ function onApplyTextureMap(textureGuid: string): void {
     descriptor: descriptor as unknown as Record<string, unknown>,
   });
   refreshInspector();
-  assetsPanelRef.value?.showToast?.("map обновлён — пересборка материала на следующем кадре");
+  assetsPanelRef.value?.showToast?.("map updated — material rebuild on next frame");
 }
 
 function onDeleteEntity(eid: number): void {

@@ -39,7 +39,7 @@ function syncMeshTransformFromEcs(world: IWorld, eid: number, object: THREE.Obje
 export class UpdateThreeMeshSystem extends System {
     static override readonly systemName = "UpdateThreeMeshSystem";
     static override readonly systemDescription =
-        "Создаёт и обновляет Three.js меши по ThreeMesh и ресурсам.";
+        "Creates and updates Three.js meshes from ThreeMesh and resources.";
     static override readonly runsInEditor = true;
 
     private readonly meshQuery = defineQuery([ThreeObject, ThreeMesh]);

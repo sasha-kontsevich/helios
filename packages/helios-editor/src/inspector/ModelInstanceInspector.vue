@@ -9,7 +9,7 @@
       spellcheck="false"
       @change="onGuidChange"
     />
-    <button type="button" class="inspector__btn" @click="emitExpand">Развернуть на сцене</button>
+    <button type="button" class="inspector__btn" @click="emitExpand">Expand in scene</button>
   </div>
 </template>
 

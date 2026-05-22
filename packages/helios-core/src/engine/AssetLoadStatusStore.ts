@@ -48,7 +48,7 @@ export class AssetLoadStatusStore {
         }
 
         if (loadCount > 1 && phaseMessages.length === 0) {
-            message = `Загрузка (${loadCount})…`;
+            message = `Loading (${loadCount})…`;
         } else if (loadCount > 0 && phaseMessages.length > 0 && loadCount === 1 && this.loadLabels.length > 0) {
             const assetLabel = this.loadLabels[this.loadLabels.length - 1]!;
             message = `${message} — ${assetLabel}`;

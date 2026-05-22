@@ -55,8 +55,8 @@
           type="button"
           class="inspector__lockBtn"
           :class="{ 'inspector__lockBtn--active': uniformLocked }"
-          title="Равномерный масштаб"
-          aria-label="Равномерный масштаб"
+          title="Uniform scale"
+          aria-label="Uniform scale"
           @click="uniformLocked = !uniformLocked"
         >
           <svg class="inspector__lockIcon" viewBox="0 0 16 16" aria-hidden="true">

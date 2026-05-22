@@ -24,7 +24,7 @@ export async function parseDroppedModelFile(file: File): Promise<DroppedModelPar
     if (ext === "fbx") {
         return {
             ok: false,
-            message: "FBX: импортируйте через CLI (helios import-model) с установленным fbx2gltf.",
+            message: "FBX: import via CLI (helios import-model) with fbx2gltf installed.",
         };
     }
 
@@ -55,5 +55,5 @@ export async function parseDroppedModelFile(file: File): Promise<DroppedModelPar
         };
     }
 
-    return { ok: false, message: `Неподдерживаемый формат: .${ext}` };
+    return { ok: false, message: `Unsupported format: .${ext}` };
 }

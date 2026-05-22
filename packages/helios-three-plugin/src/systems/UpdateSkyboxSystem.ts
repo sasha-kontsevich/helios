@@ -14,7 +14,7 @@ function readSkyboxTextureGuid(eid: number): string | null {
  */
 export class UpdateSkyboxSystem extends System {
     static override readonly systemName = "UpdateSkyboxSystem";
-    static override readonly systemDescription = "Обновляет skybox из компонента Skybox.";
+    static override readonly systemDescription = "Updates skybox from the Skybox component.";
     static override readonly runsInEditor = true;
 
     private readonly query = defineQuery([Skybox]);

@@ -27,7 +27,7 @@ function buildThreeFog(eid: number): THREE.Fog | THREE.FogExp2 {
  */
 export class UpdateFogSystem extends System {
     static override readonly systemName = "UpdateFogSystem";
-    static override readonly systemDescription = "Синхронизирует туман сцены с компонентом Fog.";
+    static override readonly systemDescription = "Syncs scene fog from the Fog component.";
     static override readonly runsInEditor = true;
 
     private readonly query = defineQuery([Fog]);

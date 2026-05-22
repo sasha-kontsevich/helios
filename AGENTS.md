@@ -50,7 +50,7 @@ After changing **`helios-core` public surface** (`EngineAPI`, exports), run **`p
 
 - Prefer **small, focused diffs**; match existing naming and patterns in touched files.
 - Do **not** edit user-attached **plan files** under `.cursor/plans/` unless the user explicitly asks.
-- Russian UI strings in the editor are acceptable where the rest of the UI already mixes RU/EN.
+- Editor and Astris demo UI strings are English.
 
 ## Documentation (keep in sync)
 

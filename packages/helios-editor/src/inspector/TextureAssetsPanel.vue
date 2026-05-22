@@ -1,7 +1,7 @@
 <template>
   <div class="texture-assets">
     <p class="texture-assets__hint">
-      Перетащите .png / .jpg / .webp во вьюпорт. Выберите сущность с Material — «На map».
+      Drag .png / .jpg / .webp into the viewport. Select an entity with Material — Apply to map.
     </p>
     <ul v-if="guids.length" class="texture-assets__list">
       <li v-for="guid in guids" :key="guid" class="texture-assets__item">
@@ -12,15 +12,15 @@
             type="button"
             class="texture-assets__btn"
             :disabled="!canApply"
-            title="Применить как map к Material.descriptor выбранной сущности"
+            title="Apply as map to the selected entity's Material.descriptor"
             @click="emit('applyMap', guid)"
           >
-            На map
+            To map
           </button>
         </div>
       </li>
     </ul>
-    <p v-else class="texture-assets__empty">Нет texture-ассетов в asset-index.</p>
+    <p v-else class="texture-assets__empty">No texture assets in asset-index.</p>
     <p v-if="toast" class="texture-assets__toast">{{ toast }}</p>
   </div>
 </template>

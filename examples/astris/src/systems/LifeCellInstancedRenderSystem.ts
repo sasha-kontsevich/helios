@@ -17,7 +17,7 @@ const _scale = new THREE.Vector3(1, 1, 1);
 export class LifeCellInstancedRenderSystem extends System {
     static override readonly systemName = "LifeCellInstancedRenderSystem";
     static override readonly systemDescription =
-        "Живые клетки GoL одним InstancedMesh (без меша на каждую сущность).";
+        "Live GoL cells as one InstancedMesh (no mesh per entity).";
     static override readonly runsInEditor = true;
 
     private readonly cellQuery = defineQuery([LifeCell]);

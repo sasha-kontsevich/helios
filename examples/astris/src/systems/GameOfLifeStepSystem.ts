@@ -40,7 +40,7 @@ function parseCellKey(key: string): [number, number] {
 export class GameOfLifeStepSystem extends System {
     static override readonly systemName = "GameOfLifeStepSystem";
     static override readonly systemDescription =
-        "Шаг симуляции Conway Game of Life на сетке XZ.";
+        "Conway Game of Life step on the XZ grid.";
 
     private readonly nameQuery = defineQuery([Name]);
     private readonly cellQuery = defineQuery([LifeCell]);

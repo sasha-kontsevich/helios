@@ -7,7 +7,7 @@ import { getThreeRenderContext } from "../ThreeRenderContext";
 
 export class RenderSystem extends System {
     static override readonly systemName = "RenderSystem";
-    static override readonly systemDescription = "Рендер editor и game viewports.";
+    static override readonly systemDescription = "Renders editor and game viewports.";
     static override readonly runsInEditor = true;
 
     async start(): Promise<void> {

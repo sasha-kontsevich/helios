@@ -18,7 +18,7 @@ function isGridLabel(label: string): boolean {
 export class GameGridVisualSystem extends System {
     static override readonly systemName = "GameGridVisualSystem";
     static override readonly systemDescription =
-        "Сетка на полу (линии); пересоздаётся после clear/snapshot.";
+        "Floor grid lines; respawns after clear/snapshot.";
     /** Grid respawn after snapshot/clear must run outside Play. */
     static override readonly runsInEditor = true;
 

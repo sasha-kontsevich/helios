@@ -18,7 +18,7 @@ import { ensureLifeCellsRootEid } from "../game/lifeCellsRoot";
 export class GameOfLifePointerDrainSystem extends System {
     static override readonly systemName = "GameOfLifePointerDrainSystem";
     static override readonly systemDescription =
-        "Очередь кликов по сетке: рисование и стирание клеток (в т.ч. без Play).";
+        "Grid click queue: paint and erase cells (including outside Play).";
     /** Grid clicks in the game view should work while editing (not only during Play). */
     static override readonly runsInEditor = true;
 

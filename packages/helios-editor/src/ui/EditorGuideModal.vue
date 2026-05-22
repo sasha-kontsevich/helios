@@ -16,12 +16,12 @@
         @keydown.escape.prevent="close"
       >
         <header class="guide-panel__header">
-          <h2 id="editor-guide-title" class="guide-panel__title">Добро пожаловать в редактор</h2>
+          <h2 id="editor-guide-title" class="guide-panel__title">Welcome to the editor</h2>
           <button
             type="button"
             class="guide-panel__close"
-            title="Закрыть"
-            aria-label="Закрыть справку"
+            title="Close"
+            aria-label="Close help"
             @click="close"
           >
             ×
@@ -44,10 +44,10 @@
         <footer class="guide-panel__footer">
           <label class="guide-panel__dismiss">
             <input v-model="dontShowAgain" type="checkbox" />
-            <span>Не показывать при запуске</span>
+            <span>Don't show on startup</span>
           </label>
           <button type="button" class="guide-panel__primary" @click="close">
-            Понятно
+            Got it
           </button>
         </footer>
       </div>

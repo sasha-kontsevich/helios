@@ -28,7 +28,7 @@ export class Engine {
 
         if (config.assetIndex?.length) {
             const status = this.context.assetLoadStatus;
-            status.beginPhase("indexing", "Индексация ассетов…");
+            status.beginPhase("indexing", "Indexing assets…");
             try {
                 await this.context.assetDatabase.indexMeta(config.assetIndex);
             } finally {
@@ -46,7 +46,7 @@ export class Engine {
 
         if (config.initialSceneGuid) {
             const status = this.context.assetLoadStatus;
-            status.beginPhase("scene", "Загрузка сцены…");
+            status.beginPhase("scene", "Loading scene…");
             try {
                 await this.context.scenes.loadScene(config.initialSceneGuid);
             } finally {

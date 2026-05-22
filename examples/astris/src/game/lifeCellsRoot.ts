@@ -20,7 +20,7 @@ export function findLifeCellsRootEid(world: IWorld, nameQuery: (world: IWorld) =
     return null;
 }
 
-/** Scene JSON provides the root; this creates a fallback and parents it under «Сцена». */
+/** Scene JSON provides the root; this creates a fallback and parents it under "Scene". */
 export function ensureLifeCellsRootEid(
     api: EngineAPI,
     world: IWorld,
@@ -34,7 +34,7 @@ export function ensureLifeCellsRootEid(
     const rootEid = api.createEntityFromComponents(lifeCellsRootComponents());
     let sceneRootEid: number | null = null;
     for (const eid of nameQuery(world)) {
-        if (Name.get(eid).label === "Сцена") {
+        if (Name.get(eid).label === "Scene") {
             sceneRootEid = eid;
             break;
         }
@@ -67,7 +67,7 @@ export function ensureLifeCellsRootEidFromApi(api: EngineAPI): number {
     const rootEid = api.createEntityFromComponents(lifeCellsRootComponents());
     let sceneRootEid: number | null = null;
     for (const snap of api.getAllEntities()) {
-        if (entityLabel(snap) === "Сцена") {
+        if (entityLabel(snap) === "Scene") {
             sceneRootEid = snap.eid;
             break;
         }

@@ -9,7 +9,7 @@ import { ensureLifeCellsPreviewRootEid } from "../game/lifeCellsPreviewRoot";
 export class LifeCellsPreviewHierarchySystem extends System {
     static override readonly systemName = "LifeCellsPreviewHierarchySystem";
     static override readonly systemDescription =
-        "Группирует LifeCellPreview под корнем превью.";
+        "Parents LifeCellPreview under the preview root.";
     static override readonly runsInEditor = true;
 
     private readonly nameQuery = defineQuery([Name]);

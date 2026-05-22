@@ -21,7 +21,7 @@ import { ThreeMesh, ThreeObject } from "../components";
 export class EnsureThreeRenderableSystem extends System {
     static override readonly systemName = "EnsureThreeRenderableSystem";
     static override readonly systemDescription =
-        "Добавляет ThreeObject и компоненты, нужные для рендера сущности.";
+        "Adds ThreeObject and components required to render an entity.";
     static override readonly runsInEditor = true;
 
     private readonly meshQuery = defineQuery([Mesh, Geometry, Material]);

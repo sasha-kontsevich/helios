@@ -18,11 +18,11 @@
             :class="{ 'system-list__badge--on': sys.enabled }"
             :title="
               sys.enabled
-                ? 'Выключить систему (stop + disable)'
-                : 'Включить систему (enable + start)'
+                ? 'Disable system (stop + disable)'
+                : 'Enable system (enable + start)'
             "
             :aria-pressed="sys.enabled"
-            :aria-label="`${sys.enabled ? 'Выключить' : 'Включить'} ${sys.name}`"
+            :aria-label="`${sys.enabled ? 'Disable' : 'Enable'} ${sys.name}`"
             @click="$emit('toggle-enabled', sys.name, !sys.enabled)"
           >
             On
@@ -30,17 +30,17 @@
           <span
             class="system-list__badge"
             :class="{ 'system-list__badge--on': sys.started }"
-            title="Вызван start() для этой инстанции"
+            title="start() was called for this instance"
           >Start</span>
           <span
             v-if="sys.runsInEditor"
             class="system-list__badge system-list__badge--ed"
-            title="runsInEditor: слой редактора, активен без Play"
+            title="runsInEditor: editor layer, active without Play"
           >Ed</span>
           <span
             class="system-list__badge"
             :class="{ 'system-list__badge--on': sys.updateActive }"
-            title="update вызывается (совпадает с On)"
+            title="update runs (matches On)"
           >Δ</span>
         </span>
       </li>

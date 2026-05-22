@@ -36,7 +36,7 @@ export function ensureLifeCellsPreviewRootEid(
     const rootEid = api.createEntityFromComponents(lifeCellsPreviewRootComponents());
     let sceneRootEid: number | null = null;
     for (const eid of nameQuery(world)) {
-        if (Name.get(eid).label === "Сцена") {
+        if (Name.get(eid).label === "Scene") {
             sceneRootEid = eid;
             break;
         }
@@ -69,7 +69,7 @@ export function ensureLifeCellsPreviewRootEidFromApi(api: EngineAPI): number {
     const rootEid = api.createEntityFromComponents(lifeCellsPreviewRootComponents());
     let sceneRootEid: number | null = null;
     for (const snap of api.getAllEntities()) {
-        if (entityLabel(snap) === "Сцена") {
+        if (entityLabel(snap) === "Scene") {
             sceneRootEid = snap.eid;
             break;
         }

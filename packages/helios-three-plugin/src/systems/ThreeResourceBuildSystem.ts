@@ -44,7 +44,7 @@ const materialResourceByDescHash = new Map<number, number>();
 export class ThreeResourceBuildSystem extends System {
     static override readonly systemName = "ThreeResourceBuildSystem";
     static override readonly systemDescription =
-        "Собирает Geometry/Material в ресурсы Three.js для мешей (в т.ч. в редакторе).";
+        "Resolves Geometry/Material into Three.js resources for meshes (including in the editor).";
     static override readonly runsInEditor = true;
 
     private readonly query = defineQuery([Mesh, Geometry, Material, ThreeObject]);

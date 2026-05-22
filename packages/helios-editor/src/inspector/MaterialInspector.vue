@@ -25,7 +25,7 @@
         />
       </div>
       <p class="ref-inspector__hint">
-        JSON только объекта дескриптора; проверка при blur (неверный JSON не применяется).
+        Descriptor object JSON only; validated on blur (invalid JSON is not applied).
       </p>
     </template>
     <template v-else-if="guidOnly">
@@ -41,7 +41,7 @@
         />
       </div>
       <p class="ref-inspector__hint">
-        Материал из импортированной модели (GLTF sub-asset). Редактирование — вкладка Raw.
+        Material from an imported model (GLTF sub-asset). Edit on the Raw tab.
       </p>
     </template>
     <template v-else>
@@ -367,12 +367,12 @@ function onRawDescriptorBlur(): void {
   try {
     parsed = JSON.parse(rawDescriptorText.value);
   } catch {
-    rawError.value = "Descriptor: невалидный JSON";
+    rawError.value = "Descriptor: invalid JSON";
     return;
   }
   const parsedDesc = parseMaterialDescriptor(parsed);
   if (!parsedDesc) {
-    rawError.value = "Descriptor: неизвестный тип или поля";
+    rawError.value = "Descriptor: unknown type or fields";
     return;
   }
   scheduleApply({

@@ -7,7 +7,7 @@ import { getShipMotionTime } from "./shipMotionTime";
 export class ShipBobSystem extends System {
     static override readonly systemName = "ShipBobSystem";
     static override readonly systemDescription =
-        "Вертикальное покачивание корабля по синусу (только Play).";
+        "Vertical ship bob on a sine wave (Play only).";
 
     private readonly query = defineQuery([ShipBob, Position]);
     private readonly baseYByEid = new Map<number, number>();

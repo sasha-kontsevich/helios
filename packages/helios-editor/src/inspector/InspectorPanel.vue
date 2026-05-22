@@ -4,7 +4,7 @@
       <span>Components</span>
       <label class="inspector__devToggle">
         <input v-model="showRuntimeInternals" type="checkbox" />
-        <span>Внутр. Three.js</span>
+        <span>Internal Three.js</span>
       </label>
     </div>
     <div v-if="selectedEid === null" class="inspector__empty">Select an entity</div>
@@ -22,7 +22,7 @@
               class="inspector__rawBtn"
               @click="toggleRaw(sec.name)"
             >
-              {{ rawModeFor(sec.name) ? "Форма" : "Raw" }}
+              {{ rawModeFor(sec.name) ? "Form" : "Raw" }}
             </button>
           </div>
         </div>

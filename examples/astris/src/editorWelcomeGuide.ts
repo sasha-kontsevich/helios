@@ -5,17 +5,17 @@ export const ASTRIS_EDITOR_GUIDE_SECTIONS: EditorGuideSection[] = [
         id: "astris-gol",
         title: "Astris — Game of Life",
         bullets: [
-            "Вкладка «Игра» — поле Conway: ЛКМ по ячейке переключает клетку, drag — рисование/стирание.",
-            "HUD внизу: Play/Stop, Pause, Paint/Erase, Clear и пресеты паттернов (пушки, пульсар и др.).",
-            "Наведение без кнопок показывает превью клетки; живые клетки рисуются instanced mesh.",
+            "Game tab — Conway field: LMB on a cell toggles it; drag paints or erases.",
+            "Bottom HUD: Play/Stop, Pause, Paint/Erase, Clear, and pattern presets (guns, pulsar, etc.).",
+            "Hover preview without buttons; live cells render as one instanced mesh.",
         ],
     },
     {
         id: "astris-camera",
-        title: "Astris — камера в Play",
+        title: "Astris — camera in Play",
         bullets: [
-            "В Play включается fly-камера (WASD, мышь) на сущности с AstrisFlyCamera.",
-            "Корабль и симуляция движения работают только в Play; в редакторе сцена статична.",
+            "In Play, fly camera (WASD, mouse) runs on the entity with AstrisFlyCamera.",
+            "Ship motion simulation runs only in Play; the editor scene stays static.",
         ],
     },
 ];

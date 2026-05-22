@@ -1,7 +1,7 @@
 <template>
   <div class="assets-panel helios-scroll">
     <section class="assets-panel__section">
-      <h3 class="assets-panel__title">Модели</h3>
+      <h3 class="assets-panel__title">Models</h3>
       <ModelAssetsPanel
         ref="modelPanelRef"
         :engine-api="engineApi"
@@ -10,7 +10,7 @@
       />
     </section>
     <section class="assets-panel__section">
-      <h3 class="assets-panel__title">Текстуры</h3>
+      <h3 class="assets-panel__title">Textures</h3>
       <TextureAssetsPanel
         ref="texturePanelRef"
         :engine-api="engineApi"
@@ -45,7 +45,7 @@ const texturePanelRef = ref<InstanceType<typeof TextureAssetsPanel> | null>(null
 
 function onCopyGuid(guid: string): void {
   void navigator.clipboard.writeText(guid).then(() => {
-    texturePanelRef.value?.showToast?.("GUID скопирован");
+    texturePanelRef.value?.showToast?.("GUID copied");
   });
 }
 

@@ -16,7 +16,7 @@ import { clearEntityPickingTag, tagObject3DForEntityPicking } from "../picking/t
  */
 export class UpdateThreeLightSystem extends System {
     static override readonly systemName = "UpdateThreeLightSystem";
-    static override readonly systemDescription = "Свет Three.js из ECS Light.";
+    static override readonly systemDescription = "Three.js lights from ECS Light.";
     static override readonly runsInEditor = true;
 
     private readonly ambientQuery = defineQuery([AmbientLight, ThreeObject]);

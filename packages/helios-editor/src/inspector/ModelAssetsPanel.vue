@@ -1,15 +1,15 @@
 <template>
   <div class="model-assets">
     <p class="model-assets__hint">
-      .glb / .obj — во вьюпорт (FBX — CLI). Текстуры — секция ниже.
+      .glb / .obj — into viewport (FBX — CLI). Textures — section below.
     </p>
     <ul v-if="guids.length" class="model-assets__list">
       <li v-for="guid in guids" :key="guid" class="model-assets__item">
         <span class="model-assets__guid">{{ shortGuid(guid) }}</span>
-        <button type="button" class="model-assets__btn" @click="emit('spawn', guid)">На сцену</button>
+        <button type="button" class="model-assets__btn" @click="emit('spawn', guid)">Spawn</button>
       </li>
     </ul>
-    <p v-else class="model-assets__empty">Нет model-ассетов в asset-index.</p>
+    <p v-else class="model-assets__empty">No model assets in asset-index.</p>
     <p v-if="toast" class="model-assets__toast">{{ toast }}</p>
   </div>
 </template>

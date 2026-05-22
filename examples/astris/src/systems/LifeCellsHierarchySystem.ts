@@ -9,7 +9,7 @@ import { ensureLifeCellsRootEid } from "../game/lifeCellsRoot";
 export class LifeCellsHierarchySystem extends System {
     static override readonly systemName = "LifeCellsHierarchySystem";
     static override readonly systemDescription =
-        "Группирует сущности LifeCell под корнем LifeCells.";
+        "Parents LifeCell entities under the LifeCells root.";
     static override readonly runsInEditor = true;
 
     private readonly nameQuery = defineQuery([Name]);

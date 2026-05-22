@@ -10,9 +10,9 @@ import { ThreeObject } from "./components";
 export const THREE_RENDERER_CAPABILITY = "renderer.three";
 
 export interface ThreePluginOptions {
-    /** Primary shell tab «Редактор» canvas id. */
+    /** Primary shell tab "Editor" canvas id. */
     editorCanvasId?: string;
-    /** Shell tab «Игра» canvas id. */
+    /** Shell tab "Game" canvas id. */
     gameCanvasId?: string;
     /** @deprecated Prefer {@link editorCanvasId}. */
     canvasId?: string;
@@ -163,12 +163,12 @@ export class ThreeRenderContext {
         return this.gameRenderer;
     }
 
-    /** Canvas for the «Редактор» tab (orbit, picking, gizmo). */
+    /** Canvas for the "Editor" tab (orbit, picking, gizmo). */
     getCanvas(): HTMLCanvasElement | undefined {
         return this.editorCanvas;
     }
 
-    /** Canvas for the «Игра» tab (ECS camera, game input). */
+    /** Canvas for the "Game" tab (ECS camera, game input). */
     getGameCanvas(): HTMLCanvasElement | undefined {
         return this.gameCanvas;
     }

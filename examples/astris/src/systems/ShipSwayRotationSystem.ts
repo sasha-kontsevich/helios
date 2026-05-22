@@ -7,7 +7,7 @@ import { getShipMotionTime } from "./shipMotionTime";
 export class ShipSwayRotationSystem extends System {
     static override readonly systemName = "ShipSwayRotationSystem";
     static override readonly systemDescription =
-        "Крен к центру орбиты и roll-покачивание (только Play).";
+        "Bank toward orbit center and roll sway (Play only).";
 
     private readonly query = defineQuery([ShipSway]);
 

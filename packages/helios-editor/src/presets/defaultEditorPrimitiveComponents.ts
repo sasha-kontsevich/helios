@@ -15,12 +15,12 @@ export type EditorPrimitiveKind = (typeof EDITOR_PRIMITIVE_KINDS)[number];
 
 /** Russian labels for {@link Name} when spawning primitives from the editor context menu. */
 export const EDITOR_PRIMITIVE_NAME_LABELS: Record<EditorPrimitiveKind, string> = {
-  box: "Куб",
-  sphere: "Сфера",
-  plane: "Плоскость",
-  cylinder: "Цилиндр",
-  cone: "Конус",
-  torus: "Тор",
+  box: "Box",
+  sphere: "Sphere",
+  plane: "Plane",
+  cylinder: "Cylinder",
+  cone: "Cone",
+  torus: "Torus",
 };
 
 const DEFAULT_MATERIAL = {

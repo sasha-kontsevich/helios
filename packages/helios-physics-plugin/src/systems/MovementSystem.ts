@@ -4,7 +4,7 @@ import { Velocity } from "../components";
 
 export class MovementSystem extends System {
     static override readonly systemName = "MovementSystem";
-    static override readonly systemDescription = "Интегрирует Velocity в Position (физика).";
+    static override readonly systemDescription = "Integrates Velocity into Position (physics).";
     private query = defineQuery([Position, Velocity]);
 
     update(deltaTime: number): void {

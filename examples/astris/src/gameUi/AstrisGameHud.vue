@@ -6,7 +6,7 @@
 
 
 
-    <aside class="astris-cockpit__palette astris-cockpit__palette--left" aria-label="Кисти и базовые паттерны">
+    <aside class="astris-cockpit__palette astris-cockpit__palette--left" aria-label="Brushes and basic patterns">
 
       <div class="astris-cockpit__paletteGroup">
 
@@ -78,7 +78,7 @@
 
           placement="right"
 
-          :armed-hint="armedPresetId === id ? 'Выбрано — клик для установки · кнопка ещё раз — снять' : 'Клик по сетке для установки'"
+          :armed-hint="armedPresetId === id ? 'Armed — click to place · click again to disarm' : 'Click on the grid to place'"
 
         >
 
@@ -110,7 +110,7 @@
 
 
 
-    <aside class="astris-cockpit__palette astris-cockpit__palette--right" aria-label="Сложные паттерны">
+    <aside class="astris-cockpit__palette astris-cockpit__palette--right" aria-label="Advanced patterns">
 
       <div class="astris-cockpit__paletteGroup">
 
@@ -126,7 +126,7 @@
 
           placement="left"
 
-          :armed-hint="armedPresetId === id ? 'Выбрано — клик для установки · кнопка ещё раз — снять' : 'Клик по сетке · нужно много места'"
+          :armed-hint="armedPresetId === id ? 'Armed — click to place · click again to disarm' : 'Click on grid · needs lots of space'"
 
         >
 
@@ -202,7 +202,7 @@
 
           data-game-ui-interactive
 
-          :title="playSessionActive ? 'Остановить Play' : 'Enter Play'"
+          :title="playSessionActive ? 'Stop Play' : 'Enter Play'"
 
           @click="onPlayToggle"
 
@@ -248,7 +248,7 @@
 
           data-game-ui-interactive
 
-          title="Удалить все клетки"
+          title="Clear all cells"
 
           @click="onClear"
 
@@ -282,17 +282,17 @@
 
           <AstrisGameIcon kind="chevron" :size="14" :expanded="hintsOpen" />
 
-          Управление
+          Controls
 
         </button>
 
         <ul v-show="hintsOpen" class="astris-cockpit__hintsBody">
 
-          <li>WASD — полёт · ПКМ — обзор · наведение — превью клеток</li>
+          <li>WASD — fly · RMB — look · hover — cell preview</li>
 
-          <li>Слева — кисти и классика · справа — сложные · паттерн остаётся выбранным</li>
+          <li>Left — brushes and classics · right — advanced · pattern stays armed</li>
 
-          <li>Play — симуляция · Pause — шаги на паузе</li>
+          <li>Play — simulation · Pause — steps on hold</li>
 
         </ul>
 
@@ -412,13 +412,13 @@ const pauseTitle = computed(() =>
 
   !playSessionActive.value
 
-    ? "Доступно после Play"
+    ? "Available after Play"
 
     : simulationPaused.value
 
-      ? "Возобновить симуляцию"
+      ? "Resume simulation"
 
-      : "Пауза симуляции",
+      : "Pause simulation",
 
 );
 

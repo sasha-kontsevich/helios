@@ -29,7 +29,7 @@ const _scale = new THREE.Vector3(1, 1, 1);
 export class GolHoverSyncSystem extends System {
     static override readonly systemName = "GolHoverSyncSystem";
     static override readonly systemDescription =
-        "Превью клеток под курсором (instanced mesh, цвет по режиму).";
+        "Cell preview under the cursor (instanced mesh, color by mode).";
     static override readonly runsInEditor = true;
 
     private instanced: THREE.InstancedMesh | null = null;
