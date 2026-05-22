@@ -8,7 +8,7 @@
       </label>
     </div>
     <div v-if="selectedEid === null" class="inspector__empty">Select an entity</div>
-    <div v-else-if="snapshot" class="inspector__body">
+    <div v-else-if="snapshot" class="inspector__body helios-scroll">
       <section v-for="sec in sections" :key="sec.name" class="inspector__component">
         <div
           class="inspector__comp-row"
@@ -260,7 +260,6 @@ function onComponentRowContextMenu(ev: MouseEvent, componentName: string): void 
   color: #777;
 }
 .inspector__body {
-  overflow: auto;
   flex: 1;
   padding: 8px 10px 12px;
 }

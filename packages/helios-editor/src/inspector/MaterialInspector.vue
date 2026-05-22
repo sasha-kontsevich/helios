@@ -18,7 +18,7 @@
         <textarea
           id="mat-raw-desc"
           v-model="rawDescriptorText"
-          class="ref-inspector__json ref-inspector__json--descriptor"
+          class="ref-inspector__json ref-inspector__json--descriptor helios-scroll"
           spellcheck="false"
           @focus="emit('editingChanged', true)"
           @blur="onRawDescriptorBlur"

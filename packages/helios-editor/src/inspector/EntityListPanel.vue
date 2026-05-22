@@ -7,7 +7,7 @@
     @dragleave="onRootDragLeave"
     @drop.prevent="onRootDrop"
   >
-    <ul class="entity-list__ul entity-tree">
+    <ul class="entity-list__ul entity-tree helios-scroll">
       <EntityHierarchyNode
         v-for="node in treeRoots"
         :key="node.eid"
@@ -282,9 +282,7 @@ function onRootDrop(): void {
   list-style: none;
   margin: 0;
   padding: 4px 0;
-  overflow: auto;
   flex: 1;
-  min-height: 0;
 }
 .entity-tree {
   padding: 0;

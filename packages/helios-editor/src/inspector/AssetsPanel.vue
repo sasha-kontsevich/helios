@@ -1,5 +1,5 @@
 <template>
-  <div class="assets-panel">
+  <div class="assets-panel helios-scroll">
     <section class="assets-panel__section">
       <h3 class="assets-panel__title">Модели</h3>
       <ModelAssetsPanel
@@ -63,6 +63,10 @@ defineExpose({ refresh, showToast });
 </script>
 
 <style scoped>
+.assets-panel {
+  height: 100%;
+  min-height: 0;
+}
 .assets-panel__section + .assets-panel__section {
   border-top: 1px solid var(--helios-border, #333);
   margin-top: 4px;

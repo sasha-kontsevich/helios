@@ -34,13 +34,23 @@
 }
 
 /*
+ * Scrollable regions (Entities list, Systems, Inspector, Assets, guide modal, …).
+ */
+.helios-scroll {
+  overflow: auto;
+  min-height: 0;
+}
+
+/*
  * Thin scrollbars (same pattern as chitalka: transparent track, flat thumb, no arrow buttons).
- * Scoped to the editor mount node and teleported context menus.
+ * Editor shell, teleported context menus, and teleported editor overlays (guide modal).
  */
 [data-helios-editor],
 [data-helios-editor] *,
 [data-context-menu-root],
-[data-context-menu-root] * {
+[data-context-menu-root] *,
+[data-helios-editor-overlay],
+[data-helios-editor-overlay] * {
   @supports not selector(::-webkit-scrollbar) {
     scrollbar-width: thin;
     scrollbar-color: var(--helios-color-border) transparent;
@@ -50,7 +60,9 @@
 [data-helios-editor]::-webkit-scrollbar,
 [data-helios-editor] *::-webkit-scrollbar,
 [data-context-menu-root]::-webkit-scrollbar,
-[data-context-menu-root] *::-webkit-scrollbar {
+[data-context-menu-root] *::-webkit-scrollbar,
+[data-helios-editor-overlay]::-webkit-scrollbar,
+[data-helios-editor-overlay] *::-webkit-scrollbar {
   width: 4px;
   height: 4px;
 }
@@ -58,14 +70,18 @@
 [data-helios-editor]::-webkit-scrollbar-track,
 [data-helios-editor] *::-webkit-scrollbar-track,
 [data-context-menu-root]::-webkit-scrollbar-track,
-[data-context-menu-root] *::-webkit-scrollbar-track {
+[data-context-menu-root] *::-webkit-scrollbar-track,
+[data-helios-editor-overlay]::-webkit-scrollbar-track,
+[data-helios-editor-overlay] *::-webkit-scrollbar-track {
   background: transparent;
 }
 
 [data-helios-editor]::-webkit-scrollbar-thumb,
 [data-helios-editor] *::-webkit-scrollbar-thumb,
 [data-context-menu-root]::-webkit-scrollbar-thumb,
-[data-context-menu-root] *::-webkit-scrollbar-thumb {
+[data-context-menu-root] *::-webkit-scrollbar-thumb,
+[data-helios-editor-overlay]::-webkit-scrollbar-thumb,
+[data-helios-editor-overlay] *::-webkit-scrollbar-thumb {
   background: var(--helios-color-border);
   border-radius: 0;
 }
@@ -73,6 +89,8 @@
 [data-helios-editor]::-webkit-scrollbar-button,
 [data-helios-editor] *::-webkit-scrollbar-button,
 [data-context-menu-root]::-webkit-scrollbar-button,
-[data-context-menu-root] *::-webkit-scrollbar-button {
+[data-context-menu-root] *::-webkit-scrollbar-button,
+[data-helios-editor-overlay]::-webkit-scrollbar-button,
+[data-helios-editor-overlay] *::-webkit-scrollbar-button {
   display: none;
 }
