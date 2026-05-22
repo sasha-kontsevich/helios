@@ -200,10 +200,21 @@ export function parseGeometryDescriptor(v: unknown): GeometryDescriptor | null {
 
 /* ─── Materials ────────────────────────────────────────────────────────────── */
 
+/** Which mesh faces are rendered (`front` = Three.js default). */
+export type MaterialSide = "front" | "back" | "double";
+
+export function parseMaterialSide(v: unknown): MaterialSide | undefined {
+    if (v === "front" || v === "back" || v === "double") {
+        return v;
+    }
+    return undefined;
+}
+
 export interface MaterialDescriptorMeshBasic {
     type: "meshBasic";
     color: number;
     wireframe?: boolean;
+    side?: MaterialSide;
     /** Albedo / diffuse map (`guid://…` texture asset). */
     map?: string;
 }
@@ -212,6 +223,7 @@ export interface MaterialDescriptorMeshLambert {
     type: "meshLambert";
     color: number;
     wireframe?: boolean;
+    side?: MaterialSide;
     emissive?: number;
     map?: string;
     emissiveMap?: string;
@@ -223,6 +235,7 @@ export interface MaterialDescriptorMeshStandard {
     roughness: number;
     metalness: number;
     wireframe?: boolean;
+    side?: MaterialSide;
     map?: string;
     normalMap?: string;
     roughnessMap?: string;
@@ -295,6 +308,16 @@ function copyTextureSlots<T extends MaterialDescriptor>(
     }
 }
 
+function applyOptionalMaterialSide<T extends MaterialDescriptor>(
+    target: T,
+    source: Record<string, unknown>,
+): void {
+    const side = parseMaterialSide(source.side);
+    if (side) {
+        target.side = side;
+    }
+}
+
 /** Parse and normalize a material descriptor from JSON/editor; returns null if invalid. */
 export function parseMaterialDescriptor(v: unknown): MaterialDescriptor | null {
     if (typeof v !== "object" || v === null) return null;
@@ -311,6 +334,7 @@ export function parseMaterialDescriptor(v: unknown): MaterialDescriptor | null {
                 wireframe: Boolean(o.wireframe),
             };
             copyTextureSlots(base, o as unknown as Record<string, unknown>, ["map"]);
+            applyOptionalMaterialSide(base, o as unknown as Record<string, unknown>);
             return base;
         }
         case "meshLambert": {
@@ -325,6 +349,7 @@ export function parseMaterialDescriptor(v: unknown): MaterialDescriptor | null {
                 base.emissive = clampColor(o.emissive, DEFAULT_MATERIAL_LAMBERT.emissive ?? 0);
             }
             copyTextureSlots(base, o as unknown as Record<string, unknown>, ["map", "emissiveMap"]);
+            applyOptionalMaterialSide(base, o as unknown as Record<string, unknown>);
             return base;
         }
         case "meshStandard": {
@@ -345,6 +370,7 @@ export function parseMaterialDescriptor(v: unknown): MaterialDescriptor | null {
                 "aoMap",
                 "emissiveMap",
             ]);
+            applyOptionalMaterialSide(base, o as unknown as Record<string, unknown>);
             return base;
         }
         default:

@@ -22,6 +22,7 @@
         "Material": {
           "descriptor": {
             "type": "meshStandard",
+            "side": "double",
             "color": 16777215,
             "roughness": 1,
             "metalness": 0.7,

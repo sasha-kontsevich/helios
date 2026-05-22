@@ -1,5 +1,5 @@
 import type { Context } from "@merlinn/helios-core";
-import { Geometry, Material } from "@merlinn/helios-core";
+import { Geometry, Material, parseMaterialDescriptor } from "@merlinn/helios-core";
 import * as THREE from "three";
 import { ThreeMesh } from "../components";
 
@@ -171,8 +171,12 @@ export function resolveAndApplyGeometry(ctx: Context, eid: number): boolean {
 }
 
 export function resolveAndApplyMaterial(ctx: Context, eid: number): boolean {
-    const guidRef = resolveRefField(ctx, Material, eid, "guid");
     const descRef = resolveRefField(ctx, Material, eid, "descriptor");
+    if (!isResolvedThreeResource(descRef) && parseMaterialDescriptor(descRef)) {
+        // Inline descriptor wins over imported GLTF sub-asset guid (see Material inspector).
+        return false;
+    }
+    const guidRef = resolveRefField(ctx, Material, eid, "guid");
     return applyResolvedMaterial(ctx, eid, guidRef) || applyResolvedMaterial(ctx, eid, descRef);
 }
 

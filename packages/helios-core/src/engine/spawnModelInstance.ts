@@ -14,7 +14,18 @@ export interface SpawnModelInstanceOptions {
     scale?: { x: number; y: number; z: number };
     name?: string;
     instanceId?: string;
+    /** Extra registered components copied from a {@link ModelInstance} marker (e.g. game logic tags). */
+    extraComponents?: Record<string, Record<string, unknown>>;
 }
+
+const MODEL_INSTANCE_MARKER_RESERVED = new Set([
+    "ModelInstance",
+    "Position",
+    "Rotation",
+    "Scale",
+    "Parent",
+    "Name",
+]);
 
 let nextModelInstanceSerial = 1;
 
@@ -82,6 +93,11 @@ export async function spawnModelManifest(
     if (options.position) wrapperComponents.Position = options.position;
     if (options.rotation) wrapperComponents.Rotation = options.rotation;
     if (options.scale) wrapperComponents.Scale = options.scale;
+    if (options.extraComponents) {
+        for (const [name, fields] of Object.entries(options.extraComponents)) {
+            wrapperComponents[name] = fields;
+        }
+    }
 
     applyComponentsToEntity(ctx, wrapperEid, wrapperComponents);
 
@@ -143,6 +159,21 @@ export async function expandModelInstanceMarker(ctx: Context, markerEid: number)
         if (typeof target === "number" && entityExists(world, target)) {
             options.parentEid = target;
         }
+    }
+
+    const registered = new Set(ctx.components.list());
+    const extra: Record<string, Record<string, unknown>> = {};
+    for (const [name, fields] of Object.entries(components)) {
+        if (MODEL_INSTANCE_MARKER_RESERVED.has(name)) {
+            continue;
+        }
+        if (!registered.has(name)) {
+            continue;
+        }
+        extra[name] = { ...fields };
+    }
+    if (Object.keys(extra).length > 0) {
+        options.extraComponents = extra;
     }
 
     removeEntity(world, markerEid);

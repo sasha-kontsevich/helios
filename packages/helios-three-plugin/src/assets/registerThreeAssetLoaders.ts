@@ -81,12 +81,18 @@ export function registerThreeAssetLoaders(context: Context): void {
                 throw new Error(`[loadGltfMaterial] mesh index ${index} not found`);
             }
             const mat = mesh.material;
+            const cloneOne = (m: THREE.Material): THREE.Material => {
+                const cloned = m.clone();
+                cloned.side = THREE.DoubleSide;
+                cloned.needsUpdate = true;
+                return cloned;
+            };
             if (Array.isArray(mat)) {
                 const pi = record.gltfPrimitiveIndex ?? 0;
                 const m = mat[pi];
-                return (m as THREE.Material).clone();
+                return cloneOne(m as THREE.Material);
             }
-            return (mat as THREE.Material).clone();
+            return cloneOne(mat as THREE.Material);
         },
     });
 }

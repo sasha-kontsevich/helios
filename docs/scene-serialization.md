@@ -51,9 +51,9 @@ Typed unions and parsers: **`packages/helios-core/src/rendering/descriptors.ts`*
 
 | `type` | Parameters | Notes |
 |--------|------------|--------|
-| `meshBasic` | `color` (0xRRGGBB), `wireframe?`, `map?` | `map` = texture asset GUID |
-| `meshLambert` | `color`, `wireframe?`, `emissive?`, `map?`, `emissiveMap?` | `emissive` optional RGB integer |
-| `meshStandard` | `color`, `roughness`, `metalness`, `wireframe?`, `map?`, `normalMap?`, `roughnessMap?`, `metalnessMap?`, `aoMap?`, `emissiveMap?` | `roughness` / `metalness` clamped to **0…1** |
+| `meshBasic` | `color` (0xRRGGBB), `wireframe?`, `side?`, `map?` | `map` = texture asset GUID; `side`: `front` \| `back` \| `double` |
+| `meshLambert` | `color`, `wireframe?`, `side?`, `emissive?`, `map?`, `emissiveMap?` | `emissive` optional RGB integer |
+| `meshStandard` | `color`, `roughness`, `metalness`, `wireframe?`, `side?`, `map?`, `normalMap?`, `roughnessMap?`, `metalnessMap?`, `aoMap?`, `emissiveMap?` | `roughness` / `metalness` clamped to **0…1** |
 
 Texture assets (`loader: "loadTexture"`) and slot names — **[textures.md](textures.md)**.
 

@@ -122,8 +122,26 @@
         "Name": { "label": "Корабль" },
         "ModelInstance": { "model": "guid://models/lp" },
         "Position": { "x": 0, "y": 20, "z": -20 },
+        "Rotation": { "x": 0, "y": 0, "z": 0, "w": 1 },
         "Scale": { "x": 0.01, "y": 0.01, "z": 0.01 },
-        "Parent": { "target": "scene-root" }
+        "Parent": { "target": "scene-root" },
+        "ShipOrbit": {
+          "centerX": 0,
+          "centerZ": 0,
+          "radius": 66,
+          "speed": 0.12,
+          "baseY": 20,
+          "phase": 0,
+          "faceTangent": 1
+        },
+        "ShipBob": { "amplitude": 1.5, "frequency": 0.8, "phase": 0 },
+        "ShipSway": {
+          "bankTowardCenter": 0.14,
+          "rollAmplitude": 0.05,
+          "pitchAmplitude": 0.04,
+          "frequency": 1.1,
+          "phase": 0
+        }
       }
     }
   ]

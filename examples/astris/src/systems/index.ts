@@ -19,6 +19,9 @@ import { GolHoverSyncSystem } from "./GolHoverSyncSystem";
 import { LifeCellInstancedRenderSystem } from "./LifeCellInstancedRenderSystem";
 import {GameOfLifeStepSystem} from "./GameOfLifeStepSystem";
 import { AstrisFlyCameraSystem } from "./AstrisFlyCameraSystem";
+import { ShipBobSystem } from "./ShipBobSystem";
+import { ShipOrbitSystem } from "./ShipOrbitSystem";
+import { ShipSwayRotationSystem } from "./ShipSwayRotationSystem";
 
 export const Systems: SystemConstructor[] = [
     RotatingCubeSystem,
@@ -30,6 +33,9 @@ export const Systems: SystemConstructor[] = [
     GameOfLifePointerDrainSystem,
     GameOfLifeStepSystem,
     GolHoverSyncSystem,
+    ShipOrbitSystem,
+    ShipBobSystem,
+    ShipSwayRotationSystem,
     EnsureThreeRenderableSystem,
     ThreeResourceBuildSystem,
     UpdateThreeMeshSystem,

@@ -376,9 +376,10 @@ function onRawDescriptorBlur(): void {
     return;
   }
   scheduleApply({
-    guid: rawGuid.value,
+    guid: "",
     descriptor: parsedDesc as unknown as Record<string, unknown>,
   });
+  rawGuid.value = "";
 }
 </script>
 

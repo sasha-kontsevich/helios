@@ -10,6 +10,7 @@ import {
 } from "./game/astrisCapabilities";
 import type { GridClickQueue } from "./game/GridClickQueue";
 import { clearGolHover } from "./game/golHoverLogic";
+import { resetShipMotionTime } from "./systems/shipMotionTime";
 import "@merlinn/helios-editor/style.css";
 import { config } from "./config";
 
@@ -40,6 +41,7 @@ async function bootstrap() {
                 return Object.prototype.hasOwnProperty.call(snap.components, "LifeCellPreview");
             },
             onEnterPlay: () => {
+                resetShipMotionTime();
                 clearGolHover(engine);
                 engine.api.getCapability<GridClickQueue>(ASTRIS_GRID_CLICK_QUEUE_CAPABILITY)?.clear();
                 const stats = engine.api.getCapability<GolStatsState>(ASTRIS_GOL_STATS_CAPABILITY);

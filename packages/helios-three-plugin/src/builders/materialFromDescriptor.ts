@@ -3,9 +3,21 @@ import {
     collectTextureGuidsFromMaterialDescriptor,
     materialTextureSlotsForType,
     type MaterialDescriptor,
+    type MaterialSide,
     type MaterialTextureSlot,
 } from "@merlinn/helios-core";
 import * as THREE from "three";
+
+export function threeSideFromDescriptor(side: MaterialSide | undefined): THREE.Side {
+    switch (side) {
+        case "back":
+            return THREE.BackSide;
+        case "double":
+            return THREE.DoubleSide;
+        default:
+            return THREE.FrontSide;
+    }
+}
 
 export type TextureResolver = (guid: string) => THREE.Texture | undefined;
 
@@ -67,6 +79,7 @@ export function createMaterialFromDescriptor(
                 const mat = new THREE.MeshBasicMaterial({
                     color: desc.color,
                     wireframe: desc.wireframe ?? false,
+                    side: threeSideFromDescriptor(desc.side),
                 });
                 if (resolveTexture) applyTextureSlots(mat, desc, resolveTexture);
                 return mat;
@@ -75,6 +88,7 @@ export function createMaterialFromDescriptor(
                 const opts: THREE.MeshLambertMaterialParameters = {
                     color: desc.color,
                     wireframe: desc.wireframe ?? false,
+                    side: threeSideFromDescriptor(desc.side),
                 };
                 if (desc.emissive !== undefined) opts.emissive = desc.emissive;
                 const mat = new THREE.MeshLambertMaterial(opts);
@@ -87,6 +101,7 @@ export function createMaterialFromDescriptor(
                     roughness: desc.roughness,
                     metalness: desc.metalness,
                     wireframe: desc.wireframe ?? false,
+                    side: threeSideFromDescriptor(desc.side),
                 });
                 if (resolveTexture) applyTextureSlots(mat, desc, resolveTexture);
                 return mat;

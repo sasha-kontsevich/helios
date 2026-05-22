@@ -2,7 +2,12 @@ import { addComponent, defineQuery, hasComponent } from "bitecs";
 import { Geometry, Material, Mesh, System } from "@merlinn/helios-core";
 import { parseGeometryDescriptor, parseMaterialDescriptor } from "@merlinn/helios-core";
 import * as THREE from "three";
-import { createGeometryFromDescriptor, createMaterialFromDescriptor, createTextureResolver } from "../builders/descriptors";
+import { createGeometryFromDescriptor } from "../builders/descriptors";
+import {
+    createMaterialFromDescriptor,
+    createTextureResolver,
+    threeSideFromDescriptor,
+} from "../builders/materialFromDescriptor";
 import { collectTextureGuidsFromMaterialDescriptor } from "@merlinn/helios-core";
 import {
     assetGuidCacheKey,
@@ -209,9 +214,16 @@ export class ThreeResourceBuildSystem extends System {
                         obj.geometry = geo;
                     }
                     if (needsMaterial) {
-                        obj.material = this.context.resources.get(
+                        const mat = this.context.resources.get(
                             ThreeMesh.material[eid],
                         ) as THREE.Material;
+                        const descRaw = resolveRefField(this.context, Material, eid, "descriptor");
+                        const parsed = parseMaterialDescriptor(descRaw);
+                        if (parsed?.side) {
+                            mat.side = threeSideFromDescriptor(parsed.side);
+                            mat.needsUpdate = true;
+                        }
+                        obj.material = mat;
                     }
                 }
                 MeshResourcesResolved.built[eid] = 1;
