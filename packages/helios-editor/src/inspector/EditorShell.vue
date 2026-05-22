@@ -296,6 +296,9 @@ import type { EditorViewportInteractionController } from "../viewport/EditorView
 
 const REFRESH_MS = 160;
 
+/** Log at most once per empty spell after engine + asset bootstrap finish. */
+let emptyEntityListWarned = false;
+
 /** Pixels; mirrors `--helios-chrome-tab-icon-size` in `ui/heliosChrome.css`. */
 const CHROME_TAB_ICON_SIZE = 13;
 
@@ -463,11 +466,19 @@ function refreshEntityList(): void {
   entities.value = sortEntities(list);
   // Components are registered during engine.init; editor mounts before init, so refresh over time.
   availableComponents.value = props.engineApi.listRegisteredComponents();
-  if (entities.value.length === 0) {
+
+  const stillBootstrapping =
+    availableComponents.value.length === 0 || props.engineApi.getAssetLoadStatus().active;
+
+  if (entities.value.length > 0) {
+    emptyEntityListWarned = false;
+  } else if (!stillBootstrapping && !emptyEntityListWarned) {
+    emptyEntityListWarned = true;
     console.warn(
-      "[HeliosEditor] Entity list is empty. If you expect entities, check that systems create them and components are registered.",
+      "[HeliosEditor] Entity list is empty after load. If you expect entities, check that the scene loaded and systems create them.",
     );
   }
+
   syncEditorViewportCameraFromWorld();
 }
 
