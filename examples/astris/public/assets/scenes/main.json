@@ -136,7 +136,7 @@
         },
         "ShipBob": { "amplitude": 1.5, "frequency": 0.8, "phase": 0 },
         "ShipSway": {
-          "bankTowardCenter": 0.14,
+          "bankTowardCenter": -0.14,
           "rollAmplitude": 0.05,
           "pitchAmplitude": 0.04,
           "frequency": 1.1,
