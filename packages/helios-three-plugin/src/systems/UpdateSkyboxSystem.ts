@@ -13,6 +13,8 @@ function readSkyboxTextureGuid(eid: number): string | null {
  * Uses the first matching entity; resets to solid color when none remain.
  */
 export class UpdateSkyboxSystem extends System {
+    static override readonly systemName = "UpdateSkyboxSystem";
+    static override readonly systemDescription = "Обновляет skybox из компонента Skybox.";
     static override readonly runsInEditor = true;
 
     private readonly query = defineQuery([Skybox]);

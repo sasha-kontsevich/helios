@@ -15,6 +15,8 @@ import { clearEntityPickingTag, tagObject3DForEntityPicking } from "../picking/t
  * Scenes must define lights in data (no engine bootstrap).
  */
 export class UpdateThreeLightSystem extends System {
+    static override readonly systemName = "UpdateThreeLightSystem";
+    static override readonly systemDescription = "Свет Three.js из ECS Light.";
     static override readonly runsInEditor = true;
 
     private readonly ambientQuery = defineQuery([AmbientLight, ThreeObject]);

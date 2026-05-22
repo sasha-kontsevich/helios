@@ -26,6 +26,8 @@ function buildThreeFog(eid: number): THREE.Fog | THREE.FogExp2 {
  * Uses the first matching entity; clears fog when none remain.
  */
 export class UpdateFogSystem extends System {
+    static override readonly systemName = "UpdateFogSystem";
+    static override readonly systemDescription = "Синхронизирует туман сцены с компонентом Fog.";
     static override readonly runsInEditor = true;
 
     private readonly query = defineQuery([Fog]);

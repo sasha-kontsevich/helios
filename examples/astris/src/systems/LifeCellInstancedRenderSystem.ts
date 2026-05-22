@@ -15,6 +15,9 @@ const _scale = new THREE.Vector3(1, 1, 1);
  * Renders all {@link LifeCell} entities with one {@link THREE.InstancedMesh} (no per-cell ECS mesh).
  */
 export class LifeCellInstancedRenderSystem extends System {
+    static override readonly systemName = "LifeCellInstancedRenderSystem";
+    static override readonly systemDescription =
+        "Живые клетки GoL одним InstancedMesh (без меша на каждую сущность).";
     static override readonly runsInEditor = true;
 
     private readonly cellQuery = defineQuery([LifeCell]);

@@ -27,6 +27,9 @@ const _scale = new THREE.Vector3(1, 1, 1);
  * Renders GOL hover preview via {@link THREE.InstancedMesh} (no per-cell ECS spawn).
  */
 export class GolHoverSyncSystem extends System {
+    static override readonly systemName = "GolHoverSyncSystem";
+    static override readonly systemDescription =
+        "Превью клеток под курсором (instanced mesh, цвет по режиму).";
     static override readonly runsInEditor = true;
 
     private instanced: THREE.InstancedMesh | null = null;

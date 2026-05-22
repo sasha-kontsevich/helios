@@ -5,6 +5,8 @@ import { ThreeObject } from "../components";
 import { getThreeRenderContext } from "../ThreeRenderContext";
 
 export class UpdateThreeObjectSystem extends System {
+    static override readonly systemName = "UpdateThreeObjectSystem";
+    static override readonly systemDescription = "Синхронизирует transform ECS → ThreeObject.";
     static override readonly runsInEditor = true;
 
     private readonly objectQuery = defineQuery([ThreeObject]);

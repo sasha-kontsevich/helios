@@ -1,5 +1,6 @@
 import { Context } from './index';
 import { System } from './System';
+import { readSystemMetaFromInstance } from './systemMeta';
 import { SystemConstructor } from '../types';
 import type { SystemRuntimeSnapshot } from '../types/SystemRuntimeSnapshot';
 import { EDITOR_PLAY_SESSION_CAPABILITY } from '../types/EditorPlaySessionCapability';
@@ -20,7 +21,7 @@ export class SystemManager {
     register(systems: (SystemConstructor | System)[]) {
         for (const s of systems) {
             const instance = typeof s === 'function' ? new s(this.context) : s;
-            const systemName = instance.constructor.name;
+            const { name: systemName } = readSystemMetaFromInstance(instance);
 
             if (this.systemMap.has(systemName)) {
                 throw new Error(`System "${systemName}" is already registered`);
@@ -156,8 +157,10 @@ export class SystemManager {
             const runsInEditor = readRunsInEditor(system);
             const enabled = system.isEnabled();
             const pausedBySimulationPause = enabled && this.simulationPaused && !runsInEditor;
+            const meta = readSystemMetaFromInstance(system);
             return {
-                name: system.constructor.name,
+                name: meta.name,
+                description: meta.description,
                 order,
                 enabled,
                 started: this.started.has(system),

@@ -5,6 +5,10 @@ import { ensureRotationComponent } from "./shipMotionMath";
 import { advanceShipMotionTime, getShipMotionTime } from "./shipMotionTime";
 
 export class ShipOrbitSystem extends System {
+    static override readonly systemName = "ShipOrbitSystem";
+    static override readonly systemDescription =
+        "Орбита корабля вокруг точки; yaw и позиция (только Play).";
+
     private readonly query = defineQuery([ShipOrbit, Position]);
     private readonly initialized = new Set<number>();
 

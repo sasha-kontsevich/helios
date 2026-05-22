@@ -4,6 +4,9 @@ import {Rotating} from "../components";
 import {ThreeMesh} from "@merlinn/helios-three-plugin";
 
 export class RotatingCubeSystem extends System {
+    static override readonly systemName = "RotatingCubeSystem";
+    static override readonly systemDescription = "Демо: вращение сущности с компонентом Rotating.";
+
     private query = defineQuery([Rotation, ThreeMesh, Rotating, Position]);
 
     constructor(context: Context) {

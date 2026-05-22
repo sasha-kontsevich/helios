@@ -2,8 +2,10 @@
  * Read-only runtime view of a registered {@link System} for editor introspection.
  */
 export interface SystemRuntimeSnapshot {
-    /** `system.constructor.name` (same key as {@link SystemManager.get}). */
+    /** Stable id from `System.systemName` (same key as {@link SystemManager.get}). */
     readonly name: string;
+    /** Tooltip from `System.systemDescription` (may be empty). */
+    readonly description: string;
     /** Registration order (0 .. n-1). */
     readonly order: number;
     readonly enabled: boolean;

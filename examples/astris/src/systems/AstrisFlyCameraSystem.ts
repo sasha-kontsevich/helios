@@ -38,6 +38,9 @@ function forwardFromQuat(q: Quat): { x: number; y: number; z: number } {
 }
 
 export class AstrisFlyCameraSystem extends System {
+    static override readonly systemName = "AstrisFlyCameraSystem";
+    static override readonly systemDescription =
+        "Fly-камера: WASD, мышь, Shift — из ViewportInput (Play и редактор).";
     static override readonly runsInEditor = true;
 
     private readonly query = defineQuery([AstrisFlyCamera, Position, Rotation, Camera]);

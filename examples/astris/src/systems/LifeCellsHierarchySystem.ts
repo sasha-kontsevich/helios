@@ -7,6 +7,9 @@ import { ensureLifeCellsRootEid } from "../game/lifeCellsRoot";
  * Keeps an empty {@link LIFE_CELLS_ROOT_LABEL} group in the scene and parents every {@link LifeCell} under it.
  */
 export class LifeCellsHierarchySystem extends System {
+    static override readonly systemName = "LifeCellsHierarchySystem";
+    static override readonly systemDescription =
+        "Группирует сущности LifeCell под корнем LifeCells.";
     static override readonly runsInEditor = true;
 
     private readonly nameQuery = defineQuery([Name]);

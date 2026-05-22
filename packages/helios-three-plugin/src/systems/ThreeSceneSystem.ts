@@ -4,6 +4,8 @@ import { ThreeObject } from '../components';
 import { getThreeRenderContext } from "../ThreeRenderContext";
 
 export class ThreeSceneSystem extends System {
+    static override readonly systemName = "ThreeSceneSystem";
+    static override readonly systemDescription = "Добавляет ThreeObject в корень сцены Three.js.";
     static override readonly runsInEditor = true;
 
     private readonly query = defineQuery([ThreeObject]);

@@ -1,13 +1,16 @@
 <template>
   <div class="system-list">
-    <ul class="system-list__ul">
+    <ul class="system-list__ul helios-scroll">
       <li
         v-for="sys in systems"
         :key="sys.name"
         class="system-list__item"
         :class="{ 'system-list__item--dim': !sys.enabled }"
       >
-        <span class="system-list__name" :title="sys.name">{{ sys.name }}</span>
+        <span
+          class="system-list__name"
+          :title="sys.description.length > 0 ? sys.description : sys.name"
+        >{{ sys.name }}</span>
         <span class="system-list__badges">
           <button
             type="button"
@@ -68,9 +71,7 @@ defineEmits<{
   list-style: none;
   margin: 0;
   padding: 4px 0;
-  overflow: auto;
   flex: 1;
-  min-height: 0;
 }
 .system-list__item {
   display: flex;

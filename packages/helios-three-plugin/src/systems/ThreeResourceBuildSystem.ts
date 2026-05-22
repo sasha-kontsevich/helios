@@ -42,6 +42,9 @@ const materialResourceByDescHash = new Map<number, number>();
  * Turns core {@link Geometry} / {@link Material} into runtime resources on {@link ThreeMesh}.
  */
 export class ThreeResourceBuildSystem extends System {
+    static override readonly systemName = "ThreeResourceBuildSystem";
+    static override readonly systemDescription =
+        "Собирает Geometry/Material в ресурсы Three.js для мешей (в т.ч. в редакторе).";
     static override readonly runsInEditor = true;
 
     private readonly query = defineQuery([Mesh, Geometry, Material, ThreeObject]);

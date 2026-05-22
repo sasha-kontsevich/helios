@@ -38,6 +38,10 @@ function parseCellKey(key: string): [number, number] {
  * Syncs ECS entities with {@link LifeCell} to match each generation.
  */
 export class GameOfLifeStepSystem extends System {
+    static override readonly systemName = "GameOfLifeStepSystem";
+    static override readonly systemDescription =
+        "Шаг симуляции Conway Game of Life на сетке XZ.";
+
     private readonly nameQuery = defineQuery([Name]);
     private readonly cellQuery = defineQuery([LifeCell]);
     private stepAccumulator = 0;

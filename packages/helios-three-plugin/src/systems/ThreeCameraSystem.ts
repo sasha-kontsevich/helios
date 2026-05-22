@@ -7,6 +7,8 @@ import { getThreeRenderContext } from "../ThreeRenderContext";
 import { clearEntityPickingTag, tagObject3DForEntityPicking } from "../picking/tagThreeObjectForPicking";
 
 export class UpdateThreeCameraSystem extends System {
+    static override readonly systemName = "UpdateThreeCameraSystem";
+    static override readonly systemDescription = "Камера Three.js из ECS Camera.";
     static override readonly runsInEditor = true;
 
     private readonly cameraQuery = defineQuery([Camera, ThreeObject]);

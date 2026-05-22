@@ -5,6 +5,10 @@ import { applyBankAndSwayToQuat, ensureRotationComponent } from "./shipMotionMat
 import { getShipMotionTime } from "./shipMotionTime";
 
 export class ShipSwayRotationSystem extends System {
+    static override readonly systemName = "ShipSwayRotationSystem";
+    static override readonly systemDescription =
+        "Крен к центру орбиты и roll-покачивание (только Play).";
+
     private readonly query = defineQuery([ShipSway]);
 
     update(): void {

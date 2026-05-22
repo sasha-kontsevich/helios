@@ -2,6 +2,7 @@ export * from './Context';
 export * from './Engine';
 export * from './ComponentManager';
 export * from './System';
+export * from './systemMeta';
 export * from './Plugin';
 export * from './CapabilityRegistry';
 export * from './SystemManager';
